@@ -1,0 +1,3 @@
+[submodule "sv/env/tue"]
+	path = sv/env/tue
+	url = git@github.com:taichi-ishitani/tue.git
