@@ -7,7 +7,7 @@ module noc_round_robin_arbiter #(
   output  logic [REQUESTS-1:0]  o_grant,
   input   logic [REQUESTS-1:0]  i_release
 );
-  localparam  bit INITIAL_GRANT = 1 << (REQUESTS - 1);
+  localparam  bit [REQUESTS-1:0]  INITIAL_GRANT = 1 << (REQUESTS - 1);
 
   logic                 busy;
   logic                 grab_grant;
@@ -54,17 +54,20 @@ module noc_round_robin_arbiter #(
     end
   end
 
-  generate for (genvar g_i = 0;g_i < REQUESTS;++g_i) begin : g_next_grant_each
+  generate for (g_i = 0;g_i < REQUESTS;++g_i) begin : g_next_grant_each
     logic [REQUESTS-1:0]  request;
+    logic [REQUESTS-1:0]  grant_each;
+
+    assign  grant_each  = (current_grant[g_i]) ? request & (~(request + '1)) : '0;
 
     if (g_i < (REQUESTS-1)) begin
-      assign  request = {i_request[g_i:0], i_request[REQUESTS-1:g_i+1]};
+      assign  request               = {i_request[g_i:0] , i_request[REQUESTS-1:g_i+1] };
+      assign  next_grant_each[g_i]  = {grant_each[g_i:0], grant_each[REQUESTS-1:g_i+1]};
     end
     else begin
-      assign  request = i_request;
+      assign  request               = i_request;
+      assign  next_grant_each[g_i]  = grant_each;
     end
-
-    assign  next_grant_each[g_i]  = (current_grant[g_i]) ? request & (~(request + '1)) : '0;
   end endgenerate
 
   function automatic logic [REQUESTS-1:0] merge_next_grant(

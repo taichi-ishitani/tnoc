@@ -60,7 +60,7 @@ module noc_input_fifo
 
   //  Interface Connection
   noc_flit_if_demux #(.IFS(2)) u_fifo_in_demux (
-    .i_select     (input_fifo       ),
+    .i_select     (fifo_in          ),
     .flit_in_if   (flit_in_if       ),
     .flit_out_if  (flit_fifo_in_if  )
   );
