@@ -5,6 +5,7 @@ package noc_router_tests_pkg;
   import  tue_pkg::*;
   import  noc_bfm_types_pkg::*;
   import  noc_bfm_pkg::*;
+  import  noc_router_env_pkg::*;
 
   `include  "uvm_macros.svh"
   `include  "tue_macros.svh"
