@@ -6,6 +6,7 @@ module top();
   import  noc_config_pkg::*;
   import  noc_bfm_types_pkg::*;
   import  noc_bfm_pkg::*;
+  import  noc_common_env_pkg::*;
   import  noc_fabric_env_pkg::*;
   import  noc_fabric_tests_pkg::*;
 

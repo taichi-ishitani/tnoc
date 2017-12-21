@@ -30,6 +30,10 @@ class noc_fabric_env_configuration extends tue_configuration;
     end
   endfunction
 
+  function noc_bfm_configuration get_bfm_cfg(int y, int x);
+    return bfm_cfg[size_x*y+x];
+  endfunction
+
   `tue_object_default_constructor(noc_fabric_env_configuration)
   `uvm_object_utils(noc_fabric_env_configuration)
 endclass
