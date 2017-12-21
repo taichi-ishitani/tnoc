@@ -1,4 +1,5 @@
-`ifndef noc_router_test_base_svh
+`ifndef NOC_ROUTER_TEST_BASE_SVH
+`define NOC_ROUTER_TEST_BASE_SVH
 class noc_router_test_base extends tue_test #(noc_router_env_configuration);
   noc_router_env            env;
   noc_router_env_sequencer  sequencer;

@@ -34,6 +34,7 @@ endif
 
 FILE_LISTS	+= $(TUE_HOME)/compile.f
 FILE_LISTS	+= $(NOC_SV_HOME)/env/bfm/compile.f
+FILE_LISTS	+= $(NOC_SV_HOME)/env/common/compile.f
 
 -include local.mk
 

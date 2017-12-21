@@ -6,6 +6,7 @@ module top();
   import  noc_config_pkg::*;
   import  noc_bfm_types_pkg::*;
   import  noc_bfm_pkg::*;
+  import  noc_common_env_pkg::*;
   import  noc_router_env_pkg::*;
   import  noc_router_tests_pkg::*;
 
@@ -82,6 +83,8 @@ module top();
   initial begin
     noc_router_env_configuration  cfg = new();
     assert(cfg.randomize() with {
+      id_x == 1;
+      id_y == 1;
       foreach (bfm_cfg[i]) {
         bfm_cfg[i].address_width     == CONFIG.address_width;
         bfm_cfg[i].data_width        == CONFIG.data_width;

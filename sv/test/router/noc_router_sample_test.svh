@@ -2,14 +2,11 @@
 `define NOC_ROUTER_SAMPLE_TEST_SVH
 class noc_router_sample_test_sequence extends noc_router_test_sequence_base;
   task body();
-    fork
-      main_process(0);
-      main_process(1);
-      main_process(2);
-      main_process(3);
-      main_process(4);
-    join
-    #1us;
+    main_process(0);
+    main_process(1);
+    main_process(2);
+    main_process(3);
+    main_process(4);
   endtask
 
   task main_process(int port);
@@ -31,12 +28,6 @@ class noc_router_sample_test_sequence extends noc_router_test_sequence_base;
         }
         else {
           packet_type inside {NOC_BFM_READ, NOC_BFM_POSTED_WRITE, NOC_BFM_NON_POSTED_WRITE};
-        }
-        if ((i % 2) == (port % 2)) {
-          virtual_channel == 1;
-        }
-        else {
-          virtual_channel == 0;
         }
       })
     end
