@@ -10,6 +10,8 @@ package noc_config_pkg;
     int tag_width;
     int length_width;
     int virtual_channels;
+    int size_x;
+    int size_y;
   } noc_config;
 
   parameter noc_config  NOC_DEFAULT_CONFIG  = '{
@@ -20,7 +22,9 @@ package noc_config_pkg;
     vc_width:         3,
     length_width:     5,
     tag_width:        8,
-    virtual_channels: 2
+    virtual_channels: 2,
+    size_x:           3,
+    size_y:           3
   };
 endpackage
 `endif
