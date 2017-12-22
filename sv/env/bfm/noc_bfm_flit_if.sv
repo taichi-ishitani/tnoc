@@ -31,5 +31,17 @@ interface noc_bfm_flit_if (
     input ready;
     input flit;
   endclocking
+
+  modport initiator(
+    output  valid,
+    input   ready,
+    output  flit
+  );
+
+  modport target(
+    input   valid,
+    output  ready,
+    input   flit
+  );
 endinterface
 `endif

@@ -14,7 +14,7 @@ SIMV_ARGS	?=
 
 VCS_ARGS	+= -full64 -sverilog -timescale="1ns/1ps" -l vcs.log
 VCS_ARGS	+= -ntb_opts uvm +define+UVM_NO_DEPRECATED +define+UVM_OBJECT_MUST_HAVE_CONSTRUCTO
-SIMV_ARGS	+= -l $(TEST_NAME).log +UVM_TESTNAME=$(TEST_NAME)
+SIMV_ARGS	+= +vcs+lic+wait-l $(TEST_NAME).log +UVM_TESTNAME=$(TEST_NAME)
 
 DUMP			?= off
 GUI				?= off
@@ -31,10 +31,6 @@ ifeq ($(GUI), dve)
 	VCS_ARGS	+= +vcs+vcdpluson -debug_access+all
 	SIMV_ARGS	+= -gui=dve
 endif
-
-FILE_LISTS	+= $(TUE_HOME)/compile.f
-FILE_LISTS	+= $(NOC_SV_HOME)/env/bfm/compile.f
-FILE_LISTS	+= $(NOC_SV_HOME)/env/common/compile.f
 
 -include local.mk
 
