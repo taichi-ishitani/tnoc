@@ -5,17 +5,11 @@ module noc_route_selector
   parameter int         X         = 0,
   parameter int         Y         = 0
 )(
-  input logic               clk,
-  input logic               rst_n,
-  noc_flit_bus_if.target    flit_in_if,
-  noc_flit_bus_if.initiator flit_out_if_x_plus,
-  noc_flit_bus_if.initiator flit_out_if_x_minus,
-  noc_flit_bus_if.initiator flit_out_if_y_plus,
-  noc_flit_bus_if.initiator flit_out_if_y_minus,
-  noc_flit_bus_if.initiator flit_out_if_local
+  input logic                   clk,
+  input logic                   rst_n,
+  noc_flit_channel_if.target    flit_in_if,
+  noc_flit_channel_if.initiator flit_out_if[5]
 );
-  localparam  int CHANNELS  = CONFIG.virtual_channels;
-
   `include  "noc_packet.svh"
   `include  "noc_flit.svh"
   `include  "noc_flit_utils.svh"
@@ -29,8 +23,50 @@ module noc_route_selector
     ROUTE_NA      = 5'b00000
   } e_route;
 
-  genvar  g_i;
-  genvar  g_j;
+//--------------------------------------------------------------
+//  Routing
+//--------------------------------------------------------------
+  //  Channel State
+  logic             start_of_packet;
+  logic             end_of_packet;
+  logic             busy;
+
+  assign  start_of_packet = (
+    flit_in_if.valid && (!busy) && is_header_flit(flit_in_if.flit)
+  ) ? '1 : '0;
+  assign  end_of_packet = (
+    flit_in_if.valid && flit_in_if.ready && is_tail_flit(flit_in_if.flit)
+  ) ? '1 : '0;
+
+  always_ff @(posedge clk, negedge rst_n) begin
+    if (!rst_n) begin
+      busy  <= '0;
+    end
+    else if (end_of_packet) begin
+      busy  <= '0;
+    end
+    else if (start_of_packet) begin
+      busy  <= '1;
+    end
+  end
+
+  //  Selecting Route
+  noc_common_header header;
+  e_route           output_route;
+  logic [4:0]       output_route_temp[2];
+
+  assign  header                = get_common_header(flit_in_if.flit);
+  assign  output_route_temp[0]  = select_route(header.destination_id);
+  assign  output_route          = e_route'(output_route_temp[1]);
+
+  noc_value_keeper #(5, ROUTE_NA) u_output_route_keeper (
+    .clk      (clk                  ),
+    .rst_n    (rst_n                ),
+    .i_clear  (end_of_packet        ),
+    .i_valid  (start_of_packet      ),
+    .i_value  (output_route_temp[0] ),
+    .o_value  (output_route_temp[1] )
+  );
 
   function automatic e_route select_route(input noc_location_id destination_id);
     case (1'b1)
@@ -42,94 +78,16 @@ module noc_route_selector
     endcase
   endfunction
 
-  noc_flit_bus_if #(CONFIG) flit_out_if[5]();
-
-//--------------------------------------------------------------
-//  Routing
-//--------------------------------------------------------------
-  generate for (g_i = 0;g_i < CHANNELS;++g_i) begin : g_channel
-    noc_flit_channel_if #(CONFIG) flit_in_channel_if();
-    noc_flit_channel_if #(CONFIG) flit_channel_demux_if[5]();
-    logic                         start_of_packet;
-    logic                         end_of_packet;
-    logic                         busy;
-    noc_common_header             header;
-    logic [4:0]                   output_route_temp[2];
-    e_route                       output_route;
-
-    assign  flit_in_channel_if.valid  = flit_in_if.valid[g_i];
-    assign  flit_in_if.ready[g_i]     = flit_in_channel_if.ready;
-    assign  flit_in_channel_if.flit   = flit_in_if.flit[g_i];
-
-    //  Channel Status
-    assign  start_of_packet = (
-      flit_in_channel_if.valid && (!busy) && is_header_flit(flit_in_channel_if.flit)
-    ) ? '1 : '0;
-    assign  end_of_packet   = (
-      flit_in_channel_if.valid && flit_in_channel_if.ready && is_tail_flit(flit_in_channel_if.flit)
-    ) ? '1 : '0;
-
-    always_ff @(posedge clk, negedge rst_n) begin
-      if (!rst_n) begin
-        busy  <= '0;
-      end
-      else if (end_of_packet) begin
-        busy  <= '0;
-      end
-      else if (start_of_packet) begin
-        busy  <= '1;
-      end
-    end
-
-    //  Route Selection
-    assign  header                = get_common_header(flit_in_channel_if.flit);
-    assign  output_route_temp[0]  = select_route(header.destination_id);
-    assign  output_route          = e_route'(output_route_temp[1]);
-
-    noc_value_keeper #(5, ROUTE_NA) u_output_route_keeper (
-      .clk      (clk                  ),
-      .rst_n    (rst_n                ),
-      .i_clear  (end_of_packet        ),
-      .i_valid  (start_of_packet      ),
-      .i_value  (output_route_temp[0] ),
-      .o_value  (output_route_temp[1] )
-    );
-
-    noc_flit_channel_demux #(
-      .CONFIG     (CONFIG ),
-      .CHANNELS   (5      ),
-      .FIFO_DEPTH (2      )
-    ) u_flit_channe_demux (
-      .clk          (clk                    ),
-      .rst_n        (rst_n                  ),
-      .i_select     (output_route           ),
-      .flit_in_if   (flit_in_channel_if     ),
-      .flit_out_if  (flit_channel_demux_if  )
-    );
-
-    for (g_j = 0;g_j < 5;++g_j) begin
-      assign  flit_out_if[g_j].valid[g_i]       = flit_channel_demux_if[g_j].valid;
-      assign  flit_channel_demux_if[g_j].ready  = flit_out_if[g_j].ready[g_i];
-      assign  flit_out_if[g_j].flit[g_i]        = flit_channel_demux_if[g_j].flit;
-    end
-  end endgenerate
-
-//--------------------------------------------------------------
-//  Renaming
-//--------------------------------------------------------------
-  noc_flit_bus_renamer #(CONFIG) u_renamer_x_plus (
-    flit_out_if[0], flit_out_if_x_plus
-  );
-  noc_flit_bus_renamer #(CONFIG) u_renamer_x_minus (
-    flit_out_if[1], flit_out_if_x_minus
-  );
-  noc_flit_bus_renamer #(CONFIG) u_renamer_y_plus (
-    flit_out_if[2], flit_out_if_y_plus
-  );
-  noc_flit_bus_renamer #(CONFIG) u_renamer_y_minus (
-    flit_out_if[3], flit_out_if_y_minus
-  );
-  noc_flit_bus_renamer #(CONFIG) u_renamer_local (
-    flit_out_if[4], flit_out_if_local
+  //  Output DEMUX
+  noc_flit_channel_demux #(
+    .CONFIG     (CONFIG ),
+    .CHANNELS   (5      ),
+    .FIFO_DEPTH (2      )
+  ) u_flit_channe_demux (
+    .clk          (clk          ),
+    .rst_n        (rst_n        ),
+    .i_select     (output_route ),
+    .flit_in_if   (flit_in_if   ),
+    .flit_out_if  (flit_out_if  )
   );
 endmodule

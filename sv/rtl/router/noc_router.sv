@@ -82,10 +82,10 @@ module noc_router
 //--------------------------------------------------------------
 //  Output Switch
 //--------------------------------------------------------------
-  generate for (g_i = 0;g_i < 5;++g_i) begin : g_output_switch
-    noc_output_switch #(
+  generate for (g_i = 0;g_i < 5;++g_i) begin : g_output_block
+    noc_output_block #(
       .CONFIG (CONFIG )
-    ) u_output_switch (
+    ) u_output_block (
       .clk                (clk                  ),
       .rst_n              (rst_n                ),
       .flit_in_if_x_plus  (flit_bus_if[5*0+g_i] ),
