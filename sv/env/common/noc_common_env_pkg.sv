@@ -13,5 +13,7 @@ package noc_common_env_pkg;
   `uvm_analysis_imp_decl(_rx)
 
   `include  "noc_packet_scoreboard.svh"
+  `include  "noc_sequence_base.svh"
+  `include  "noc_test_base.svh"
 endpackage
 `endif

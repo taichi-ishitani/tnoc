@@ -39,8 +39,9 @@ endclass
 
 class noc_router_sample_test extends noc_router_test_base;
   function void start_of_simulation_phase(uvm_phase phase);
-    uvm_config_db #(uvm_object_wrapper)::set(sequencer, "main_phase", "default_sequence", noc_router_sample_test_sequence::type_id::get());
+    set_default_sequence(sequencer, "main_phase", noc_router_sample_test_sequence::type_id::get());
   endfunction
+
   `tue_component_default_constructor(noc_router_sample_test)
   `uvm_component_utils(noc_router_sample_test)
 endclass
