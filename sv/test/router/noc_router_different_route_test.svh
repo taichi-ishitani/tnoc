@@ -1,6 +1,6 @@
-`ifndef NOC_ROUTER_DIFFRENT_ROUTE_TEST_SEQUENCE_SVH
-`define NOC_ROUTER_DIFFRENT_ROUTE_TEST_SEQUENCE_SVH
-class noc_router_diffrent_route_test_sequence extends noc_router_test_sequence_base;
+`ifndef NOC_ROUTER_DIFFERENT_ROUTE_TEST_SEQUENCE_SVH
+`define NOC_ROUTER_DIFFERENT_ROUTE_TEST_SEQUENCE_SVH
+class noc_router_different_route_test_sequence extends noc_router_test_sequence_base;
   noc_bfm_location_id sources[2];
   noc_bfm_location_id destinations[2];
 
@@ -52,16 +52,16 @@ class noc_router_diffrent_route_test_sequence extends noc_router_test_sequence_b
     end
   endtask
 
-  `tue_object_default_constructor(noc_router_diffrent_route_test_sequence)
-  `uvm_object_utils(noc_router_diffrent_route_test_sequence)
+  `tue_object_default_constructor(noc_router_different_route_test_sequence)
+  `uvm_object_utils(noc_router_different_route_test_sequence)
 endclass
 
-class noc_router_diffrent_route_test extends noc_router_test_base;
+class noc_router_different_route_test extends noc_router_test_base;
   function void start_of_simulation_phase(uvm_phase phase);
-    set_default_sequence(sequencer, "main_phase", noc_router_diffrent_route_test_sequence::type_id::get());
+    set_default_sequence(sequencer, "main_phase", noc_router_different_route_test_sequence::type_id::get());
   endfunction
 
-  `tue_component_default_constructor(noc_router_diffrent_route_test)
-  `uvm_component_utils(noc_router_diffrent_route_test)
+  `tue_component_default_constructor(noc_router_different_route_test)
+  `uvm_component_utils(noc_router_different_route_test)
 endclass
 `endif

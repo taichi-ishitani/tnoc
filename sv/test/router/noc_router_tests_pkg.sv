@@ -13,7 +13,8 @@ package noc_router_tests_pkg;
 
   `include  "noc_router_test_base.svh"
   `include  "noc_router_sample_test.svh"
-  `include  "noc_router_diffrent_route_test.svh"
+  `include  "noc_router_different_route_test.svh"
+  `include  "noc_router_virtual_channel_test.svh"
 endpackage
 `endif
 
