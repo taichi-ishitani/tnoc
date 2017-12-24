@@ -11,6 +11,7 @@ SOURCE_FILES	?=
 
 VCS_ARGS	?=
 SIMV_ARGS	?=
+TEST_LIST	?=
 
 VCS_ARGS	+= -full64 -sverilog -timescale="1ns/1ps" -l vcs.log
 VCS_ARGS	+= -ntb_opts uvm +define+UVM_NO_DEPRECATED +define+UVM_OBJECT_MUST_HAVE_CONSTRUCTO
@@ -33,9 +34,17 @@ ifeq ($(GUI), dve)
 endif
 
 -include local.mk
+-include test_list.mk
 
 VCS_ARGS	+= $(addprefix -f , $(FILE_LISTS))
 VCS_ARGS	+= $(SOURCE_FILES)
+
+.PHONY: all run_simv compile_simv clean clean_all $(TEST_LIST) 
+
+all: $(TEST_LIST)
+
+$(TEST_LIST):
+	make run_simv TEST_NAME=$@
 
 run_simv:
 	if [ ! -f simv ] ; then \
@@ -52,3 +61,7 @@ compile_simv:
 CLEAN_TARGETS	= simv* csrc *.log *.h
 clean:
 	rm -rf $(CLEAN_TARGETS)
+
+clean_all:
+	make clean
+	rm -rf $(TEST_LIST)
