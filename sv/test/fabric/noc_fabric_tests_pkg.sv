@@ -5,6 +5,7 @@ package noc_fabric_tests_pkg;
   import  tue_pkg::*;
   import  noc_bfm_types_pkg::*;
   import  noc_bfm_pkg::*;
+  import  noc_common_env_pkg::*;
   import  noc_fabric_env_pkg::*;
 
   `include  "uvm_macros.svh"

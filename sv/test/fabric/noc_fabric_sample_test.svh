@@ -7,7 +7,6 @@ class noc_fabric_sample_test_sequence extends noc_fabric_test_sequence_base;
         main_process(y, x);
       end
     end
-    #1us;
   endtask
 
   task main_process(int y, int x);
@@ -40,8 +39,9 @@ endclass
 
 class noc_fabric_sample_test extends noc_fabric_test_base;
   function void start_of_simulation_phase(uvm_phase phase);
-    uvm_config_db #(uvm_object_wrapper)::set(sequencer, "main_phase", "default_sequence", noc_fabric_sample_test_sequence::type_id::get());
+    set_default_sequence(sequencer, "main_phase", noc_fabric_sample_test_sequence::type_id::get());
   endfunction
+
   `tue_component_default_constructor(noc_fabric_sample_test)
   `uvm_component_utils(noc_fabric_sample_test)
 endclass
