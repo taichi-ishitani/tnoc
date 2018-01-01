@@ -16,6 +16,5 @@ ${NOC_SV_HOME}/rtl/common/noc_flit_if_renamer.sv
 ${NOC_SV_HOME}/rtl/common/noc_flit_channel_fifo.sv
 ${NOC_SV_HOME}/rtl/common/noc_flit_channel_mux.sv
 ${NOC_SV_HOME}/rtl/common/noc_flit_channel_demux.sv
-${NOC_SV_HOME}/rtl/common/noc_flit_channel_merger.sv
 
 ${NOC_SV_HOME}/rtl/common/noc_flit_bus_renamer.sv

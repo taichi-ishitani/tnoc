@@ -55,7 +55,7 @@ module noc_output_block
     );
   end endgenerate
 
-  noc_flit_channe_merger #(
+  noc_channe_merger #(
     .CONFIG (CONFIG )
   ) u_channe_merger (
     .clk          (clk                  ),

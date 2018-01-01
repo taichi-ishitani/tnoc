@@ -12,6 +12,7 @@ package noc_config_pkg;
     int virtual_channels;
     int size_x;
     int size_y;
+    int timeout;
   } noc_config;
 
   parameter noc_config  NOC_DEFAULT_CONFIG  = '{
@@ -24,7 +25,8 @@ package noc_config_pkg;
     tag_width:        8,
     virtual_channels: 2,
     size_x:           3,
-    size_y:           3
+    size_y:           3,
+    timeout:          7
   };
 endpackage
 `endif
