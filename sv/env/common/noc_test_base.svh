@@ -9,6 +9,11 @@ class noc_test_base #(
   ENV       env;
   SEQUENCER sequencer;
 
+  function new(string name = "noc_test_base", uvm_component parent = null);
+    super.new(name, parent);
+    print_random_seed();
+  endfunction
+
   function void build_phase(uvm_phase phase);
     super.build_phase(phase);
     env = ENV::type_id::create("env", this);
@@ -36,6 +41,8 @@ class noc_test_base #(
     );
   endfunction
 
-  `tue_component_default_constructor(noc_test_base)
+  function void print_random_seed();
+    `uvm_info("SRANDOM", $sformatf("Initial Random Seed: %0d", $get_initial_random_seed), UVM_NONE)
+  endfunction
 endclass
 `endif
