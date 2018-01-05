@@ -14,16 +14,16 @@ module noc_channe_merger
   `include  "noc_packet.svh"
   `include  "noc_flit.svh"
 
-  logic [CHANNELS-1:0]      request;
-  logic [CHANNELS-1:0]      grant;;
-  logic [CHANNELS-1:0]      valid;
-  logic                     ready;
-  noc_flit                  flit_in[CHANNELS];
-  noc_flit                  flit_out;
-  noc_flit                  flit;
-  logic                     timeout;
-  logic [COUNTER_WIDTH-1:0] timeout_counter;
-  genvar                    g_i;
+  logic [CHANNELS-1:0]        request;
+  logic [CHANNELS-1:0]        grant;
+  logic [CHANNELS-1:0]        valid;
+  logic                       ready;
+  logic [$bits(noc_flit)-1:0] flit_in[CHANNELS];
+  logic [$bits(noc_flit)-1:0] flit_out;
+  noc_flit                    flit;
+  logic                       timeout;
+  logic [COUNTER_WIDTH-1:0]   timeout_counter;
+  genvar                      g_i;
 
 //--------------------------------------------------------------
 //  Channel Arbitration/Flit Selection

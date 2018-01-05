@@ -14,12 +14,12 @@ module noc_flit_channel_mux
   `include  "noc_packet.svh"
   `include  "noc_flit.svh"
 
-  logic [CHANNELS-1:0]  valid_in;
-  logic                 valid_out;
-  logic                 ready_in;
-  noc_flit              flit_in[CHANNELS];
-  noc_flit              flit_out;
-  genvar                g_i;
+  logic [CHANNELS-1:0]        valid_in;
+  logic                       valid_out;
+  logic                       ready_in;
+  logic [$bits(noc_flit)-1:0] flit_in[CHANNELS];
+  logic [$bits(noc_flit)-1:0] flit_out;
+  genvar                      g_i;
 
   generate for (g_i = 0;g_i < CHANNELS;++g_i) begin
     assign  valid_in[g_i]         = flit_in_if[g_i].valid;
