@@ -1,10 +1,9 @@
 module noc_router
   import  noc_config_pkg::*;
 #(
-  parameter noc_config  CONFIG    = NOC_DEFAULT_CONFIG,
-  parameter int         DEPTH     = 8,
-  parameter int         X         = 0,
-  parameter int         Y         = 0
+  parameter noc_config  CONFIG  = NOC_DEFAULT_CONFIG,
+  parameter int         X       = 0,
+  parameter int         Y       = 0
 )(
   input logic           clk,
   input logic           rst_n,
@@ -64,7 +63,6 @@ module noc_router
   generate for (g_i = 0;g_i < 5;++g_i) begin : g_input_block
     noc_input_block #(
       .CONFIG (CONFIG ),
-      .DEPTH  (DEPTH  ),
       .X      (X      ),
       .Y      (Y      )
     ) u_input_block (

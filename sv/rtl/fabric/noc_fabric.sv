@@ -2,7 +2,6 @@ module noc_fabric
   import  noc_config_pkg::*;
 #(
   parameter   noc_config  CONFIG      = NOC_DEFAULT_CONFIG,
-  parameter   int         FIFO_DEPTH  = 8,
   localparam  int         SIZE_X      = CONFIG.size_x,
   localparam  int         SIZE_Y      = CONFIG.size_y,
   localparam  int         TOTAL_SIZE  = SIZE_X * SIZE_Y
@@ -28,10 +27,9 @@ module noc_fabric
       localparam  int FLIT_IF_INDEX_L = 1 * ((SIZE_X + 0) * g_i + g_j);
 
       noc_router #(
-        .CONFIG (CONFIG     ),
-        .DEPTH  (FIFO_DEPTH ),
-        .X      (g_j        ),
-        .Y      (g_i        )
+        .CONFIG (CONFIG ),
+        .X      (g_j    ),
+        .Y      (g_i    )
       ) u_router (
         .clk                  (clk                          ),
         .rst_n                (rst_n                        ),

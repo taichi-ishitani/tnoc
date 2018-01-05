@@ -1,10 +1,9 @@
 module noc_input_block
   import  noc_config_pkg::*;
 #(
-  parameter noc_config  CONFIG    = NOC_DEFAULT_CONFIG,
-  parameter int         DEPTH     = 8,
-  parameter int         X         = 0,
-  parameter int         Y         = 0
+  parameter noc_config  CONFIG  = NOC_DEFAULT_CONFIG,
+  parameter int         X       = 0,
+  parameter int         Y       = 0
 )(
   input logic               clk,
   input logic               rst_n,
@@ -16,6 +15,7 @@ module noc_input_block
   noc_flit_bus_if.initiator flit_out_if_local
 );
   localparam  int CHANNELS  = CONFIG.virtual_channels;
+  localparam  int DEPTH     = CONFIG.input_fifo_depth;
 
   noc_flit_bus_if #(CONFIG) flit_out_if[5]();
 

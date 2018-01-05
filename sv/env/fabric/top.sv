@@ -54,10 +54,7 @@ module top();
     end
   end
 
-  noc_fabric #(
-    .CONFIG     (CONFIG ),
-    .FIFO_DEPTH (8      )
-  ) u_dut (
+  noc_fabric #(CONFIG) u_dut (
     .clk          (clk          ),
     .rst_n        (rst_n        ),
     .flit_in_if   (flit_in_if   ),

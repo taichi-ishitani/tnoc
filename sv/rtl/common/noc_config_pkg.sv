@@ -10,6 +10,7 @@ package noc_config_pkg;
     int tag_width;
     int length_width;
     int virtual_channels;
+    int input_fifo_depth;
     int size_x;
     int size_y;
     int timeout;
@@ -24,6 +25,7 @@ package noc_config_pkg;
     length_width:     5,
     tag_width:        8,
     virtual_channels: 2,
+    input_fifo_depth: 8,
     size_x:           3,
     size_y:           3,
     timeout:          7
