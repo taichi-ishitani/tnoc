@@ -46,7 +46,8 @@ module top();
   );
 
   for (genvar g_i = 0;g_i < 9;++g_i) begin
-    assign  bfm_flit_out_if[g_i].ready  = '1;
+    assign  bfm_flit_out_if[g_i].ready        = '1;
+    assign  bfm_flit_out_if[g_i].vc_available = '1;
 
     initial begin
       tx_vif[g_i] = bfm_flit_in_if[g_i];

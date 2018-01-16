@@ -30,15 +30,15 @@ module noc_flit_if_connector
     return bfm_flit;
   endfunction
 
-  genvar  g_i;
+  generate for (genvar i = 0;i < IFS;++i) begin
+    assign  flit_in_if[i].valid             = flit_bfm_in_if[i].valid;
+    assign  flit_bfm_in_if[i].ready         = flit_in_if[i].ready;
+    assign  flit_in_if[i].flit              = convert_to_dut_flit(flit_bfm_in_if[i].flit);
+    assign  flit_bfm_in_if[i].vc_available  = flit_in_if[i].vc_available;
 
-  generate for (g_i = 0;g_i < IFS;++g_i) begin
-    assign  flit_in_if[g_i].valid     = flit_bfm_in_if[g_i].valid;
-    assign  flit_bfm_in_if[g_i].ready = flit_in_if[g_i].ready;
-    assign  flit_in_if[g_i].flit      = convert_to_dut_flit(flit_bfm_in_if[g_i].flit);
-
-    assign  flit_bfm_out_if[g_i].valid  = flit_out_if[g_i].valid;
-    assign  flit_out_if[g_i].ready      = flit_bfm_out_if[g_i].ready;
-    assign  flit_bfm_out_if[g_i].flit   = convert_to_bfm_flit(flit_out_if[g_i].flit);
+    assign  flit_bfm_out_if[i].valid    = flit_out_if[i].valid;
+    assign  flit_out_if[i].ready        = flit_bfm_out_if[i].ready;
+    assign  flit_bfm_out_if[i].flit     = convert_to_bfm_flit(flit_out_if[i].flit);
+    assign  flit_out_if[i].vc_available = flit_bfm_out_if[i].vc_available;
   end endgenerate
 endmodule

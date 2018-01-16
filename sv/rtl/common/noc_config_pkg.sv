@@ -13,7 +13,6 @@ package noc_config_pkg;
     int input_fifo_depth;
     int size_x;
     int size_y;
-    int timeout;
   } noc_config;
 
   parameter noc_config  NOC_DEFAULT_CONFIG  = '{
@@ -27,8 +26,7 @@ package noc_config_pkg;
     virtual_channels: 2,
     input_fifo_depth: 8,
     size_x:           3,
-    size_y:           3,
-    timeout:          7
+    size_y:           3
   };
 endpackage
 `endif

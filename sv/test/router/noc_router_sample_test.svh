@@ -23,7 +23,7 @@ class noc_router_sample_test_sequence extends noc_router_test_sequence_base;
       `uvm_do_on_with(packet_item, p_sequencer.bfm_sequencer[port], {
         destination_id.x == x;
         destination_id.y == y;
-        if ((i % 2) == 0) {
+        if (i < 10) {
           packet_type inside {NOC_BFM_RESPONSE, NOC_BFM_RESPONSE_WITH_DATA};
         }
         else {

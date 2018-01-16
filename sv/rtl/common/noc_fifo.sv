@@ -1,12 +1,14 @@
 module noc_fifo #(
-  parameter int WIDTH = 8,
-  parameter int DEPTH = 8
+  parameter int WIDTH     = 8,
+  parameter int DEPTH     = 8,
+  parameter int THRESHOLD = DEPTH - 1
 )(
   input   logic             clk,
   input   logic             rst_n,
   input   logic             i_clear,
   output  logic             o_empty,
   output  logic             o_full,
+  output  logic             o_almost_full,
   input   logic             i_valid,
   output  logic             o_ready,
   input   logic [WIDTH-1:0] i_data,
@@ -19,6 +21,7 @@ module noc_fifo #(
   logic                     we;
   logic                     re;
   logic                     empty;
+  logic                     almost_full;
   logic                     full;
   logic [POINTER_WIDTH-1:0] pointer;
   logic [POINTER_WIDTH-1:0] pointer_next;
@@ -26,8 +29,9 @@ module noc_fifo #(
 //--------------------------------------------------------------
 //  FIFO Control
 //--------------------------------------------------------------
-  assign  o_empty = empty;
-  assign  o_full  = full;
+  assign  o_empty       = empty;
+  assign  o_almost_full = almost_full;
+  assign  o_full        = full;
 
   assign  we            = (i_valid && (!full )) ? '1 : '0;
   assign  re            = (i_ready && (!empty)) ? '1 : '0;
@@ -35,19 +39,22 @@ module noc_fifo #(
                         : ({we, re} == 2'b01) ? pointer - 1 : pointer;
   always_ff @(posedge clk, negedge rst_n) begin
     if (!rst_n) begin
-      pointer <= '0;
-      empty   <= '1;
-      full    <= '0;
+      pointer     <= '0;
+      empty       <= '1;
+      almost_full <= '0;
+      full        <= '0;
     end
     else if (i_clear) begin
-      pointer <= '0;
-      empty   <= '1;
-      full    <= '0;
+      pointer     <= '0;
+      empty       <= '1;
+      almost_full <= '0;
+      full        <= '0;
     end
     else if (we || re) begin
-      pointer <= pointer_next;
-      empty   <= (re && (pointer_next == 0    )) ? 1 : 0;
-      full    <= (we && (pointer_next == DEPTH)) ? 1 : 0;
+      pointer     <= pointer_next;
+      empty       <= (re && (pointer_next == 0        )) ? 1 : 0;
+      almost_full <= (      (pointer_next >= THRESHOLD)) ? '1 : '0;
+      full        <= (we && (pointer_next == DEPTH    )) ? 1 : 0;
     end
   end
 
@@ -80,7 +87,7 @@ module noc_fifo #(
 //--------------------------------------------------------------
 //  In/Out Interface
 //--------------------------------------------------------------
-  assign  o_ready = (!full ) ? '1 : '0;
-  assign  o_valid = (!empty) ? '1 : '0;
+  assign  o_ready = (!full ) ? '1      : '0;
+  assign  o_valid = (!empty) ? '1      : '0;
   assign  o_data  = fifo[0];
 endmodule

@@ -33,6 +33,7 @@ localparam  int LOWER_ADDRESS_WIDTH = $clog2(CONFIG.data_width / 8);
 typedef logic [LOWER_ADDRESS_WIDTH-1:0] noc_lower_address;
 
 `define noc_packet_header_common_fields \
+logic           invalid_destination; \
 noc_length      length; \
 noc_tag         tag; \
 noc_vc          vc; \
