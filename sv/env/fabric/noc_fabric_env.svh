@@ -11,7 +11,7 @@ class noc_fabric_env extends tue_env #(noc_fabric_env_configuration);
 
     for (int y = 0;y < configuration.size_y;++y) begin
       for (int x = 0;x < configuration.size_x;++x) begin
-        bfm_agent[y][x] = noc_bfm_packet_agent::type_id::create($sformatf("bfm_agent[%d][%0d]", y, x), this);
+        bfm_agent[y][x] = noc_bfm_packet_agent::type_id::create($sformatf("bfm_agent[%0d][%0d]", y, x), this);
         bfm_agent[y][x].set_configuration(configuration.get_bfm_cfg(y, x));
 
         packet_scoreboard[y][x] = noc_packet_scoreboard::type_id::create($sformatf("packet_scoreboard[%0d][%0d]", y, x), this);
