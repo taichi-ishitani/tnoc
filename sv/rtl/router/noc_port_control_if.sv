@@ -7,29 +7,26 @@ interface noc_port_control_if
 )();
   localparam  int CHANNELS  = CONFIG.virtual_channels;
 
-  logic [CHANNELS-1:0]  port_request;
-  logic [CHANNELS-1:0]  port_grant;
-  logic [CHANNELS-1:0]  port_free;
-  logic [CHANNELS-1:0]  vc_request;
-  logic [CHANNELS-1:0]  vc_grant;
-  logic [CHANNELS-1:0]  vc_free;
+  logic [CHANNELS-1:0]  request;
+  logic [CHANNELS-1:0]  grant;
+  logic [CHANNELS-1:0]  free;
+  logic [CHANNELS-1:0]  start_of_packet;
+  logic [CHANNELS-1:0]  end_of_packet;
 
   modport requester (
-    output  port_request,
-    input   port_grant,
-    output  port_free,
-    output  vc_request,
-    input   vc_grant,
-    output  vc_free
+    output  request,
+    input   grant,
+    output  free,
+    output  start_of_packet,
+    output  end_of_packet
   );
 
   modport arbitrator (
-    input   port_request,
-    output  port_grant,
-    input   port_free,
-    input   vc_request,
-    output  vc_grant,
-    input   vc_free
+    input   request,
+    output  grant,
+    input   free,
+    input   start_of_packet,
+    input   end_of_packet
   );
 endinterface
 `endif

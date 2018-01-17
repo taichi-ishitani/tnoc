@@ -18,9 +18,9 @@ module noc_input_fifo
 
   noc_flit_if #(CONFIG, 1)  flit_if[CHANNELS]();
 
-  noc_flit_if_splitter #(
+  noc_vc_demux #(
     .CONFIG (CONFIG )
-  ) u_splitter (
+  ) u_vc_demux (
     .flit_in_if   (flit_in_if ),
     .flit_out_if  (flit_if    )
   );

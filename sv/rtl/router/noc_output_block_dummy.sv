@@ -37,7 +37,6 @@ module noc_output_block_dummy
     assign  flit_in_if[i].ready         = '0;
     assign  flit_in_if[i].vc_available  = '0;
 
-    assign  port_control_if[i].port_grant = '0;
-    assign  port_control_if[i].vc_grant   = '0;
+    assign  port_control_if[i].grant  = '0;
   end endgenerate
 endmodule

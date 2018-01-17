@@ -37,9 +37,9 @@ module noc_input_block_dummy
     assign  flit_out_if[i].valid  = '0;
     assign  flit_out_if[i].flit   = '0;
 
-    assign  port_control_if[i].port_request = '0;
-    assign  port_control_if[i].port_free    = '0;
-    assign  port_control_if[i].vc_request   = '0;
-    assign  port_control_if[i].vc_free      = '0;
+    assign  port_control_if[i].request          = '0;
+    assign  port_control_if[i].free             = '0;
+    assign  port_control_if[i].start_of_packet  = '0;
+    assign  port_control_if[i].end_of_packet    = '0;
   end endgenerate
 endmodule

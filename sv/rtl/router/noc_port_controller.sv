@@ -11,17 +11,28 @@ module noc_port_controller
   output  logic [4:0]             o_output_grant,
   input   logic                   i_output_free
 );
+  logic [4:0]           request[CHANNELS];
+  logic [4:0]           grant[CHANNELS];
+  logic [4:0]           free[CHANNELS];
   logic [4:0]           port_grant[CHANNELS];
-  logic [4:0]           port_vc_request[CHANNELS];
-  logic [4:0]           port_vc_free[CHANNELS];
   logic [CHANNELS-1:0]  vc_request;
   logic [CHANNELS-1:0]  vc_grant;
   logic [CHANNELS-1:0]  vc_free;
-  logic [4:0]           output_grant_temp;
-  logic                 output_grant_valid;
-  logic [4:0]           output_grant;
+  logic [CHANNELS-1:0]  vc_available;;
   logic                 fifo_push;
-  logic                 fifo_full;
+  logic                 fifo_pop;
+  logic                 fifo_valid;
+  logic                 fifo_ready;
+  logic [4:0]           output_grant;
+  logic [4:0]           output_grant_temp;
+
+  generate for (genvar i = 0;i < CHANNELS;++i) begin
+    for (genvar j = 0;j < 5;++j) begin
+      assign  request[i][j]               = port_control_if[j].request[i];
+      assign  port_control_if[j].grant[i] = grant[i][j];
+      assign  free[i][j]                  = port_control_if[j].free[i];
+    end
+  end endgenerate
 
 //--------------------------------------------------------------
 //  Port Arbitration
@@ -31,9 +42,8 @@ module noc_port_controller
     logic [4:0] port_free;
 
     for (genvar j = 0;j < 5;++j) begin
-      assign  port_request[j]                   = port_control_if[j].port_request[i];
-      assign  port_control_if[j].port_grant[i]  = port_grant[i][j];
-      assign  port_free[j]                      = port_control_if[j].port_free[i];
+      assign  port_request[j] = port_control_if[j].start_of_packet[i];
+      assign  port_free[j]    = port_control_if[j].end_of_packet[i];
     end
 
     noc_round_robin_arbiter #(
@@ -51,15 +61,11 @@ module noc_port_controller
 //--------------------------------------------------------------
 //  VC Arbitration
 //--------------------------------------------------------------
-  generate for (genvar i = 0;i < CHANNELS;++i) begin
-    assign  vc_request[i] = (i_vc_available[i] && (!fifo_full)) ? |port_vc_request[i] : '0;
-    assign  vc_free[i]    = |port_vc_free[i];
+  assign  vc_available  = i_vc_available & {CHANNELS{fifo_ready}};
 
-    for (genvar j = 0;j < 5;++j) begin
-      assign  port_vc_request[i][j]           = (port_grant[i][j]) ? port_control_if[j].vc_request[i] : '0;
-      assign  port_control_if[j].vc_grant[i]  = (port_grant[i][j]) ? vc_grant[i]                      : '0;
-      assign  port_vc_free[i][j]              = (port_grant[i][j]) ? port_control_if[j].vc_free[i]    : '0;
-    end
+  generate for (genvar i = 0;i < CHANNELS;++i) begin : g_vc_arbitration
+    assign  vc_request[i] = |(request[i] & port_grant[i] & {5{vc_available[i]}});
+    assign  vc_free[i]    = |(free[i]    & port_grant[i]                       );
   end endgenerate
 
   noc_round_robin_arbiter #(
@@ -74,34 +80,41 @@ module noc_port_controller
   );
 
 //--------------------------------------------------------------
-//  Output Grant
+//  Grant
 //--------------------------------------------------------------
+  generate for (genvar i = 0;i < CHANNELS;++i) begin
+    assign  grant[i]  = (vc_grant[i]) ? port_grant[i] : '0;
+  end endgenerate
+
   noc_mux #(
-    .WIDTH    (5          ),
-    .ENTRIES  (CHANNELS   )
-  ) u_output_grant_mux (
+    .WIDTH    (5  ),
+    .ENTRIES  (2  )
+  ) u_grant_mux (
     .i_select (vc_grant           ),
     .i_value  (port_grant         ),
     .o_value  (output_grant_temp  )
   );
 
-  assign  fifo_push       = |vc_free;
-  assign  o_output_grant  = (output_grant_valid) ? output_grant : '0;
+  assign  fifo_push = |vc_free;
+  assign  fifo_pop  = i_output_free;
+
   noc_fifo #(
     .WIDTH  (5  ),
     .DEPTH  (2  )
-  ) u_output_grant_fifo (
+  ) u_grant_fifo (
     .clk            (clk                ),
     .rst_n          (rst_n              ),
     .i_clear        ('0                 ),
     .o_empty        (),
-    .o_full         (fifo_full          ),
+    .o_full         (),
     .o_almost_full  (),
     .i_valid        (fifo_push          ),
-    .o_ready        (),
+    .o_ready        (fifo_ready         ),
     .i_data         (output_grant_temp  ),
-    .o_valid        (output_grant_valid ),
-    .i_ready        (i_output_free      ),
+    .o_valid        (fifo_valid         ),
+    .i_ready        (fifo_pop           ),
     .o_data         (output_grant       )
   );
+
+  assign  o_output_grant  = (fifo_valid) ? output_grant : '0;
 endmodule
