@@ -16,6 +16,7 @@ class noc_bfm_packet_item extends noc_bfm_packet_item_base;
   rand  noc_bfm_vc              virtual_channel;
   rand  noc_bfm_tag             tag;
   rand  int                     length;
+  rand  bit                     invalid_destination;
   rand  noc_bfm_address         address;
   rand  noc_bfm_response_status status;
   rand  noc_bfm_lower_address   lower_address;
@@ -50,6 +51,17 @@ class noc_bfm_packet_item extends noc_bfm_packet_item_base;
 
   constraint c_valid_length {
     length inside {[1:2**configuration.length_width]};
+  }
+
+  constraint c_default_invalid_destination {
+    soft invalid_destination == 0;
+  }
+
+  constraint c_default_address {
+    solve packet_type before address;
+    if (packet_type[7]) {
+      address == 0;
+    }
   }
 
   constraint c_valid_status {
@@ -167,14 +179,15 @@ class noc_bfm_packet_item extends noc_bfm_packet_item_base;
     noc_bfm_flit  flit;
     s_data_packer data_packer[$];
 
-    data_packer.push_back('{data: packet_type     , width: 8                         });
-    data_packer.push_back('{data: destination_id.y, width: configuration.id_y_width  });
-    data_packer.push_back('{data: destination_id.x, width: configuration.id_x_width  });
-    data_packer.push_back('{data: source_id.y     , width: configuration.id_y_width  });
-    data_packer.push_back('{data: source_id.x     , width: configuration.id_x_width  });
-    data_packer.push_back('{data: virtual_channel , width: configuration.vc_width    });
-    data_packer.push_back('{data: tag             , width: configuration.tag_width   });
-    data_packer.push_back('{data: length          , width: configuration.length_width});
+    data_packer.push_back('{data: packet_type        , width: 8                         });
+    data_packer.push_back('{data: destination_id.y   , width: configuration.id_y_width  });
+    data_packer.push_back('{data: destination_id.x   , width: configuration.id_x_width  });
+    data_packer.push_back('{data: source_id.y        , width: configuration.id_y_width  });
+    data_packer.push_back('{data: source_id.x        , width: configuration.id_x_width  });
+    data_packer.push_back('{data: virtual_channel    , width: configuration.vc_width    });
+    data_packer.push_back('{data: tag                , width: configuration.tag_width   });
+    data_packer.push_back('{data: length             , width: configuration.length_width});
+    data_packer.push_back('{data: invalid_destination, width: 1                         });
     if (is_request()) begin
       data_packer.push_back('{data: address, width: configuration.address_width});
     end
@@ -203,6 +216,7 @@ class noc_bfm_packet_item extends noc_bfm_packet_item_base;
     data_packer.push_back('{data: '0, width: configuration.vc_width    });
     data_packer.push_back('{data: '0, width: configuration.tag_width   });
     data_packer.push_back('{data: '0, width: configuration.length_width});
+    data_packer.push_back('{data: '0, width: 1                         });
     if (is_request()) begin
       data_packer.push_back('{data: '0, width: configuration.address_width});
     end
@@ -214,18 +228,19 @@ class noc_bfm_packet_item extends noc_bfm_packet_item_base;
 
     unpack_flit_data(flit, data_packer, 8);
 
-    destination_id  = '{y: data_packer[0].data, x: data_packer[1].data};
-    source_id       = '{y: data_packer[2].data, x: data_packer[3].data};
-    virtual_channel = data_packer[4].data;
-    tag             = data_packer[5].data;
-    length          = (data_packer[6].data == 0) ? 2**configuration.length_width : data_packer[6].data;
+    destination_id      = '{y: data_packer[0].data, x: data_packer[1].data};
+    source_id           = '{y: data_packer[2].data, x: data_packer[3].data};
+    virtual_channel     = data_packer[4].data;
+    tag                 = data_packer[5].data;
+    length              = (data_packer[6].data == 0) ? 2**configuration.length_width : data_packer[6].data;
+    invalid_destination = data_packer[7].data;
     if (is_request()) begin
-      address = data_packer[7].data;
+      address = data_packer[8].data;
     end
     else begin
-      status        = noc_bfm_response_status'(data_packer[7].data);
-      lower_address = data_packer[8].data;
-      last_response = data_packer[9].data;
+      status        = noc_bfm_response_status'(data_packer[8].data);
+      lower_address = data_packer[9].data;
+      last_response = data_packer[10].data;
     end
   endfunction
 
