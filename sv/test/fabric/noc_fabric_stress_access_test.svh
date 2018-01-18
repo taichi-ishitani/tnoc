@@ -2,6 +2,13 @@
 `define NOC_FABRIC_STRESS_ACCESS_TEST_SVH
 class noc_fabric_stress_access_test_sequence extends noc_fabric_test_sequence_base;
   task body();
+    stress_access_test(0);
+    stress_access_test(1);
+    stress_access_test(2);
+    stress_access_test(3);
+  endtask
+
+  task stress_access_test(int test_mode);
     noc_bfm_location_id destination;
 
     void'(std::randomize(destination) with {
@@ -12,20 +19,29 @@ class noc_fabric_stress_access_test_sequence extends noc_fabric_test_sequence_ba
     foreach (p_sequencer.bfm_sequencer[y, x]) begin
       fork
         automatic uvm_sequencer_base  sequencer = p_sequencer.bfm_sequencer[y][x];
-        do_noc_access(sequencer, destination);
+        do_noc_access(sequencer, destination, test_mode);
       join_none
     end
 
     wait fork;
   endtask
 
-  task do_noc_access(uvm_sequencer_base sequencer, noc_bfm_location_id destination);
+  task do_noc_access(uvm_sequencer_base sequencer, noc_bfm_location_id destination, int test_mode);
     for (int i = 0;i < 20;++i) begin
       noc_bfm_packet_item packet_item;
       `uvm_do_on_with(packet_item, sequencer, {
         destination_id == destination;
-        ((i % 2) == 0) -> packet_type inside {NOC_BFM_RESPONSE, NOC_BFM_RESPONSE_WITH_DATA};
-        ((i % 2) == 1) -> packet_type inside {NOC_BFM_READ, NOC_BFM_POSTED_WRITE, NOC_BFM_NON_POSTED_WRITE};
+        length         >= 8;
+        if (test_mode == 0) {
+           packet_type inside {NOC_BFM_RESPONSE, NOC_BFM_RESPONSE_WITH_DATA};
+        }
+        else if (test_mode == 1) {
+          packet_type inside {NOC_BFM_READ, NOC_BFM_POSTED_WRITE, NOC_BFM_NON_POSTED_WRITE};
+        }
+        else if (test_mode == 2) {
+          ((i % 2) == 0) -> packet_type inside {NOC_BFM_RESPONSE, NOC_BFM_RESPONSE_WITH_DATA};
+          ((i % 2) == 1) -> packet_type inside {NOC_BFM_READ, NOC_BFM_POSTED_WRITE, NOC_BFM_NON_POSTED_WRITE};
+        }
       })
     end
   endtask
