@@ -14,7 +14,7 @@ module noc_input_fifo
   noc_flit_if.initiator         flit_out_if[CHANNELS]
 );
   localparam  int DEPTH     = CONFIG.input_fifo_depth;
-  localparam  int THRESHOLD = DEPTH - 4;
+  localparam  int THRESHOLD = DEPTH - 2;
 
   noc_flit_if #(CONFIG, 1)  flit_if[CHANNELS]();
 
