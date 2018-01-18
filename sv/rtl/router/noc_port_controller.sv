@@ -71,7 +71,7 @@ module noc_port_controller
   noc_round_robin_arbiter #(
     .REQUESTS     (CHANNELS ),
     .KEEP_RESULT  (1        )
-  ) u_port_arbiter (
+  ) u_vc_arbiter (
     .clk        (clk        ),
     .rst_n      (rst_n      ),
     .i_request  (vc_request ),
