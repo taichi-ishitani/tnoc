@@ -24,7 +24,7 @@ RANDOM_SEED	?= auto
 
 ifeq ($(GUI), verdi)
 	VCS_ARGS	+= -lca -debug_access+all -kdb +vcs+fsdbon
-	SIMV_ARGS	+= -gui=verdi
+	SIMV_ARGS	+= -gui=verdi +fsdb+struct=on
 	ifeq ($(TR_DEBUG), on)
 		SIMV_ARGS	+= +UVM_VERDI_TRACE +UVM_TR_RECORD
 	endif
