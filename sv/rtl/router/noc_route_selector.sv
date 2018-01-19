@@ -95,6 +95,7 @@ module noc_route_selector
       end
       else begin
         assign  port_control_if[j].request[i]         = '0;
+        assign  port_control_if[j].free[i]            = '0;
         assign  port_control_if[j].start_of_packet[i] = '0;
         assign  port_control_if[j].end_of_packet[i]   = '0;
       end
