@@ -30,7 +30,8 @@ module noc_input_fifo
       .CONFIG     (CONFIG     ),
       .CHANNELS   (1          ),
       .DEPTH      (DEPTH      ),
-      .THRESHOLD  (THRESHOLD  )
+      .THRESHOLD  (THRESHOLD  ),
+      .FIFO_MEM   (1          )
     ) u_fifo (
       .clk            (clk              ),
       .rst_n          (rst_n            ),

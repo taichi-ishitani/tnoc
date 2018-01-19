@@ -2,6 +2,8 @@
 
 ${NOC_SV_HOME}/rtl/common/noc_config_pkg.sv
 
+${NOC_SV_HOME}/rtl/common/noc_fifo_sr.sv
+${NOC_SV_HOME}/rtl/common/noc_fifo_mem.sv
 ${NOC_SV_HOME}/rtl/common/noc_fifo.sv
 ${NOC_SV_HOME}/rtl/common/noc_mux.sv
 ${NOC_SV_HOME}/rtl/common/noc_demux.sv

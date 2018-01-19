@@ -4,7 +4,8 @@ module noc_flit_if_fifo
   parameter noc_config  CONFIG    = NOC_DEFAULT_CONFIG,
   parameter int         CHANNELS  = CONFIG.virtual_channels,
   parameter int         DEPTH     = 8,
-  parameter int         THRESHOLD = DEPTH - 1
+  parameter int         THRESHOLD = DEPTH,
+  parameter bit         FIFO_MEM  = 0
 )(
   input   logic         clk,
   input   logic         rst_n,
@@ -39,7 +40,8 @@ module noc_flit_if_fifo
     noc_fifo #(
       .WIDTH      (FLIT_WIDTH ),
       .DEPTH      (DEPTH      ),
-      .THRESHOLD  (THRESHOLD  )
+      .THRESHOLD  (THRESHOLD  ),
+      .FIFO_MEM   (FIFO_MEM   )
     ) u_fifo (
       .clk            (clk                ),
       .rst_n          (rst_n              ),
@@ -72,7 +74,8 @@ module noc_flit_if_fifo
     noc_fifo #(
       .WIDTH      (FIFO_WIDTH ),
       .DEPTH      (DEPTH      ),
-      .THRESHOLD  (THRESHOLD  )
+      .THRESHOLD  (THRESHOLD  ),
+      .FIFO_MEM   (FIFO_MEM   )
     ) u_fifo (
       .clk            (clk          ),
       .rst_n          (rst_n        ),
