@@ -23,11 +23,19 @@ module noc_flit_if_fifo
     logic [FLIT_WIDTH-1:0]  flit;
   } s_fifo_data;
 
+  logic empty;
   logic almost_full;
+  logic full;
+
+  assign  o_empty                 = empty;
   assign  o_almost_full           = almost_full;
+  assign  o_full                  = full;
+  assign  flit_in_if.ready        = {CHANNELS{~full       }};
   assign  flit_in_if.vc_available = {CHANNELS{~almost_full}};
 
   generate if (CHANNELS == 0) begin : g_channels_eq_0
+    assign  flit_out_if.valid = ~empty;
+
     noc_fifo #(
       .WIDTH      (FLIT_WIDTH ),
       .DEPTH      (DEPTH      ),
@@ -36,26 +44,30 @@ module noc_flit_if_fifo
       .clk            (clk                ),
       .rst_n          (rst_n              ),
       .i_clear        (i_clear            ),
-      .o_empty        (o_empty            ),
-      .o_full         (o_full             ),
+      .o_empty        (empty              ),
+      .o_full         (full               ),
       .o_almost_full  (almost_full        ),
-      .i_valid        (flit_in_if.valid   ),
-      .o_ready        (flit_in_if.ready   ),
+      .i_push         (flit_in_if.valid   ),
       .i_data         (flit_in_if.flit    ),
-      .o_valid        (flit_out_if.valid  ),
-      .i_ready        (flit_out_if.ready  ),
+      .i_pop          (flit_out_if.ready  ),
       .o_data         (flit_out_if.flit   )
     );
   end
   else begin : g_channels_gt_0
     localparam  int FIFO_WIDTH  = $bits(s_fifo_data);
 
-    logic       valid_in;
-    logic       ready_out;
+    logic       push;
     s_fifo_data data_in;
-    logic       valid_out;
-    logic       ready_in;
+    logic       pop;
     s_fifo_data data_out;
+
+    assign  flit_out_if.valid = (!empty) ? data_out.valid : '0;
+    assign  flit_out_if.flit  = data_out.flit;
+
+    assign  push          = |flit_in_if.valid;
+    assign  pop           = |(flit_out_if.valid & flit_out_if.ready);
+    assign  data_in.valid = flit_in_if.valid;
+    assign  data_in.flit  = flit_in_if.flit;
 
     noc_fifo #(
       .WIDTH      (FIFO_WIDTH ),
@@ -65,24 +77,13 @@ module noc_flit_if_fifo
       .clk            (clk          ),
       .rst_n          (rst_n        ),
       .i_clear        (i_clear      ),
-      .o_empty        (o_empty      ),
-      .o_full         (o_full       ),
+      .o_empty        (empty        ),
+      .o_full         (full         ),
       .o_almost_full  (almost_full  ),
-      .i_valid        (valid_in     ),
-      .o_ready        (ready_out    ),
+      .i_push         (push         ),
       .i_data         (data_in      ),
-      .o_valid        (valid_out    ),
-      .i_ready        (ready_in     ),
+      .i_pop          (pop          ),
       .o_data         (data_out     )
     );
-
-    assign  valid_in          = |flit_in_if.valid;
-    assign  flit_in_if.ready  = {CHANNELS{ready_out}};
-    assign  data_in.valid     = flit_in_if.valid;
-    assign  data_in.flit      = flit_in_if.flit;
-
-    assign  flit_out_if.valid = (valid_out) ? data_out.valid : '0;
-    assign  ready_in          = |(flit_out_if.valid & flit_out_if.ready);
-    assign  flit_out_if.flit  = data_out.flit;
   end endgenerate
 endmodule

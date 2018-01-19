@@ -18,11 +18,11 @@ module noc_port_controller
   logic [CHANNELS-1:0]  vc_request;
   logic [CHANNELS-1:0]  vc_grant;
   logic [CHANNELS-1:0]  vc_free;
-  logic [CHANNELS-1:0]  vc_available;;
+  logic [CHANNELS-1:0]  vc_available;
+  logic                 fifo_empty;
+  logic                 fifo_full;
   logic                 fifo_push;
   logic                 fifo_pop;
-  logic                 fifo_valid;
-  logic                 fifo_ready;
   logic [4:0]           output_grant;
   logic [4:0]           output_grant_temp;
 
@@ -61,7 +61,7 @@ module noc_port_controller
 //--------------------------------------------------------------
 //  VC Arbitration
 //--------------------------------------------------------------
-  assign  vc_available  = i_vc_available & {CHANNELS{fifo_ready}};
+  assign  vc_available  = i_vc_available & {CHANNELS{~fifo_full}};
 
   generate for (genvar i = 0;i < CHANNELS;++i) begin : g_vc_arbitration
     assign  vc_request[i] = |(request[i] & port_grant[i] & {5{vc_available[i]}});
@@ -105,16 +105,14 @@ module noc_port_controller
     .clk            (clk                ),
     .rst_n          (rst_n              ),
     .i_clear        ('0                 ),
-    .o_empty        (),
-    .o_full         (),
+    .o_empty        (fifo_empty         ),
+    .o_full         (fifo_full          ),
     .o_almost_full  (),
-    .i_valid        (fifo_push          ),
-    .o_ready        (fifo_ready         ),
+    .i_push         (fifo_push          ),
     .i_data         (output_grant_temp  ),
-    .o_valid        (fifo_valid         ),
-    .i_ready        (fifo_pop           ),
+    .i_pop          (fifo_pop           ),
     .o_data         (output_grant       )
   );
 
-  assign  o_output_grant  = (fifo_valid) ? output_grant : '0;
+  assign  o_output_grant  = (!fifo_empty) ? output_grant : '0;
 endmodule
