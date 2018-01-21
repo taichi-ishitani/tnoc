@@ -5,11 +5,6 @@ typedef tue_sequence_item #(
 ) noc_bfm_packet_item_base;
 
 class noc_bfm_packet_item extends noc_bfm_packet_item_base;
-  typedef struct {
-    int               width;
-    noc_bfm_flit_data data;
-  } s_data_packer;
-
   rand  noc_bfm_packet_type     packet_type;
   rand  noc_bfm_location_id     destination_id;
   rand  noc_bfm_location_id     source_id;
@@ -25,6 +20,8 @@ class noc_bfm_packet_item extends noc_bfm_packet_item_base;
   rand  noc_bfm_byte_enable     byte_enable[];
 
         int                     tr_handle;
+
+  local uvm_packer              flit_packer;
 
   constraint c_default_source_id {
     soft source_id.x == configuration.id_x;
@@ -176,130 +173,104 @@ class noc_bfm_packet_item extends noc_bfm_packet_item_base;
   endfunction
 
   local function noc_bfm_flit get_header_flit();
+    uvm_packer    packer;
     noc_bfm_flit  flit;
-    s_data_packer data_packer[$];
+    int           header_width;
 
-    data_packer.push_back('{data: packet_type        , width: 8                         });
-    data_packer.push_back('{data: destination_id.y   , width: configuration.id_y_width  });
-    data_packer.push_back('{data: destination_id.x   , width: configuration.id_x_width  });
-    data_packer.push_back('{data: source_id.y        , width: configuration.id_y_width  });
-    data_packer.push_back('{data: source_id.x        , width: configuration.id_x_width  });
-    data_packer.push_back('{data: virtual_channel    , width: configuration.vc_width    });
-    data_packer.push_back('{data: tag                , width: configuration.tag_width   });
-    data_packer.push_back('{data: length             , width: configuration.length_width});
-    data_packer.push_back('{data: invalid_destination, width: 1                         });
+    packer  = get_flit_packer();
+    packer.pack_field_int(packet_type        , 8                         );
+    packer.pack_field_int(destination_id.y   , configuration.id_y_width  );
+    packer.pack_field_int(destination_id.x   , configuration.id_x_width  );
+    packer.pack_field_int(source_id.y        , configuration.id_y_width  );
+    packer.pack_field_int(source_id.x        , configuration.id_x_width  );
+    packer.pack_field_int(virtual_channel    , configuration.vc_width    );
+    packer.pack_field_int(tag                , configuration.tag_width   );
+    packer.pack_field_int(length             , configuration.length_width);
+    packer.pack_field_int(invalid_destination, 1                         );
     if (is_request()) begin
-      data_packer.push_back('{data: address, width: configuration.address_width});
+      packer.pack_field_int(address, configuration.address_width);
+      header_width  = configuration.get_request_header_width();
     end
     else begin
-      data_packer.push_back('{data: status       , width: 2                                });
-      data_packer.push_back('{data: lower_address, width: configuration.lower_address_width});
-      data_packer.push_back('{data: last_response, width: 1                                });
+      packer.pack_field_int(status       , 2                                );
+      packer.pack_field_int(lower_address, configuration.lower_address_width);
+      packer.pack_field_int(last_response, 1                                );
+      header_width  = configuration.get_response_header_width();
     end
+    packer.set_packed_size();
 
     flit.flit_type  = NOC_BFM_HEADER_FLIT;
-    flit.data       = pack_flit_data(data_packer);
     flit.tail       = (!packet_type[6]) ? '1 : '0;
+    flit.data       = packer.unpack_field(header_width);
 
     return flit;
   endfunction
 
   local function void unpack_header_flit(const ref noc_bfm_flit flit);
-    s_data_packer data_packer[$];
+    uvm_packer    packer  = get_flit_packer();
 
-    packet_type = noc_bfm_packet_type'(flit.data[7:0]);
+    packer.pack_field(flit.data, configuration.get_flit_width());
+    packer.set_packed_size();
 
-    data_packer.push_back('{data: '0, width: configuration.id_y_width  });
-    data_packer.push_back('{data: '0, width: configuration.id_x_width  });
-    data_packer.push_back('{data: '0, width: configuration.id_y_width  });
-    data_packer.push_back('{data: '0, width: configuration.id_x_width  });
-    data_packer.push_back('{data: '0, width: configuration.vc_width    });
-    data_packer.push_back('{data: '0, width: configuration.tag_width   });
-    data_packer.push_back('{data: '0, width: configuration.length_width});
-    data_packer.push_back('{data: '0, width: 1                         });
+    packet_type         = noc_bfm_packet_type'(packer.unpack_field_int(8));
+    destination_id.y    = packer.unpack_field_int(configuration.id_y_width);
+    destination_id.x    = packer.unpack_field_int(configuration.id_x_width);
+    source_id.y         = packer.unpack_field_int(configuration.id_y_width);
+    source_id.x         = packer.unpack_field_int(configuration.id_x_width);
+    virtual_channel     = packer.unpack_field_int(configuration.vc_width);
+    tag                 = packer.unpack_field_int(configuration.tag_width);
+    length              = packer.unpack_field_int(configuration.length_width);
+    invalid_destination = packer.unpack_field_int(1);
     if (is_request()) begin
-      data_packer.push_back('{data: '0, width: configuration.address_width});
+      address = packer.unpack_field_int(configuration.address_width);
     end
     else begin
-      data_packer.push_back('{data: '0, width: 2                                });
-      data_packer.push_back('{data: '0, width: configuration.lower_address_width});
-      data_packer.push_back('{data: '0, width: 1                                });
-    end
-
-    unpack_flit_data(flit, data_packer, 8);
-
-    destination_id      = '{y: data_packer[0].data, x: data_packer[1].data};
-    source_id           = '{y: data_packer[2].data, x: data_packer[3].data};
-    virtual_channel     = data_packer[4].data;
-    tag                 = data_packer[5].data;
-    length              = (data_packer[6].data == 0) ? 2**configuration.length_width : data_packer[6].data;
-    invalid_destination = data_packer[7].data;
-    if (is_request()) begin
-      address = data_packer[8].data;
-    end
-    else begin
-      status        = noc_bfm_response_status'(data_packer[8].data);
-      lower_address = data_packer[9].data;
-      last_response = data_packer[10].data;
+      status  = noc_bfm_response_status'(packer.unpack_field_int($bits(noc_bfm_response_status)));
+      lower_address = packer.unpack_field_int(configuration.lower_address_width);
+      last_response = packer.unpack_field_int(1);
     end
   endfunction
 
   local function noc_bfm_flit get_payload_flit(int index);
     noc_bfm_flit  flit;
-    s_data_packer data_packer[$];
+    uvm_packer    packer;
 
-    data_packer.push_back('{data: data[index], width: configuration.data_width});
+    packer  = get_flit_packer();
+    packer.pack_field(data[index], configuration.data_width);
     if (is_request()) begin
-      data_packer.push_back('{data: byte_enable[index], width: configuration.byte_enable_width});
+      packer.pack_field_int(byte_enable[index], configuration.byte_enable_width);
     end
+    else begin
+      packer.pack_field_int(0, configuration.byte_enable_width);
+    end
+    packer.set_packed_size();
 
     flit.flit_type  = NOC_BFM_PAYLOAD_FLIT;
-    flit.data       = pack_flit_data(data_packer);
+    flit.data       = packer.unpack_field(configuration.get_flit_width());
     flit.tail       = (index == (length - 1)) ? '1 : '0;
 
     return flit;
   endfunction
 
   local function void unpack_payload_flit(const ref noc_bfm_flit flit, input int index);
-    s_data_packer data_packer[$];
+    uvm_packer  packer  = get_flit_packer();
 
-    data_packer.push_back('{data: '0, width: configuration.data_width});
+    packer.pack_field(flit.data, configuration.get_flit_width());
+    packer.set_packed_size();
+
+    data[index] = packer.unpack_field(configuration.data_width);
     if (is_request()) begin
-      data_packer.push_back('{data: '0, width: configuration.byte_enable_width});
-    end
-
-    unpack_flit_data(flit, data_packer);
-
-    data[index] = data_packer[0].data;
-    if (is_request()) begin
-      byte_enable[index]  = data_packer[1].data;
+      byte_enable[index]  = packer.unpack_field_int(configuration.byte_enable_width);
     end
   endfunction
 
-  local function noc_bfm_flit_data pack_flit_data(ref s_data_packer data_packer[$]);
-    noc_bfm_flit_data data      = '0;
-    int               position  = 0;
-
-    foreach (data_packer[i]) begin
-      noc_bfm_flit_data mask  = (1 << data_packer[i].width) - 1;
-      data      |= ((data_packer[i].data & mask) << position);
-      position  += data_packer[i].width;
+  local function uvm_packer get_flit_packer();
+    if (flit_packer == null) begin
+      flit_packer             = new();
+      flit_packer.big_endian  = 0;
     end
-
-    return data;
-  endfunction
-
-  local function void unpack_flit_data(
-    const ref   noc_bfm_flit  flit,
-          ref   s_data_packer data_packer[$],
-          input int           offset  = 0
-  );
-    int position  = offset;
-    foreach (data_packer[i]) begin
-      noc_bfm_flit_data mask  = (1 << data_packer[i].width) - 1;
-      data_packer[i].data = (flit.data >> position) & mask;
-      position  += data_packer[i].width;
-    end
+    flit_packer.reset();
+    return flit_packer;
   endfunction
 
   `tue_object_default_constructor(noc_bfm_packet_item)

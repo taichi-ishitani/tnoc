@@ -17,6 +17,13 @@ class noc_bfm_configuration extends tue_configuration;
         noc_bfm_flit_vif  tx_vif;
         noc_bfm_flit_vif  rx_vif;
 
+  local int               common_header_width;
+  local int               request_header_width;
+  local int               resposne_header_width;
+  local int               header_width;
+  local int               payload_width;
+  local int               flit_width;
+
   constraint c_valid_address_width {
     address_width inside {[1:`NOC_BFM_MAX_ADDRESS_WIDTH]};
   }
@@ -65,6 +72,74 @@ class noc_bfm_configuration extends tue_configuration;
     id_x inside {[0:(2**id_x_width)-1]};
     id_y inside {[0:(2**id_y_width)-1]};
   }
+
+  function int get_common_header_width();
+    if (common_header_width <= 0) begin
+      common_header_width = (
+        8                         + //  Packet Type
+        (id_y_width + id_x_width) + //  Destination ID
+        (id_y_width + id_x_width) + //  Source ID
+        vc_width                  + //  Virtual Channel
+        tag_width                 + //  Packet Tag
+        length_width              + //  Length
+        1                           //  Invalid Destination Flag
+      );
+    end
+    return common_header_width;
+  endfunction
+
+  function int get_request_header_width();
+    if (request_header_width <= 0) begin
+      request_header_width  = (
+        get_common_header_width() + //  Common Fields
+        address_width               //  Address
+      );
+    end
+    return request_header_width;
+  endfunction
+
+  function int get_response_header_width();
+    if (resposne_header_width <= 0) begin
+      resposne_header_width = (
+        get_common_header_width() + //  Common Fields
+        2                         + //  Status
+        lower_address_width       + //  Lower Address
+        1                           //  Last Response Flag
+      );
+    end
+    return resposne_header_width;
+  endfunction
+
+  function int get_header_width();
+    if (header_width <= 0) begin
+      if (get_request_header_width() > get_response_header_width()) begin
+        header_width  = get_request_header_width();
+      end
+      else begin
+        header_width  = get_response_header_width();
+      end
+    end
+    return header_width;
+  endfunction
+
+  function int get_payload_width();
+    if (payload_width <= 0) begin
+      payload_width = data_width + byte_enable_width;
+    end
+    return payload_width;
+  endfunction
+
+  function int get_flit_width();
+    if (flit_width <= 0) begin
+      if (get_header_width() > get_payload_width()) begin
+        flit_width  = get_header_width();
+      end
+      else begin
+        flit_width  = get_payload_width();
+      end
+    end
+    return flit_width;
+  endfunction
 
   `tue_object_default_constructor(noc_bfm_configuration)
   `uvm_object_utils_begin(noc_bfm_configuration)
