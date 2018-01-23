@@ -21,7 +21,7 @@ class noc_bfm_packet_item extends noc_bfm_packet_item_base;
 
         int                     tr_handle;
 
-  local uvm_packer              flit_packer;
+  static  uvm_packer  flit_packer;
 
   constraint c_default_source_id {
     soft source_id.x == configuration.id_x;
@@ -130,10 +130,8 @@ class noc_bfm_packet_item extends noc_bfm_packet_item_base;
   endfunction
 
   function void pack_flits(ref noc_bfm_flit flits[$]);
-    flits.push_back(get_header_flit());
-    foreach (data[i]) begin
-      flits.push_back(get_payload_flit(i));
-    end
+    get_header_flits(flits);
+    get_payload_flits(flits);
   endfunction
 
   function void pack_flit_items(ref noc_bfm_flit_item flit_items[$]);
@@ -148,20 +146,13 @@ class noc_bfm_packet_item extends noc_bfm_packet_item_base;
   endfunction
 
   function void unpack_flits(const ref noc_bfm_flit flits[$]);
-    unpack_header_flit(flits[0]);
+    unpack_header_flits(flits);
 
     if (!has_payload()) begin
       return;
     end
 
-    data  = new[length];
-    if (is_request()) begin
-      byte_enable = new[length];
-    end
-
-    foreach (data[i]) begin
-      unpack_payload_flit(flits[i+1], i);
-    end
+    unpack_payload_flits(flits);
   endfunction
 
   function void unpack_flit_items(const ref noc_bfm_flit_item flit_items[$]);
@@ -172,10 +163,9 @@ class noc_bfm_packet_item extends noc_bfm_packet_item_base;
     unpack_flits(flits);
   endfunction
 
-  local function noc_bfm_flit get_header_flit();
-    uvm_packer    packer;
-    noc_bfm_flit  flit;
-    int           header_width;
+  local function void get_header_flits(ref noc_bfm_flit flits[$]);
+    uvm_packer  packer;
+    int         header_width;
 
     packer  = get_flit_packer();
     packer.pack_field_int(packet_type        , 8                         );
@@ -199,17 +189,39 @@ class noc_bfm_packet_item extends noc_bfm_packet_item_base;
     end
     packer.set_packed_size();
 
-    flit.flit_type  = NOC_BFM_HEADER_FLIT;
-    flit.tail       = (!packet_type[6]) ? '1 : '0;
-    flit.data       = packer.unpack_field(header_width);
+    while (header_width > 0) begin
+      int           unpack_size;
+      noc_bfm_flit  flit;
 
-    return flit;
+      if (header_width > configuration.get_flit_width()) begin
+        unpack_size = configuration.get_flit_width();
+      end
+      else begin
+        unpack_size = header_width;
+      end
+
+      flit.flit_type  = NOC_BFM_HEADER_FLIT;
+      flit.data       = packer.unpack_field(unpack_size);
+      flits.push_back(flit);
+
+      header_width  -= unpack_size;
+    end
+
+    flits[0].head = 1;
+    if (!packet_type[6]) begin
+      flits[$].tail = 1;
+    end
   endfunction
 
-  local function void unpack_header_flit(const ref noc_bfm_flit flit);
+  local function void unpack_header_flits(const ref noc_bfm_flit flits[$]);
     uvm_packer    packer  = get_flit_packer();
 
-    packer.pack_field(flit.data, configuration.get_flit_width());
+    foreach (flits[i]) begin
+      if (flits[i].flit_type == NOC_BFM_PAYLOAD_FLIT) begin
+        break;
+      end
+      packer.pack_field(flits[i].data, configuration.get_flit_width());
+    end
     packer.set_packed_size();
 
     packet_type         = noc_bfm_packet_type'(packer.unpack_field_int(8));
@@ -231,36 +243,55 @@ class noc_bfm_packet_item extends noc_bfm_packet_item_base;
     end
   endfunction
 
-  local function noc_bfm_flit get_payload_flit(int index);
-    noc_bfm_flit  flit;
-    uvm_packer    packer;
+  local function void get_payload_flits(ref noc_bfm_flit flits[$]);
+    foreach (data[i]) begin
+      uvm_packer    packer;
+      noc_bfm_flit  flit;
 
-    packer  = get_flit_packer();
-    packer.pack_field(data[index], configuration.data_width);
-    if (is_request()) begin
-      packer.pack_field_int(byte_enable[index], configuration.byte_enable_width);
+      packer  = get_flit_packer();
+      packer.pack_field(data[i], configuration.data_width);
+      if (is_request()) begin
+        packer.pack_field_int(byte_enable[i], configuration.byte_enable_width);
+      end
+      else begin
+        packer.pack_field_int('0, configuration.byte_enable_width);
+      end
+      packer.set_packed_size();
+
+      flit.flit_type  = NOC_BFM_PAYLOAD_FLIT;
+      flit.data       = packer.unpack_field(configuration.get_payload_width());
+      flits.push_back(flit);
     end
-    else begin
-      packer.pack_field_int(0, configuration.byte_enable_width);
-    end
-    packer.set_packed_size();
 
-    flit.flit_type  = NOC_BFM_PAYLOAD_FLIT;
-    flit.data       = packer.unpack_field(configuration.get_flit_width());
-    flit.tail       = (index == (length - 1)) ? '1 : '0;
-
-    return flit;
+    flits[$].tail = 1;
   endfunction
 
-  local function void unpack_payload_flit(const ref noc_bfm_flit flit, input int index);
-    uvm_packer  packer  = get_flit_packer();
+  local function void unpack_payload_flits(const ref noc_bfm_flit flits[$]);
+    int offset;
 
-    packer.pack_field(flit.data, configuration.get_flit_width());
-    packer.set_packed_size();
+    foreach (flits[i]) begin
+      if (flits[i].flit_type == NOC_BFM_PAYLOAD_FLIT) begin
+        offset  = i;
+        break;
+      end
+    end
 
-    data[index] = packer.unpack_field(configuration.data_width);
+    data  = new[length];
     if (is_request()) begin
-      byte_enable[index]  = packer.unpack_field_int(configuration.byte_enable_width);
+      byte_enable = new[length];
+    end
+
+    foreach (data[i]) begin
+      uvm_packer  packer;
+
+      packer  = get_flit_packer();
+      packer.pack_field(flits[i+offset], configuration.get_payload_width());
+      packer.set_packed_size();
+
+      data[i] = packer.unpack_field(configuration.data_width);
+      if (is_request()) begin
+        byte_enable[i]  = packer.unpack_field_int(configuration.byte_enable_width);
+      end
     end
   endfunction
 

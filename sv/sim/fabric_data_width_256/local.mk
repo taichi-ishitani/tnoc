@@ -6,4 +6,8 @@ FILE_LISTS		+= $(NOC_SV_HOME)/env/bfm/compile.f
 FILE_LISTS		+= $(NOC_SV_HOME)/env/common/compile.f
 FILE_LISTS		+= $(NOC_SV_HOME)/env/fabric/compile.f
 FILE_LISTS		+= $(NOC_SV_HOME)/test/fabric/compile.f
+
 SOURCE_FILES	+= $(NOC_SV_HOME)/env/fabric/top.sv
+
+DEFINES	+= NOC_FABRIC_ENV_DATA_WIDTH=256
+

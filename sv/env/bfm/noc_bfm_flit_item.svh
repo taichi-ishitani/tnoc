@@ -7,6 +7,7 @@ typedef tue_sequence_item #(
 
 class noc_bfm_flit_item extends noc_bfm_flit_item_base;
   rand  noc_bfm_flit_type flit_type;
+  rand  bit               head;
   rand  bit               tail;
   rand  noc_bfm_flit_data data;
 
@@ -18,18 +19,24 @@ class noc_bfm_flit_item extends noc_bfm_flit_item_base;
     return (flit_type == NOC_BFM_PAYLOAD_FLIT) ? '1 : '0;
   endfunction
 
+  function bit is_head_flit();
+    return head;
+  endfunction
+
   function bit is_tail_flit();
     return tail;
   endfunction
 
   function void pack_flit(ref noc_bfm_flit flit);
     flit.flit_type  = flit_type;
+    flit.head       = head;
     flit.tail       = tail;
     flit.data       = data;
   endfunction
 
   function void unpack_flit(const ref noc_bfm_flit flit);
     flit_type = flit.flit_type;
+    head      = flit.head;
     tail      = flit.tail;
     data      = flit.data;
   endfunction

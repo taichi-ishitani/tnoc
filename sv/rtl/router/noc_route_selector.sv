@@ -66,7 +66,7 @@ module noc_route_selector
     e_route route_temp;
 
     assign  start_of_packet = (
-      flit_in_if[i].valid && is_header_flit(flit_in_if[i].flit)
+      flit_in_if[i].valid && is_head_flit(flit_in_if[i].flit)
     ) ? '1 : '0;
     assign  end_of_packet   = (
       flit_in_if[i].valid && flit_in_if[i].ready && is_tail_flit(flit_in_if[i].flit)

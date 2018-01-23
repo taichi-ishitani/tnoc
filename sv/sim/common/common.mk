@@ -8,6 +8,7 @@ export TUE_HOME
 
 FILE_LISTS		?=
 SOURCE_FILES	?=
+DEFINES				?=
 
 VCS_ARGS	?=
 SIMV_ARGS	?=
@@ -45,6 +46,7 @@ endif
 
 VCS_ARGS	+= $(addprefix -f , $(FILE_LISTS))
 VCS_ARGS	+= $(SOURCE_FILES)
+VCS_ARGS	+= $(addprefix +define+, $(DEFINES))
 
 .PHONY: all run_simv compile_simv clean clean_all $(TEST_LIST) 
 

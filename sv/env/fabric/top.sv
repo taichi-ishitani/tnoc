@@ -10,7 +10,23 @@ module top();
   import  noc_fabric_env_pkg::*;
   import  noc_fabric_tests_pkg::*;
 
-  localparam  noc_config  CONFIG  = NOC_DEFAULT_CONFIG;
+  `ifndef NOC_FABRIC_ENV_DATA_WIDTH
+    `define NOC_FABRIC_ENV_DATA_WIDTH NOC_DEFAULT_CONFIG.data_width
+  `endif
+
+  localparam  noc_config  CONFIG  = '{
+    address_width:    NOC_DEFAULT_CONFIG.address_width,
+    data_width:       `NOC_FABRIC_ENV_DATA_WIDTH,
+    id_x_width:       NOC_DEFAULT_CONFIG.id_x_width,
+    id_y_width:       NOC_DEFAULT_CONFIG.id_y_width,
+    vc_width:         NOC_DEFAULT_CONFIG.vc_width,
+    length_width:     NOC_DEFAULT_CONFIG.length_width,
+    tag_width:        NOC_DEFAULT_CONFIG.tag_width,
+    virtual_channels: NOC_DEFAULT_CONFIG.virtual_channels,
+    input_fifo_depth: NOC_DEFAULT_CONFIG.input_fifo_depth,
+    size_x:           NOC_DEFAULT_CONFIG.size_x,
+    size_y:           NOC_DEFAULT_CONFIG.size_y
+  };
 
   bit clk = 0;
   initial begin

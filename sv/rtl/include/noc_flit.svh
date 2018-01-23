@@ -4,13 +4,14 @@ typedef enum logic {
 } noc_flit_type;
 
 localparam  int FLIT_DATA_WIDTH = (
-  HEADER_WIDTH > PAYLOD_WIDTH
-) ? HEADER_WIDTH : PAYLOD_WIDTH;
+  COMMON_HEADER_WIDTH > PAYLOD_WIDTH
+) ? COMMON_HEADER_WIDTH : PAYLOD_WIDTH;
 
 typedef logic [FLIT_DATA_WIDTH-1:0] noc_flit_data;
 
 typedef struct packed {
   noc_flit_data data;
+  logic         head;
   logic         tail;
   noc_flit_type flit_type;
 } noc_flit;

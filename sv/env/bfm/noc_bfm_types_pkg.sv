@@ -80,6 +80,7 @@ package noc_bfm_types_pkg;
 
   typedef struct packed {
     noc_bfm_flit_type flit_type;
+    bit               head;
     bit               tail;
     noc_bfm_flit_data data;
   } noc_bfm_flit;

@@ -131,8 +131,8 @@ class noc_bfm_configuration extends tue_configuration;
 
   function int get_flit_width();
     if (flit_width <= 0) begin
-      if (get_header_width() > get_payload_width()) begin
-        flit_width  = get_header_width();
+      if (get_common_header_width() > get_payload_width()) begin
+        flit_width  = get_common_header_width();
       end
       else begin
         flit_width  = get_payload_width();

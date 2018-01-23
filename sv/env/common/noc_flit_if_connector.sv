@@ -17,6 +17,7 @@ module noc_flit_if_connector
   function automatic noc_flit convert_to_dut_flit(input noc_bfm_flit bfm_flit);
     noc_flit  dut_flit;
     dut_flit.flit_type  = noc_flit_type'(bfm_flit.flit_type);
+    dut_flit.head       = bfm_flit.head;
     dut_flit.tail       = bfm_flit.tail;
     dut_flit.data       = bfm_flit.data;
     return dut_flit;
@@ -25,6 +26,7 @@ module noc_flit_if_connector
   function automatic noc_bfm_flit convert_to_bfm_flit(input noc_flit dut_flit);
     noc_bfm_flit  bfm_flit;
     bfm_flit.flit_type  = noc_bfm_flit_type'(dut_flit.flit_type);
+    bfm_flit.head       = dut_flit.head;
     bfm_flit.tail       = dut_flit.tail;
     bfm_flit.data       = dut_flit.data;
     return bfm_flit;
