@@ -13,6 +13,7 @@ package noc_fabric_tests_pkg;
 
   `include  "noc_fabric_test_base.svh"
   `include  "noc_fabric_sample_test.svh"
+  `include  "noc_fabric_routing_mode_test.svh"
   `include  "noc_fabric_stress_access_test.svh"
   `include  "noc_fabric_random_test.svh"
 endpackage

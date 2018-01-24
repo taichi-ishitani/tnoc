@@ -29,6 +29,12 @@ class noc_fabric_sample_test_sequence extends noc_fabric_test_sequence_base;
         else {
           packet_type inside {NOC_BFM_READ, NOC_BFM_POSTED_WRITE, NOC_BFM_NON_POSTED_WRITE};
         }
+        if (i < 10) {
+          routing_mode == NOC_BFM_X_Y_ROUTING;
+        }
+        else {
+          routing_mode == NOC_BFM_Y_X_ROUTING;
+        }
       })
     end
   endtask

@@ -30,14 +30,41 @@ module noc_route_selector
   } e_route;
 
   function automatic e_route select_route(input noc_flit flit);
-    noc_common_header header  = get_common_header(flit);
-    noc_location_id   id      = header.destination_id;
+    noc_common_header header        = get_common_header(flit);
+    noc_location_id   id            = header.destination_id;
+    noc_routing_mode  routing_mode  = header.routing_mode;
+    logic [3:0]       result;
+
+    result[0] = ((id.x > X) && AVAILABLE_PORTS[0]) ? '1 : '0;
+    result[1] = ((id.x < X) && AVAILABLE_PORTS[1]) ? '1 : '0;
+    result[2] = ((id.y > Y) && AVAILABLE_PORTS[2]) ? '1 : '0;
+    result[3] = ((id.y < Y) && AVAILABLE_PORTS[3]) ? '1 : '0;
+
+    if (header.routing_mode == NOC_X_Y_ROUTING) begin
+      return x_y_routing(result);
+    end
+    else begin
+      return y_x_routing(result);
+    end
+  endfunction
+
+  function automatic e_route x_y_routing(input logic [3:0] comparison_result);
     case (1'b1)
-      (id.x > X) && AVAILABLE_PORTS[0]: return ROUTE_X_PLUS;
-      (id.x < X) && AVAILABLE_PORTS[1]: return ROUTE_X_MINUS;
-      (id.y > Y) && AVAILABLE_PORTS[2]: return ROUTE_Y_PLUS;
-      (id.y < Y) && AVAILABLE_PORTS[3]: return ROUTE_Y_MINUS;
-      default:                          return ROUTE_LOCAL;
+      comparison_result[0]: return ROUTE_X_PLUS;
+      comparison_result[1]: return ROUTE_X_MINUS;
+      comparison_result[2]: return ROUTE_Y_PLUS;
+      comparison_result[3]: return ROUTE_Y_MINUS;
+      default:              return ROUTE_LOCAL;
+    endcase
+  endfunction
+
+  function automatic e_route y_x_routing(input logic [3:0] comparison_result);
+    case (1'b1)
+      comparison_result[2]: return ROUTE_Y_PLUS;
+      comparison_result[3]: return ROUTE_Y_MINUS;
+      comparison_result[0]: return ROUTE_X_PLUS;
+      comparison_result[1]: return ROUTE_X_MINUS;
+      default:              return ROUTE_LOCAL;
     endcase
   endfunction
 

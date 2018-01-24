@@ -24,6 +24,11 @@ package noc_bfm_types_pkg;
 
   typedef bit [`NOC_BFM_MAX_LENGTH_WIDTH-1:0] noc_bfm_length;
 
+  typedef enum bit {
+    NOC_BFM_X_Y_ROUTING = 0,
+    NOC_BFM_Y_X_ROUTING = 1
+  } noc_bfm_routing_mode;
+
   typedef bit [`NOC_BFM_MAX_ADDRESS_WIDTH-1:0]  noc_bfm_address;
 
   typedef enum bit [1:0] {
@@ -40,12 +45,14 @@ package noc_bfm_types_pkg;
   typedef bit noc_bfm_last_response;
 
   localparam  int NOC_BFM_COMMON_HEADER_WIDTH =
-    $bits(noc_bfm_packet_type) +
-    $bits(noc_bfm_location_id) +
-    $bits(noc_bfm_location_id) +
-    $bits(noc_bfm_vc         ) +
-    $bits(noc_bfm_tag        ) +
-    $bits(noc_bfm_length     );
+    $bits(noc_bfm_packet_type ) +
+    $bits(noc_bfm_location_id ) +
+    $bits(noc_bfm_location_id ) +
+    $bits(noc_bfm_vc          ) +
+    $bits(noc_bfm_tag         ) +
+    $bits(noc_bfm_length      ) +
+    $bits(noc_bfm_routing_mode) +
+    1;                            //  invalid destination flag
   localparam  int NOC_BFM_REQUEST_HEADER_WIDTH  =
     NOC_BFM_COMMON_HEADER_WIDTH +
     $bits(noc_bfm_address);
@@ -73,8 +80,8 @@ package noc_bfm_types_pkg;
   } noc_bfm_flit_type;
 
   localparam  int NOC_FLIT_DATA_WIDTH = (
-    NOC_BFM_HEADER_WIDTH > NOC_BFM_PAYLOAD_WIDTH
-  ) ? NOC_BFM_HEADER_WIDTH : NOC_BFM_PAYLOAD_WIDTH;
+      NOC_BFM_COMMON_HEADER_WIDTH > NOC_BFM_PAYLOAD_WIDTH
+  ) ? NOC_BFM_COMMON_HEADER_WIDTH : NOC_BFM_PAYLOAD_WIDTH;
 
   typedef bit [NOC_FLIT_DATA_WIDTH-1:0] noc_bfm_flit_data;
 

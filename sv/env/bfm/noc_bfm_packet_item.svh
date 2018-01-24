@@ -11,6 +11,7 @@ class noc_bfm_packet_item extends noc_bfm_packet_item_base;
   rand  noc_bfm_vc              virtual_channel;
   rand  noc_bfm_tag             tag;
   rand  int                     length;
+  rand  noc_bfm_routing_mode    routing_mode;
   rand  bit                     invalid_destination;
   rand  noc_bfm_address         address;
   rand  noc_bfm_response_status status;
@@ -168,15 +169,16 @@ class noc_bfm_packet_item extends noc_bfm_packet_item_base;
     int         header_width;
 
     packer  = get_flit_packer();
-    packer.pack_field_int(packet_type        , 8                         );
-    packer.pack_field_int(destination_id.y   , configuration.id_y_width  );
-    packer.pack_field_int(destination_id.x   , configuration.id_x_width  );
-    packer.pack_field_int(source_id.y        , configuration.id_y_width  );
-    packer.pack_field_int(source_id.x        , configuration.id_x_width  );
-    packer.pack_field_int(virtual_channel    , configuration.vc_width    );
-    packer.pack_field_int(tag                , configuration.tag_width   );
-    packer.pack_field_int(length             , configuration.length_width);
-    packer.pack_field_int(invalid_destination, 1                         );
+    packer.pack_field_int(packet_type        , 8                          );
+    packer.pack_field_int(destination_id.y   , configuration.id_y_width   );
+    packer.pack_field_int(destination_id.x   , configuration.id_x_width   );
+    packer.pack_field_int(source_id.y        , configuration.id_y_width   );
+    packer.pack_field_int(source_id.x        , configuration.id_x_width   );
+    packer.pack_field_int(virtual_channel    , configuration.vc_width     );
+    packer.pack_field_int(tag                , configuration.tag_width    );
+    packer.pack_field_int(length             , configuration.length_width );
+    packer.pack_field_int(routing_mode       , $bits(noc_bfm_routing_mode));
+    packer.pack_field_int(invalid_destination, 1                          );
     if (is_request()) begin
       packer.pack_field_int(address, configuration.address_width);
       header_width  = configuration.get_request_header_width();
@@ -232,6 +234,7 @@ class noc_bfm_packet_item extends noc_bfm_packet_item_base;
     virtual_channel     = packer.unpack_field_int(configuration.vc_width);
     tag                 = packer.unpack_field_int(configuration.tag_width);
     length              = packer.unpack_field_int(configuration.length_width);
+    routing_mode        = noc_bfm_routing_mode'(packer.unpack_field_int($bits(noc_bfm_routing_mode)));
     invalid_destination = packer.unpack_field_int(1);
     if (is_request()) begin
       address = packer.unpack_field_int(configuration.address_width);
@@ -307,15 +310,17 @@ class noc_bfm_packet_item extends noc_bfm_packet_item_base;
   `tue_object_default_constructor(noc_bfm_packet_item)
   `uvm_object_utils_begin(noc_bfm_packet_item)
     `uvm_field_enum(noc_bfm_packet_type, packet_type, UVM_DEFAULT)
-    `uvm_field_int(destination_id , UVM_DEFAULT | UVM_HEX)
-    `uvm_field_int(source_id      , UVM_DEFAULT | UVM_HEX)
-    `uvm_field_int(virtual_channel, UVM_DEFAULT | UVM_DEC)
-    `uvm_field_int(tag            , UVM_DEFAULT | UVM_HEX)
-    `uvm_field_int(length         , UVM_DEFAULT | UVM_DEC)
-    `uvm_field_int(address        , UVM_DEFAULT | UVM_HEX)
+    `uvm_field_int(destination_id     , UVM_DEFAULT | UVM_HEX)
+    `uvm_field_int(source_id          , UVM_DEFAULT | UVM_HEX)
+    `uvm_field_int(virtual_channel    , UVM_DEFAULT | UVM_DEC)
+    `uvm_field_int(tag                , UVM_DEFAULT | UVM_HEX)
+    `uvm_field_int(length             , UVM_DEFAULT | UVM_DEC)
+    `uvm_field_enum(noc_bfm_routing_mode, routing_mode, UVM_DEFAULT)
+    `uvm_field_int(invalid_destination, UVM_DEFAULT | UVM_BIN)
+    `uvm_field_int(address            , UVM_DEFAULT | UVM_HEX)
     `uvm_field_enum(noc_bfm_response_status, status, UVM_DEFAULT)
-    `uvm_field_int(lower_address  , UVM_DEFAULT | UVM_HEX)
-    `uvm_field_int(last_response  , UVM_DEFAULT | UVM_BIN)
+    `uvm_field_int(lower_address      , UVM_DEFAULT | UVM_HEX)
+    `uvm_field_int(last_response      , UVM_DEFAULT | UVM_BIN)
     `uvm_field_array_int(data       , UVM_DEFAULT | UVM_HEX)
     `uvm_field_array_int(byte_enable, UVM_DEFAULT | UVM_HEX)
   `uvm_object_utils_end

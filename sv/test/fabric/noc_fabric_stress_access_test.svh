@@ -32,15 +32,21 @@ class noc_fabric_stress_access_test_sequence extends noc_fabric_test_sequence_ba
       `uvm_do_on_with(packet_item, sequencer, {
         destination_id == destination;
         length         >= 8;
-        if (test_mode == 0) {
+        if (test_mode inside {[0:2]}) {
            packet_type inside {NOC_BFM_RESPONSE, NOC_BFM_RESPONSE_WITH_DATA};
         }
-        else if (test_mode == 1) {
+        else if (test_mode inside {[3:5]}) {
           packet_type inside {NOC_BFM_READ, NOC_BFM_POSTED_WRITE, NOC_BFM_NON_POSTED_WRITE};
         }
-        else if (test_mode == 2) {
+        else if (test_mode inside {[6:8]}) {
           ((i % 2) == 0) -> packet_type inside {NOC_BFM_RESPONSE, NOC_BFM_RESPONSE_WITH_DATA};
           ((i % 2) == 1) -> packet_type inside {NOC_BFM_READ, NOC_BFM_POSTED_WRITE, NOC_BFM_NON_POSTED_WRITE};
+        }
+        if ((test_mode % 3) == 0) {
+          routing_mode == NOC_BFM_X_Y_ROUTING;
+        }
+        else if ((test_mode % 3) == 1) {
+          routing_mode == NOC_BFM_Y_X_ROUTING;
         }
       })
     end

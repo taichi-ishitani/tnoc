@@ -16,6 +16,7 @@ package noc_router_tests_pkg;
   `include  "noc_router_different_route_test.svh"
   `include  "noc_router_output_arbitration_test.svh"
   `include  "noc_router_virtual_channel_test.svh"
+  `include  "noc_router_routing_mode_test.svh"
   `include  "noc_router_stress_access_test.svh"
   `include  "noc_router_random_test.svh"
 endpackage

@@ -27,27 +27,28 @@ class noc_packet_scoreboard extends tue_scoreboard #(noc_bfm_configuration);
   endfunction
 
   virtual function void write_rx(noc_bfm_packet_item item);
-    noc_bfm_location_id source_id = item.source_id;
-    noc_bfm_vc          vc        = item.virtual_channel;
-    noc_bfm_packet_item tx_item;
+    noc_bfm_location_id source_id     = item.source_id;
+    noc_bfm_vc          vc            = item.virtual_channel;
+    int                 tx_item_index = -1;
 
     if (is_unexpected_item(source_id, vc)) begin
       `uvm_error(get_name(), $sformatf("unexpected item:\n%s", item.sprint()))
       return;
     end
 
-    tx_item = tx_item_queue[source_id][vc].pop_front();
-    if (item.compare(tx_item)) begin
+    foreach (tx_item_queue[source_id][vc][i]) begin
+      if (item.compare(tx_item_queue[source_id][vc][i])) begin
+        tx_item_index = i;
+        break;
+      end
+    end
+
+    if (tx_item_index >= 0) begin
       `uvm_info(get_name(), $sformatf("rx packet is mathced with tx packet:\n%s", item.sprint()), UVM_MEDIUM)
+      tx_item_queue[source_id][vc].delete(tx_item_index);
     end
     else begin
-      `uvm_error(
-        get_name(),
-        $sformatf(
-          "rx packet is not matched with tx packet:\ntx packet\n%s\nrx packet\n%s",
-          tx_item.sprint(), item.sprint()
-        )
-      )
+      `uvm_error(get_name(), $sformatf("no tx packet is matched with rx packet:\n%s", item.sprint()))
     end
 
     drop_objection();

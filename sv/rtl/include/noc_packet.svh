@@ -20,6 +20,11 @@ typedef logic [CONFIG.tag_width-1:0]  noc_tag;
 
 typedef logic [CONFIG.length_width-1:0] noc_length;
 
+typedef enum logic {
+  NOC_X_Y_ROUTING = 'b0,
+  NOC_Y_X_ROUTING = 'b1
+} noc_routing_mode;
+
 typedef logic [CONFIG.address_width-1:0]  noc_address;
 
 typedef enum logic [1:0] {
@@ -33,13 +38,14 @@ localparam  int LOWER_ADDRESS_WIDTH = $clog2(CONFIG.data_width / 8);
 typedef logic [LOWER_ADDRESS_WIDTH-1:0] noc_lower_address;
 
 `define noc_packet_header_common_fields \
-logic           invalid_destination; \
-noc_length      length; \
-noc_tag         tag; \
-noc_vc          vc; \
-noc_location_id source_id; \
-noc_location_id destination_id; \
-noc_packet_type packet_type;
+logic             invalid_destination; \
+noc_routing_mode  routing_mode; \
+noc_length        length; \
+noc_tag           tag; \
+noc_vc            vc; \
+noc_location_id   source_id; \
+noc_location_id   destination_id; \
+noc_packet_type   packet_type;
 
 typedef struct packed {
   `noc_packet_header_common_fields
@@ -71,6 +77,6 @@ localparam  int COMMON_HEADER_WIDTH   = $bits(noc_common_header);
 localparam  int REQUEST_HEADER_WIDTH  = $bits(noc_request_header);
 localparam  int RESPONSE_HEADER_WIDTH = $bits(noc_response_header);
 localparam  int HEADER_WIDTH          = (
-REQUEST_HEADER_WIDTH > RESPONSE_HEADER_WIDTH
+  REQUEST_HEADER_WIDTH > RESPONSE_HEADER_WIDTH
 ) ? REQUEST_HEADER_WIDTH : RESPONSE_HEADER_WIDTH;
 localparam  int PAYLOD_WIDTH          = $bits(noc_payload);
