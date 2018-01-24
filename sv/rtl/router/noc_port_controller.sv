@@ -87,8 +87,8 @@ module noc_port_controller
   end endgenerate
 
   noc_mux #(
-    .WIDTH    (5  ),
-    .ENTRIES  (2  )
+    .WIDTH    (5        ),
+    .ENTRIES  (CHANNELS )
   ) u_grant_mux (
     .i_select (vc_grant           ),
     .i_value  (port_grant         ),
