@@ -125,7 +125,7 @@ module noc_fifo_mem #(
 
   function automatic logic [ADDRESS_WIDTH-1:0] calc_next_address(
     input logic [ADDRESS_WIDTH-1:0] current_address
-    );
+  );
     if (current_address == LAST_ADDRESS) begin
       return 0;
     end
