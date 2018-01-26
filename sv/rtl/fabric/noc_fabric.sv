@@ -19,14 +19,22 @@ module noc_fabric
 
   generate for (genvar y = 0;y < SIZE_Y;++y) begin : g_y
     for (genvar x = 0;x < SIZE_X;++x) begin : g_x
-      localparam  FLIT_IF_INDEX_X = 2 * ((SIZE_X + 1) * y + x);
-      localparam  FLIT_IF_INDEX_Y = 2 * ((SIZE_Y + 1) * x + y);
-      localparam  FLIT_IF_INDEX_L = 1 * ((SIZE_Y + 0) * y + x);
+      localparam  int       FLIT_IF_INDEX_X = 2 * ((SIZE_X + 1) * y + x);
+      localparam  int       FLIT_IF_INDEX_Y = 2 * ((SIZE_Y + 1) * x + y);
+      localparam  int       FLIT_IF_INDEX_L = 1 * ((SIZE_Y + 0) * y + x);
+      localparam  bit [4:0] AVAILABLE_PORTS = {
+        1'b1,                               //  Local
+        ((y > 0           ) ? 1'b1 : 1'b0), //  Y Minus
+        ((y < (SIZE_Y - 1)) ? 1'b1 : 1'b0), //  Y Plus
+        ((x > 0           ) ? 1'b1 : 1'b0), //  X Minus
+        ((x < (SIZE_X - 1)) ? 1'b1 : 1'b0)  //  X Plus
+      };
 
       noc_router #(
-        .CONFIG (CONFIG ),
-        .X      (x      ),
-        .Y      (y      )
+        .CONFIG           (CONFIG           ),
+        .X                (x                ),
+        .Y                (y                ),
+        .AVAILABLE_PORTS  (AVAILABLE_PORTS  )
       ) u_router (
         .clk                  (clk                          ),
         .rst_n                (rst_n                        ),

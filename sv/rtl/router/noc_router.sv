@@ -1,9 +1,10 @@
 module noc_router
   import  noc_config_pkg::*;
 #(
-  parameter noc_config  CONFIG  = NOC_DEFAULT_CONFIG,
-  parameter int         X       = 0,
-  parameter int         Y       = 0
+  parameter noc_config  CONFIG          = NOC_DEFAULT_CONFIG,
+  parameter int         X               = 0,
+  parameter int         Y               = 0,
+  parameter bit [4:0]   AVAILABLE_PORTS = 5'b11111
 )(
   input logic           clk,
   input logic           rst_n,
@@ -18,14 +19,6 @@ module noc_router
   noc_flit_if.target    flit_in_if_local,
   noc_flit_if.initiator flit_out_if_local
 );
-  localparam  bit [4:0] AVAILABLE_PORTS = {
-    1'b1,
-    ((Y > 0                  ) ? 1'b1 : 1'b0),
-    ((Y < (CONFIG.size_y - 1)) ? 1'b1 : 1'b0),
-    ((X > 0                  ) ? 1'b1 : 1'b0),
-    ((X < (CONFIG.size_x - 1)) ? 1'b1 : 1'b0)
-  };
-
   noc_flit_if #(CONFIG)         flit_in_if[5]();
   noc_flit_if #(CONFIG)         flit_out_if[5]();
   noc_flit_if #(CONFIG)         flit_if[25]();
