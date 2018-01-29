@@ -1,5 +1,5 @@
 NOC_HOME		:= $(shell git rev-parse --show-toplevel)
-NOC_SV_HOME	:= $(NOC_HOME)/sv
+NOC_SV_HOME	:= $(NOC_HOME)
 TUE_HOME		:= $(NOC_SV_HOME)/env/tue
 
 export NOC_HOME
