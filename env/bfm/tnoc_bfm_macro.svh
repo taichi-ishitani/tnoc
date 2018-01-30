@@ -1,0 +1,36 @@
+`ifndef TNOC_BFM_MACROS_SVH
+`define TNOC_BFM_MACROS_SVH
+
+`ifndef TNOC_BFM_MAX_ADDRESS_WIDTH
+  `define TNOC_BFM_MAX_ADDRESS_WIDTH 64
+ `endif
+
+`ifndef TNOC_BFM_MAX_DATA_WIDTH
+  `define TNOC_BFM_MAX_DATA_WIDTH  256
+`endif
+
+`ifndef TNOC_BFM_MAX_ID_X_WIDTH
+  `define TNOC_BFM_MAX_ID_X_WIDTH  8
+`endif
+
+`ifndef TNOC_BFM_MAX_ID_Y_WIDTH
+  `define TNOC_BFM_MAX_ID_Y_WIDTH  8
+`endif
+
+`ifndef TNOC_BFM_MAX_VC_WIDTH
+  `define TNOC_BFM_MAX_VC_WIDTH  3
+`endif
+
+`ifndef TNOC_BFM_MAX_TAG_WIDTH
+  `define TNOC_BFM_MAX_TAG_WIDTH 8
+`endif
+
+`ifndef TNOC_BFM_MAX_LENGTH_WIDTH
+  `define TNOC_BFM_MAX_LENGTH_WIDTH  5
+`endif
+
+`ifndef TNOC_BFM_MAX_VIRTUAL_CHANNELS
+  `define TNOC_BFM_MAX_VIRTUAL_CHANNELS  2
+`endif
+
+`endif

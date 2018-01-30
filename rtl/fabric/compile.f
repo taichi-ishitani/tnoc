@@ -1,2 +1,2 @@
-${NOC_SV_HOME}/rtl/fabric/noc_router_dummy.sv
-${NOC_SV_HOME}/rtl/fabric/noc_fabric.sv
+${TNOC_HOME}/rtl/fabric/tnoc_router_dummy.sv
+${TNOC_HOME}/rtl/fabric/tnoc_fabric.sv

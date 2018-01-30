@@ -3,29 +3,29 @@ module top();
 
   import  uvm_pkg::*;
   import  tue_pkg::*;
-  import  noc_config_pkg::*;
-  import  noc_bfm_types_pkg::*;
-  import  noc_bfm_pkg::*;
-  import  noc_common_env_pkg::*;
-  import  noc_fabric_env_pkg::*;
-  import  noc_fabric_tests_pkg::*;
+  import  tnoc_config_pkg::*;
+  import  tnoc_bfm_types_pkg::*;
+  import  tnoc_bfm_pkg::*;
+  import  tnoc_common_env_pkg::*;
+  import  tnoc_fabric_env_pkg::*;
+  import  tnoc_fabric_tests_pkg::*;
 
-  `ifndef NOC_FABRIC_ENV_DATA_WIDTH
-    `define NOC_FABRIC_ENV_DATA_WIDTH NOC_DEFAULT_CONFIG.data_width
+  `ifndef TNOC_FABRIC_ENV_DATA_WIDTH
+    `define TNOC_FABRIC_ENV_DATA_WIDTH TNOC_DEFAULT_CONFIG.data_width
   `endif
 
-  localparam  noc_config  CONFIG  = '{
-    address_width:    NOC_DEFAULT_CONFIG.address_width,
-    data_width:       `NOC_FABRIC_ENV_DATA_WIDTH,
-    id_x_width:       NOC_DEFAULT_CONFIG.id_x_width,
-    id_y_width:       NOC_DEFAULT_CONFIG.id_y_width,
-    vc_width:         NOC_DEFAULT_CONFIG.vc_width,
-    length_width:     NOC_DEFAULT_CONFIG.length_width,
-    tag_width:        NOC_DEFAULT_CONFIG.tag_width,
-    virtual_channels: NOC_DEFAULT_CONFIG.virtual_channels,
-    input_fifo_depth: NOC_DEFAULT_CONFIG.input_fifo_depth,
-    size_x:           NOC_DEFAULT_CONFIG.size_x,
-    size_y:           NOC_DEFAULT_CONFIG.size_y
+  localparam  tnoc_config CONFIG  = '{
+    address_width:    TNOC_DEFAULT_CONFIG.address_width,
+    data_width:       `TNOC_FABRIC_ENV_DATA_WIDTH,
+    id_x_width:       TNOC_DEFAULT_CONFIG.id_x_width,
+    id_y_width:       TNOC_DEFAULT_CONFIG.id_y_width,
+    vc_width:         TNOC_DEFAULT_CONFIG.vc_width,
+    length_width:     TNOC_DEFAULT_CONFIG.length_width,
+    tag_width:        TNOC_DEFAULT_CONFIG.tag_width,
+    virtual_channels: TNOC_DEFAULT_CONFIG.virtual_channels,
+    input_fifo_depth: TNOC_DEFAULT_CONFIG.input_fifo_depth,
+    size_x:           TNOC_DEFAULT_CONFIG.size_x,
+    size_y:           TNOC_DEFAULT_CONFIG.size_y
   };
 
   bit clk = 0;
@@ -42,16 +42,16 @@ module top();
     rst_n = 1;
   end
 
-  noc_flit_if #(CONFIG) flit_in_if[9]();
-  noc_flit_if #(CONFIG) flit_out_if[9]();
+  tnoc_flit_if #(CONFIG)  flit_in_if[9]();
+  tnoc_flit_if #(CONFIG)  flit_out_if[9]();
 
-  noc_bfm_flit_if bfm_flit_in_if[9](clk, rst_n);
-  noc_bfm_flit_if bfm_flit_out_if[9](clk, rst_n);
+  tnoc_bfm_flit_if  bfm_flit_in_if[9](clk, rst_n);
+  tnoc_bfm_flit_if  bfm_flit_out_if[9](clk, rst_n);
 
-  noc_bfm_flit_vif  tx_vif[int];
-  noc_bfm_flit_vif  rx_vif[int];
+  tnoc_bfm_flit_vif tx_vif[int];
+  tnoc_bfm_flit_vif rx_vif[int];
 
-  noc_flit_if_connector #(
+  tnoc_flit_if_connector #(
     .CONFIG (CONFIG ),
     .IFS    (9      )
   ) u_flit_if_connector (
@@ -71,15 +71,15 @@ module top();
     end
   end
 
-  noc_fabric #(CONFIG) u_dut (
+  tnoc_fabric #(CONFIG) u_dut (
     .clk          (clk          ),
     .rst_n        (rst_n        ),
     .flit_in_if   (flit_in_if   ),
     .flit_out_if  (flit_out_if  )
   );
 
-  function automatic noc_fabric_env_configuration create_cfg();
-    noc_fabric_env_configuration  cfg = new();
+  function automatic tnoc_fabric_env_configuration create_cfg();
+    tnoc_fabric_env_configuration cfg = new();
     cfg.create_sub_cfgs(CONFIG.size_x, CONFIG.size_y, tx_vif, rx_vif);
     assert(cfg.randomize() with {
       foreach (bfm_cfg[i]) {
@@ -98,7 +98,7 @@ module top();
 
   initial begin
     uvm_wait_for_nba_region();
-    uvm_config_db #(noc_fabric_env_configuration)::set(null, "", "configuration", create_cfg());
+    uvm_config_db #(tnoc_fabric_env_configuration)::set(null, "", "configuration", create_cfg());
     run_test();
   end
 endmodule

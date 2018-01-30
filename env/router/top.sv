@@ -3,29 +3,29 @@ module top();
 
   import  uvm_pkg::*;
   import  tue_pkg::*;
-  import  noc_config_pkg::*;
-  import  noc_bfm_types_pkg::*;
-  import  noc_bfm_pkg::*;
-  import  noc_common_env_pkg::*;
-  import  noc_router_env_pkg::*;
-  import  noc_router_tests_pkg::*;
+  import  tnoc_config_pkg::*;
+  import  tnoc_bfm_types_pkg::*;
+  import  tnoc_bfm_pkg::*;
+  import  tnoc_common_env_pkg::*;
+  import  tnoc_router_env_pkg::*;
+  import  tnoc_router_tests_pkg::*;
 
-  `ifndef NOC_ROUTER_ENV_DATA_WIDTH
-    `define NOC_ROUTER_ENV_DATA_WIDTH NOC_DEFAULT_CONFIG.data_width
+  `ifndef TNOC_ROUTER_ENV_DATA_WIDTH
+    `define TNOC_ROUTER_ENV_DATA_WIDTH TNOC_DEFAULT_CONFIG.data_width
   `endif
 
-  localparam  noc_config  CONFIG  = '{
-    address_width:    NOC_DEFAULT_CONFIG.address_width,
-    data_width:       `NOC_ROUTER_ENV_DATA_WIDTH,
-    id_x_width:       NOC_DEFAULT_CONFIG.id_x_width,
-    id_y_width:       NOC_DEFAULT_CONFIG.id_y_width,
-    vc_width:         NOC_DEFAULT_CONFIG.vc_width,
-    length_width:     NOC_DEFAULT_CONFIG.length_width,
-    tag_width:        NOC_DEFAULT_CONFIG.tag_width,
-    virtual_channels: NOC_DEFAULT_CONFIG.virtual_channels,
-    input_fifo_depth: NOC_DEFAULT_CONFIG.input_fifo_depth,
-    size_x:           NOC_DEFAULT_CONFIG.size_x,
-    size_y:           NOC_DEFAULT_CONFIG.size_y
+  localparam  tnoc_config CONFIG  = '{
+    address_width:    TNOC_DEFAULT_CONFIG.address_width,
+    data_width:       `TNOC_ROUTER_ENV_DATA_WIDTH,
+    id_x_width:       TNOC_DEFAULT_CONFIG.id_x_width,
+    id_y_width:       TNOC_DEFAULT_CONFIG.id_y_width,
+    vc_width:         TNOC_DEFAULT_CONFIG.vc_width,
+    length_width:     TNOC_DEFAULT_CONFIG.length_width,
+    tag_width:        TNOC_DEFAULT_CONFIG.tag_width,
+    virtual_channels: TNOC_DEFAULT_CONFIG.virtual_channels,
+    input_fifo_depth: TNOC_DEFAULT_CONFIG.input_fifo_depth,
+    size_x:           TNOC_DEFAULT_CONFIG.size_x,
+    size_y:           TNOC_DEFAULT_CONFIG.size_y
   };
 
   bit clk = 0;
@@ -42,13 +42,13 @@ module top();
     rst_n = 1;
   end
 
-  noc_flit_if #(CONFIG) flit_in_if[5]();
-  noc_flit_if #(CONFIG) flit_out_if[5]();
+  tnoc_flit_if #(CONFIG)  flit_in_if[5]();
+  tnoc_flit_if #(CONFIG)  flit_out_if[5]();
 
-  noc_bfm_flit_if bfm_flit_in_if[5](clk, rst_n);
-  noc_bfm_flit_if bfm_flit_out_if[5](clk, rst_n);
+  tnoc_bfm_flit_if  bfm_flit_in_if[5](clk, rst_n);
+  tnoc_bfm_flit_if  bfm_flit_out_if[5](clk, rst_n);
 
-  noc_flit_if_connector #(
+  tnoc_flit_if_connector #(
     .CONFIG (CONFIG ),
     .IFS    (5      )
   ) u_flit_if_connector (
@@ -63,7 +63,7 @@ module top();
     assign  bfm_flit_out_if[i].vc_available = '1;
   end
 
-  noc_router #(
+  tnoc_router #(
     .CONFIG (CONFIG ),
     .X      (1      ),
     .Y      (1      )
@@ -83,7 +83,7 @@ module top();
   );
 
   initial begin
-    noc_router_env_configuration  cfg = new();
+    tnoc_router_env_configuration cfg = new();
     assert(cfg.randomize() with {
       id_x == 1;
       id_y == 1;
@@ -110,7 +110,7 @@ module top();
     cfg.bfm_cfg[4].tx_vif = bfm_flit_in_if[4];
     cfg.bfm_cfg[4].rx_vif = bfm_flit_out_if[4];
 
-    uvm_config_db #(noc_router_env_configuration)::set(null, "", "configuration", cfg);
+    uvm_config_db #(tnoc_router_env_configuration)::set(null, "", "configuration", cfg);
     run_test();
   end
 endmodule
