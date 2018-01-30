@@ -1,9 +1,7 @@
-NOC_HOME		:= $(shell git rev-parse --show-toplevel)
-NOC_SV_HOME	:= $(NOC_HOME)
-TUE_HOME		:= $(NOC_SV_HOME)/env/tue
+TNOC_HOME	:= $(shell git rev-parse --show-toplevel)
+TUE_HOME	:= $(TNOC_HOME)/env/tue
 
-export NOC_HOME
-export NOC_SV_HOME
+export TNOC_HOME
 export TUE_HOME
 
 FILE_LISTS		?=

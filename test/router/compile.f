@@ -1,2 +1,2 @@
-+incdir+${NOC_SV_HOME}/test/router
-${NOC_SV_HOME}/test/router/noc_router_tests_pkg.sv
++incdir+${TNOC_HOME}/test/router
+${TNOC_HOME}/test/router/tnoc_router_tests_pkg.sv
