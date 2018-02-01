@@ -40,7 +40,7 @@ module tnoc_route_selector
     result[2] = ((id.y > Y) && AVAILABLE_PORTS[2]) ? '1 : '0;
     result[3] = ((id.y < Y) && AVAILABLE_PORTS[3]) ? '1 : '0;
 
-    if (header.routing_mode == tnoc_X_Y_ROUTING) begin
+    if (header.routing_mode == TNOC_X_Y_ROUTING) begin
       return x_y_routing(result);
     end
     else begin

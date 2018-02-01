@@ -21,8 +21,8 @@ typedef logic [CONFIG.tag_width-1:0]  tnoc_tag;
 typedef logic [CONFIG.length_width-1:0] tnoc_length;
 
 typedef enum logic {
-  tnoc_X_Y_ROUTING = 'b0,
-  tnoc_Y_X_ROUTING = 'b1
+  TNOC_X_Y_ROUTING = 'b0,
+  TNOC_Y_X_ROUTING = 'b1
 } tnoc_routing_mode;
 
 typedef logic [CONFIG.address_width-1:0]  tnoc_address;
