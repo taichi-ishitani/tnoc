@@ -87,8 +87,8 @@ package tnoc_bfm_types_pkg;
 
   typedef struct packed {
     tnoc_bfm_flit_type  flit_type;
-    bit                 head;
     bit                 tail;
+    bit                 head;
     tnoc_bfm_flit_data  data;
   } tnoc_bfm_flit;
 endpackage
