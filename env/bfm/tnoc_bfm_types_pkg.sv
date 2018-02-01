@@ -86,10 +86,10 @@ package tnoc_bfm_types_pkg;
   typedef bit [TNOC_FLIT_DATA_WIDTH-1:0]  tnoc_bfm_flit_data;
 
   typedef struct packed {
-    tnoc_bfm_flit_type  flit_type;
-    bit                 head;
-    bit                 tail;
     tnoc_bfm_flit_data  data;
+    bit                 tail;
+    bit                 head;
+    tnoc_bfm_flit_type  flit_type;
   } tnoc_bfm_flit;
 endpackage
 `endif
