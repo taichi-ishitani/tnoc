@@ -15,17 +15,16 @@ module top();
   `endif
 
   localparam  tnoc_config CONFIG  = '{
-    address_width:    TNOC_DEFAULT_CONFIG.address_width,
-    data_width:       `TNOC_FABRIC_ENV_DATA_WIDTH,
-    id_x_width:       TNOC_DEFAULT_CONFIG.id_x_width,
-    id_y_width:       TNOC_DEFAULT_CONFIG.id_y_width,
-    vc_width:         TNOC_DEFAULT_CONFIG.vc_width,
-    length_width:     TNOC_DEFAULT_CONFIG.length_width,
-    tag_width:        TNOC_DEFAULT_CONFIG.tag_width,
-    virtual_channels: TNOC_DEFAULT_CONFIG.virtual_channels,
-    input_fifo_depth: TNOC_DEFAULT_CONFIG.input_fifo_depth,
-    size_x:           TNOC_DEFAULT_CONFIG.size_x,
-    size_y:           TNOC_DEFAULT_CONFIG.size_y
+    address_width:      TNOC_DEFAULT_CONFIG.address_width,
+    data_width:         `TNOC_FABRIC_ENV_DATA_WIDTH,
+    id_x_width:         TNOC_DEFAULT_CONFIG.id_x_width,
+    id_y_width:         TNOC_DEFAULT_CONFIG.id_y_width,
+    virtual_channels:   TNOC_DEFAULT_CONFIG.virtual_channels,
+    tag_width:          TNOC_DEFAULT_CONFIG.tag_width,
+    burst_length_width: TNOC_DEFAULT_CONFIG.burst_length_width,
+    input_fifo_depth:   TNOC_DEFAULT_CONFIG.input_fifo_depth,
+    size_x:             TNOC_DEFAULT_CONFIG.size_x,
+    size_y:             TNOC_DEFAULT_CONFIG.size_y
   };
 
   bit clk = 0;
@@ -83,14 +82,14 @@ module top();
     cfg.create_sub_cfgs(CONFIG.size_x, CONFIG.size_y, tx_vif, rx_vif);
     assert(cfg.randomize() with {
       foreach (bfm_cfg[i]) {
-        bfm_cfg[i].address_width     == CONFIG.address_width;
-        bfm_cfg[i].data_width        == CONFIG.data_width;
-        bfm_cfg[i].id_x_width        == CONFIG.id_x_width;
-        bfm_cfg[i].id_y_width        == CONFIG.id_y_width;
-        bfm_cfg[i].vc_width          == CONFIG.vc_width;
-        bfm_cfg[i].tag_width         == CONFIG.tag_width;
-        bfm_cfg[i].length_width      == CONFIG.length_width;
-        bfm_cfg[i].virtual_channels  == CONFIG.virtual_channels;
+        bfm_cfg[i].address_width      == CONFIG.address_width;
+        bfm_cfg[i].data_width         == CONFIG.data_width;
+        bfm_cfg[i].id_x_width         == CONFIG.id_x_width;
+        bfm_cfg[i].id_y_width         == CONFIG.id_y_width;
+        bfm_cfg[i].virtual_channels   == CONFIG.virtual_channels;
+        bfm_cfg[i].tag_width          == CONFIG.tag_width;
+        bfm_cfg[i].burst_length_width == CONFIG.burst_length_width;
+        
       }
     });
     return cfg;

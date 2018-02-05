@@ -31,7 +31,7 @@ class tnoc_fabric_stress_access_test_sequence extends tnoc_fabric_test_sequence_
       tnoc_bfm_packet_item  packet_item;
       `uvm_do_on_with(packet_item, sequencer, {
         destination_id == destination;
-        length         >= 8;
+        burst_length   >= 8;
         if (test_mode inside {[0:2]}) {
            packet_type inside {TNOC_BFM_RESPONSE, TNOC_BFM_RESPONSE_WITH_DATA};
         }

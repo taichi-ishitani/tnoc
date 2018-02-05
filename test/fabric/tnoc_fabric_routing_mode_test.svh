@@ -24,7 +24,7 @@ class tnoc_fabric_routing_mode_test_sequence extends tnoc_fabric_test_sequence_b
       tnoc_bfm_packet_item  packet_item;
       `uvm_do_on_with(packet_item, sequencer, {
         destination_id == local::destination_id;
-        length         >= 8;
+        burst_length   >= 8;
         routing_mode   == local::routing_mode;
       })
     end
