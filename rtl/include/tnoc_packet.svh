@@ -28,10 +28,10 @@ typedef enum logic {
 typedef logic [CONFIG.address_width-1:0]  tnoc_address;
 
 typedef enum logic [1:0] {
-  tnoc_OKAY          = 'b00,
-  tnoc_EXOKAY        = 'b01,
-  tnoc_SLAVE_ERROR   = 'b10,
-  tnoc_DECODE_ERROR  = 'b11
+  TNOC_OKAY          = 'b00,
+  TNOC_EXOKAY        = 'b01,
+  TNOC_SLAVE_ERROR   = 'b10,
+  TNOC_DECODE_ERROR  = 'b11
 } tnoc_response_status;
 
 localparam  int LOWER_ADDRESS_WIDTH = $clog2(CONFIG.data_width / 8);
