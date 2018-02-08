@@ -1,16 +1,10 @@
-TNOC_HOME	:= $(shell git rev-parse --show-toplevel)
-TUE_HOME	:= $(TNOC_HOME)/env/tue
+FILE_LISTS		=
+SOURCE_FILES	=
+DEFINES				=
 
-export TNOC_HOME
-export TUE_HOME
-
-FILE_LISTS		?=
-SOURCE_FILES	?=
-DEFINES				?=
-
-VCS_ARGS	?=
-SIMV_ARGS	?=
-TEST_LIST	?=
+VCS_ARGS	=
+SIMV_ARGS	=
+TEST_LIST	=
 
 VCS_ARGS	+= -full64 -sverilog -timescale="1ns/1ps" -l vcs.log
 VCS_ARGS	+= -ntb_opts uvm +define+UVM_NO_DEPRECATED +define+UVM_OBJECT_MUST_HAVE_CONSTRUCTO
@@ -41,6 +35,12 @@ endif
 
 -include local.mk
 -include test_list.mk
+
+TNOC_HOME	?= $(shell git rev-parse --show-toplevel)
+TUE_HOME	?= $(TNOC_HOME)/env/tue
+
+export TNOC_HOME
+export TUE_HOME
 
 VCS_ARGS	+= $(addprefix -f , $(FILE_LISTS))
 VCS_ARGS	+= $(SOURCE_FILES)
