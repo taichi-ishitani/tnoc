@@ -36,6 +36,13 @@ class tnoc_bfm_packet_agent extends tnoc_bfm_packet_agent_base;
     end
   endfunction
 
+  function void apply_agent_mode();
+    case (configuration.agent_mode)
+      UVM_ACTIVE:   active_agent();
+      UVM_PASSIVE:  passive_agent();
+    endcase
+  endfunction
+
   `tue_component_default_constructor(tnoc_bfm_packet_agent)
   `uvm_component_utils(tnoc_bfm_packet_agent)
 endclass

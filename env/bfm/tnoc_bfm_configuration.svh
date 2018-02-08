@@ -1,21 +1,22 @@
 `ifndef TNOC_BFM_CONFIGURATION_SVH
 `define TNOC_BFM_CONFIGURATION_SVH
 class tnoc_bfm_configuration extends tue_configuration;
-  rand  int               address_width;
-  rand  int               data_width;
-  rand  int               byte_enable_width;
-  rand  int               id_x_width;
-  rand  int               id_y_width;
-  rand  int               id_width;
-  rand  int               virtual_channels;
-  rand  int               vc_width;
-  rand  int               tag_width;
-  rand  int               burst_length_width;
-        int               burst_size_width;
-  rand  int               id_x;
-  rand  int               id_y;
-        tnoc_bfm_flit_vif tx_vif;
-        tnoc_bfm_flit_vif rx_vif;
+  rand  uvm_active_passive_enum agent_mode;
+  rand  int                     address_width;
+  rand  int                     data_width;
+  rand  int                     byte_enable_width;
+  rand  int                     id_x_width;
+  rand  int                     id_y_width;
+  rand  int                     id_width;
+  rand  int                     virtual_channels;
+  rand  int                     vc_width;
+  rand  int                     tag_width;
+  rand  int                     burst_length_width;
+        int                     burst_size_width;
+  rand  int                     id_x;
+  rand  int                     id_y;
+        tnoc_bfm_flit_vif       tx_vif;
+        tnoc_bfm_flit_vif       rx_vif;
 
   local int               common_header_width;
   local int               request_header_width;
@@ -23,6 +24,10 @@ class tnoc_bfm_configuration extends tue_configuration;
   local int               header_width;
   local int               payload_width;
   local int               flit_width;
+
+  constraint c_default_agent_mode {
+    soft agent_mode == UVM_ACTIVE;
+  }
 
   constraint c_valid_address_width {
     address_width inside {[1:`TNOC_BFM_MAX_ADDRESS_WIDTH]};
@@ -148,6 +153,7 @@ class tnoc_bfm_configuration extends tue_configuration;
 
   `tue_object_default_constructor(tnoc_bfm_configuration)
   `uvm_object_utils_begin(tnoc_bfm_configuration)
+    `uvm_field_enum(uvm_active_passive_enum, agent_mode, UVM_DEFAULT)
     `uvm_field_int(address_width      , UVM_DEFAULT | UVM_DEC)
     `uvm_field_int(data_width         , UVM_DEFAULT | UVM_DEC)
     `uvm_field_int(byte_enable_width  , UVM_DEFAULT | UVM_DEC)
