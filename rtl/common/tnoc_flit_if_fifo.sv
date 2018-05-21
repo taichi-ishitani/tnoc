@@ -34,7 +34,7 @@ module tnoc_flit_if_fifo
   assign  flit_in_if.ready        = {CHANNELS{~full       }};
   assign  flit_in_if.vc_available = {CHANNELS{~almost_full}};
 
-  generate if (CHANNELS == 0) begin : g_channels_eq_0
+  generate if (CHANNELS == 1) begin : g_channels_eq_1
     assign  flit_out_if.valid = ~empty;
 
     tnoc_fifo #(
@@ -55,7 +55,7 @@ module tnoc_flit_if_fifo
       .o_data         (flit_out_if.flit   )
     );
   end
-  else begin : g_channels_gt_0
+  else begin : g_channels_gt_1
     localparam  int FIFO_WIDTH  = $bits(s_fifo_data);
 
     logic       push;
