@@ -50,7 +50,7 @@ module top();
   tnoc_bfm_flit_vif tx_vif[int];
   tnoc_bfm_flit_vif rx_vif[int];
 
-  tnoc_flit_if_connector #(
+  tnoc_flit_array_if_connector #(
     .CONFIG (CONFIG ),
     .IFS    (9      )
   ) u_flit_if_connector (

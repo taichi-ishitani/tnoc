@@ -47,7 +47,7 @@ module top();
   tnoc_bfm_flit_if  bfm_flit_in_if[5](clk, rst_n);
   tnoc_bfm_flit_if  bfm_flit_out_if[5](clk, rst_n);
 
-  tnoc_flit_if_connector #(
+  tnoc_flit_array_if_connector #(
     .CONFIG (CONFIG ),
     .IFS    (5      )
   ) u_flit_if_connector (
