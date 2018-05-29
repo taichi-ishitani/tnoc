@@ -36,7 +36,7 @@ module tnoc_flit_if_demux
   tnoc_mux #(
     .WIDTH    (CHANNELS ),
     .ENTRIES  (ENTRIES  )
-  ) u_valid_mux (
+  ) u_raedy_mux (
     .i_select (i_select         ),
     .i_value  (ready            ),
     .o_value  (flit_in_if.ready )
