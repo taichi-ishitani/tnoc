@@ -1,7 +1,6 @@
-typedef enum logic {
-  TNOC_HEADER_FLIT  = 'b0,
-  TNOC_PAYLOAD_FLIT = 'b1
-} tnoc_flit_type;
+import  tnoc_enums_pkg::tnoc_flit_type;
+import  tnoc_enums_pkg::TNOC_HEADER_FLIT;
+import  tnoc_enums_pkg::TNOC_PAYLOAD_FLIT;
 
 localparam  int FLIT_DATA_WIDTH = (
   COMMON_HEADER_WIDTH > PAYLOD_WIDTH

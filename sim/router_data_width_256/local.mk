@@ -10,3 +10,5 @@ SOURCE_FILES	+= $(TNOC_HOME)/env/router/top.sv
 
 DEFINES	+= TNOC_ROUTER_ENV_DATA_WIDTH=256
 
+TOP_MODULE	+= top
+

@@ -11,3 +11,5 @@ SOURCE_FILES	+= $(TNOC_HOME)/env/fabric/top.sv
 
 DEFINES	+= TNOC_FABRIC_ENV_DATA_WIDTH=256
 
+TOP_MODULE	+= top
+

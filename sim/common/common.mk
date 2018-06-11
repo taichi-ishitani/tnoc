@@ -36,6 +36,10 @@ endif
 -include local.mk
 -include test_list.mk
 
+ifdef TOP_MODULE
+	VCS_ARGS	+= -top $(TOP_MODULE)
+endif
+
 TNOC_HOME	?= $(shell git rev-parse --show-toplevel)
 TUE_HOME	?= $(TNOC_HOME)/env/tue
 
