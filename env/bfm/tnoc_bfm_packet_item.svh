@@ -10,7 +10,6 @@ class tnoc_bfm_packet_item extends tnoc_bfm_packet_item_base;
   rand  tnoc_bfm_location_id      source_id;
   rand  tnoc_bfm_vc               virtual_channel;
   rand  tnoc_bfm_tag              tag;
-  rand  int                       length;
   rand  tnoc_bfm_routing_mode     routing_mode;
   rand  bit                       invalid_destination;
   rand  tnoc_bfm_burst_type       burst_type;
@@ -134,6 +133,14 @@ class tnoc_bfm_packet_item extends tnoc_bfm_packet_item_base;
 
   function bit is_request;
     return (!packet_type[7]) ? '1 : '0;
+  endfunction
+
+  function bit is_posted_request();
+    return (is_request() && (!packet_type[5])) ? '1 : '0;
+  endfunction
+
+  function bit is_non_posted_request();
+    return (is_request() && packet_type[5]) ? '1 : '0;
   endfunction
 
   function bit is_response;

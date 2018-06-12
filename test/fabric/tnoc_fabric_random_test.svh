@@ -15,8 +15,8 @@ class tnoc_fabric_random_test_sequence extends tnoc_fabric_test_sequence_base;
     repeat (20) begin
       tnoc_bfm_packet_item  packet_item;
       `uvm_do_on_with(packet_item, sequencer, {
-        destination_id.x inside {[0:local::configuration.size_x-1]};
-        destination_id.y inside {[0:local::configuration.size_y-1]};
+        destination_id.x inside {[0:local::configuration.size_x]};
+        destination_id.y inside {[0:local::configuration.size_y]};
       })
     end
   endtask

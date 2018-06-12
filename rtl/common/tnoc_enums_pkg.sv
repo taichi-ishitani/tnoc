@@ -10,6 +10,34 @@ package tnoc_enums_pkg;
     TNOC_INVALID_PACKET     = 'b000_00000
   } tnoc_packet_type;
 
+  function automatic logic is_valid_packet_type(input tnoc_packet_type packet_type);
+    return (packet_type != TNOC_INVALID_PACKET) ? '1 : '0;
+  endfunction
+
+  function automatic logic is_request_packet_type(input tnoc_packet_type packet_type);
+    return (is_valid_packet_type(packet_type) && (!packet_type[7])) ? '1 : '0;
+  endfunction
+
+  function automatic logic is_posted_request_packet_type(input tnoc_packet_type packet_type);
+    return (is_request_packet_type(packet_type) && (!packet_type[5])) ? '1 : '0;
+  endfunction
+
+  function automatic logic is_non_posted_request_packet_type(input tnoc_packet_type packet_type);
+    return (is_request_packet_type(packet_type) && packet_type[5]) ? '1 : '0;
+  endfunction
+
+  function automatic logic is_response_packet_type(input tnoc_packet_type packet_type);
+    return (is_valid_packet_type(packet_type) && packet_type[7]) ? '1 : '0;
+  endfunction
+
+  function automatic logic is_no_payload_packet_type(input tnoc_packet_type packet_type);
+    return (is_valid_packet_type(packet_type) && (!packet_type[6])) ? '1 : '0;
+  endfunction
+
+  function automatic logic is_with_payload_packet_type(input tnoc_packet_type packet_type);
+    return (is_valid_packet_type(packet_type) && packet_type[6]) ? '1 : '0;
+  endfunction
+
   typedef enum logic {
     TNOC_X_Y_ROUTING = 'b0,
     TNOC_Y_X_ROUTING = 'b1

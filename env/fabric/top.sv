@@ -24,7 +24,8 @@ module top();
     burst_length_width: TNOC_DEFAULT_CONFIG.burst_length_width,
     input_fifo_depth:   TNOC_DEFAULT_CONFIG.input_fifo_depth,
     size_x:             TNOC_DEFAULT_CONFIG.size_x,
-    size_y:             TNOC_DEFAULT_CONFIG.size_y
+    size_y:             TNOC_DEFAULT_CONFIG.size_y,
+    error_data:         TNOC_DEFAULT_CONFIG.error_data
   };
 
   bit clk = 0;
@@ -81,6 +82,7 @@ module top();
     tnoc_fabric_env_configuration cfg = new();
     cfg.create_sub_cfgs(CONFIG.size_x, CONFIG.size_y, tx_vif, rx_vif);
     assert(cfg.randomize() with {
+      error_data == (CONFIG.error_data & ((1 << CONFIG.data_width) - 1));
       foreach (bfm_cfg[i]) {
         bfm_cfg[i].address_width      == CONFIG.address_width;
         bfm_cfg[i].data_width         == CONFIG.data_width;
@@ -89,7 +91,6 @@ module top();
         bfm_cfg[i].virtual_channels   == CONFIG.virtual_channels;
         bfm_cfg[i].tag_width          == CONFIG.tag_width;
         bfm_cfg[i].burst_length_width == CONFIG.burst_length_width;
-        
       }
     });
     return cfg;

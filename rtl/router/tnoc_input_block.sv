@@ -4,6 +4,7 @@ module tnoc_input_block
   parameter tnoc_config CONFIG          = TNOC_DEFAULT_CONFIG,
   parameter int         X               = 0,
   parameter int         Y               = 0,
+  parameter bit         LOCAL_PORT      = 1,
   parameter bit [4:0]   AVAILABLE_PORTS = 5'b11111
 )(
   input logic                     clk,
@@ -23,6 +24,7 @@ module tnoc_input_block
   localparam  int CHANNELS  = CONFIG.virtual_channels;
 
   tnoc_flit_if #(CONFIG, 1)       flit_fifo_if[CHANNELS]();
+  tnoc_flit_if #(CONFIG, 1)       flit_error_checker_if[CHANNELS]();
   tnoc_flit_if #(CONFIG)          flit_out_if[5]();
   tnoc_port_control_if #(CONFIG)  port_control_if[5]();
 
@@ -55,6 +57,27 @@ module tnoc_input_block
   );
 
 //--------------------------------------------------------------
+//  Error Checker
+//--------------------------------------------------------------
+  if (LOCAL_PORT) begin : g_error_checker
+    for (genvar i = 0;i < CHANNELS;++i) begin : g
+      tnoc_error_checker #(CONFIG) u_error_checker (
+        .clk          (clk                      ),
+        .rst_n        (rst_n                    ),
+        .flit_in_if   (flit_fifo_if[i]          ),
+        .flit_out_if  (flit_error_checker_if[i] )
+      );
+    end
+  end
+  else begin : g_no_error_check
+    for (genvar i = 0;i < CHANNELS;++i) begin : g
+      tnoc_flit_if_renamer u_renamer (
+        flit_fifo_if[i], flit_error_checker_if[i]
+      );
+    end
+  end
+
+//--------------------------------------------------------------
 //  Route Selector
 //--------------------------------------------------------------
   tnoc_route_selector #(
@@ -63,10 +86,10 @@ module tnoc_input_block
     .Y                (Y                ),
     .AVAILABLE_PORTS  (AVAILABLE_PORTS  )
   ) u_route_selector (
-    .clk              (clk              ),
-    .rst_n            (rst_n            ),
-    .flit_in_if       (flit_fifo_if     ),
-    .flit_out_if      (flit_out_if      ),
-    .port_control_if  (port_control_if  )
+    .clk              (clk                    ),
+    .rst_n            (rst_n                  ),
+    .flit_in_if       (flit_error_checker_if  ),
+    .flit_out_if      (flit_out_if            ),
+    .port_control_if  (port_control_if        )
   );
 endmodule

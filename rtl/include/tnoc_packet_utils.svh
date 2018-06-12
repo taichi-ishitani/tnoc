@@ -1,15 +1,23 @@
 function automatic logic is_request_header(input tnoc_common_header header);
-  return (header.packet_type[7] == '0) ? '1 : '0;
+  return is_request_packet_type(header.packet_type);
+endfunction
+
+function automatic logic is_posted_request_header(input tnoc_common_header header);
+  return is_posted_request_packet_type(header.packet_type);
+endfunction
+
+function automatic logic is_non_posted_request_header(input tnoc_common_header header);
+  return is_non_posted_request_packet_type(header.packet_type);
 endfunction
 
 function automatic logic is_response_header(input tnoc_common_header header);
-  return (header.packet_type[7] == '1) ? '1 : '0;
+  return is_response_packet_type(header.packet_type);
 endfunction
 
 function automatic logic is_packet_with_payload(input tnoc_common_header header);
-  return (header.packet_type[6] == '1) ? '1 : '0;
+  return is_with_payload_packet_type(header.packet_type);
 endfunction
 
-function automatic logic is_packet_without_payload(input tnoc_common_header header);
-  return (header.packet_type[6] == '0) ? '1 : '0;
+function automatic logic is_no_payload_packet(input tnoc_common_header header);
+  return is_no_payload_packet_type(header.packet_type);
 endfunction

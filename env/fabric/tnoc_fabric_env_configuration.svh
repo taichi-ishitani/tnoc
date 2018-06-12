@@ -3,6 +3,7 @@
 class tnoc_fabric_env_configuration extends tue_configuration;
         int                     size_x;
         int                     size_y;
+  rand  tnoc_bfm_data           error_data;
   rand  tnoc_bfm_configuration  bfm_cfg[int];
 
   constraint c_default_id {

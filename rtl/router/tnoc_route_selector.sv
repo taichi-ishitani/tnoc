@@ -68,18 +68,6 @@ module tnoc_route_selector
     endcase
   endfunction
 
-  function automatic tnoc_flit set_invalid_destination_flag(input tnoc_flit flit);
-    tnoc_common_header  header  = get_common_header(flit);
-    tnoc_location_id    id      = header.destination_id;
-    if (is_header_flit(flit) && ((id.x >= SIZE_X) || (id.y >= SIZE_Y))) begin
-      header.invalid_destination  = '1;
-      return set_common_header(flit, header);
-    end
-    else begin
-      return flit;
-    end
-  endfunction
-
 //--------------------------------------------------------------
 //  Routing
 //--------------------------------------------------------------
@@ -90,7 +78,7 @@ module tnoc_route_selector
     logic   end_of_packet;
     e_route route;
     e_route route_next;
-    e_route route_temp;
+    e_route route_latched;
 
     assign  start_of_packet = (
       flit_in_if[i].valid && is_head_flit(flit_in_if[i].flit)
@@ -99,17 +87,17 @@ module tnoc_route_selector
       flit_in_if[i].valid && flit_in_if[i].ready && is_tail_flit(flit_in_if[i].flit)
     ) ? '1 : '0;
 
-    assign  route       = (start_of_packet) ? route_next : route_temp;
+    assign  route       = (start_of_packet) ? route_next : route_latched;
     assign  route_next  = select_route(flit_in_if[i].flit);
     always_ff @(posedge clk, negedge rst_n) begin
       if (!rst_n) begin
-        route_temp  <= ROUTE_NA;
+        route_latched <= ROUTE_NA;
       end
       else if (end_of_packet) begin
-        route_temp  <= ROUTE_NA;
+        route_latched <= ROUTE_NA;
       end
       else if (start_of_packet) begin
-        route_temp  <= route_next;
+        route_latched <= route_next;
       end
     end
 
@@ -128,22 +116,16 @@ module tnoc_route_selector
       end
     end
 
-    tnoc_flit_if #(CONFIG, 1) demux_in_if();
     tnoc_flit_if #(CONFIG, 1) demux_out_if[5]();
-
-    assign  demux_in_if.valid           = flit_in_if[i].valid;
-    assign  flit_in_if[i].ready         = demux_in_if.ready;
-    assign  demux_in_if.flit            = set_invalid_destination_flag(flit_in_if[i].flit);
-    assign  flit_in_if[i].vc_available  = demux_in_if.vc_available;
 
     tnoc_flit_if_demux #(
       .CONFIG   (CONFIG ),
       .CHANNELS (1      ),
       .ENTRIES  (5      )
     ) u_demux (
-      .i_select     (route        ),
-      .flit_in_if   (demux_in_if  ),
-      .flit_out_if  (demux_out_if )
+      .i_select     (route          ),
+      .flit_in_if   (flit_in_if[i]  ),
+      .flit_out_if  (demux_out_if   )
     );
 
     for (genvar j = 0;j < 5;++j) begin : g_renaming

@@ -1,12 +1,10 @@
 `ifndef TNOC_FABRIC_ENV_MODEL_SVH
 `define TNOC_FABRIC_ENV_MODEL_SVH
-class tnoc_fabric_env_model extends tue_component #(tnoc_fabric_env_configuration);
-  uvm_analysis_imp #(tnoc_bfm_packet_item, tnoc_fabric_env_model) packet_export;
-  uvm_analysis_port #(tnoc_bfm_packet_item)                       packet_port[int][int];
+class tnoc_fabric_env_model extends tnoc_model_base #(tnoc_fabric_env_configuration);
+  tue_packet_analysis_port  packet_port[int][int];
 
   function void build_phase(uvm_phase phase);
     super.build_phase(phase);
-    packet_export = new("packet_export", this);
     for (int y = 0;y < configuration.size_y;++y) begin
       for (int x = 0;x < configuration.size_x;++x) begin
         packet_port[y][x] = new($sformatf("packet_port[%0d][%0d]", y, x), this);
@@ -14,17 +12,13 @@ class tnoc_fabric_env_model extends tue_component #(tnoc_fabric_env_configuratio
     end
   endfunction
 
-  function void write(tnoc_bfm_packet_item item);
-    tnoc_bfm_location_id  destination_id  = item.destination_id;
-    if (!packet_port.exists(destination_id.y)) begin
-      return;
-    end
-    if (!packet_port[destination_id.y].exists(destination_id.x)) begin
-      return;
-    end
-    packet_port[destination_id.y][destination_id.x].write(item);
+  function tue_packet_analysis_port find_port(
+    tnoc_bfm_packet_item  item
+  );
+    tnoc_bfm_location_id  id  = item.destination_id;
+    return packet_port[id.y][id.x];
   endfunction
-
+  
   `tue_component_default_constructor(tnoc_fabric_env_model)
   `uvm_component_utils(tnoc_fabric_env_model)
 endclass

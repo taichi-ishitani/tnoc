@@ -17,15 +17,15 @@ class tnoc_router_random_test_sequence extends tnoc_router_test_sequence_base;
       `uvm_do_on_with(packet_item, p_sequencer.bfm_sequencer[index], {
         if ((source_id.x == 1) && (source_id.y != 1)) {
           destination_id.x == 1;
-          destination_id.y inside {[0:3]};
+          destination_id.y inside {[0:2]};
         }
         if ((source_id.x == 2) && (source_id.y == 1)) {
           destination_id.x < 2;
-          destination_id.y inside {[0:3]};
+          destination_id.y inside {[0:2]};
         }
         if ((source_id.x == 0) && (source_id.y == 1)) {
-          destination_id.x inside {[1:3]};
-          destination_id.y inside {[0:3]};
+          destination_id.x inside {[1:2]};
+          destination_id.y inside {[0:2]};
         }
         if ((source_id.x == 1) && (source_id.y == 1)) {
           destination_id.x inside {[0:3]};

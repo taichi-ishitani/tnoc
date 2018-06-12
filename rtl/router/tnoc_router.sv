@@ -38,10 +38,13 @@ module tnoc_router
 
   generate for (genvar i = 0;i < 5;++i) begin : g_input
     if (AVAILABLE_PORTS[i]) begin : g
+      localparam  bit LOCAL_PORT  = (i == 4) ? 1 : 0;
+
       tnoc_input_block #(
         .CONFIG           (CONFIG           ),
         .X                (X                ),
         .Y                (Y                ),
+        .LOCAL_PORT       (LOCAL_PORT       ),
         .AVAILABLE_PORTS  (AVAILABLE_PORTS  )
       ) u_input_block (
         .clk                (clk                    ),

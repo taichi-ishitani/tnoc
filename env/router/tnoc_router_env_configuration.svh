@@ -3,6 +3,9 @@
 class tnoc_router_env_configuration extends tue_configuration;
   rand  tnoc_bfm_id_x           id_x;
   rand  tnoc_bfm_id_y           id_y;
+  rand  int                     size_x;
+  rand  int                     size_y;
+  rand  tnoc_bfm_data           error_data;
   rand  tnoc_bfm_configuration  bfm_cfg[5];
 
   constraint c_default_id {

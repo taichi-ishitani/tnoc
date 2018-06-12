@@ -119,7 +119,7 @@ module tnoc_packet_packer
   );
     logic [HEADER_DATA_WIDTH-1:0] header  = '0;
     header[COMMON_HEADER_WIDTH-1:0] = common_header_fields;
-    if (is_request_header(tnoc_common_header'(common_header_fields))) begin
+    if (is_request_packet_type(common_header_fields.packet_type)) begin
       header[REQUEST_HEADER_WIDTH-1:COMMON_HEADER_WIDTH]  = request_header_fields;
     end
     else begin
@@ -130,7 +130,7 @@ module tnoc_packet_packer
 
   assign  header_flit_valid     = packet_in_if.header_valid;
   assign  header_flit.flit_type = TNOC_HEADER_FLIT;
-  assign  no_payload            = is_packet_without_payload(tnoc_common_header'(common_header_fields));
+  assign  no_payload            = is_no_payload_packet_type(common_header_fields.packet_type);
   if (HEADER_FLITS == 1) begin : g_single_header_flit
     assign  packet_in_if.header_ready = header_flit_ready;
     assign  header_flit.head          = '1;

@@ -14,6 +14,7 @@ package tnoc_fabric_tests_pkg;
   `include  "tnoc_fabric_test_base.svh"
   `include  "tnoc_fabric_sample_test.svh"
   `include  "tnoc_fabric_routing_mode_test.svh"
+  `include  "tnoc_fabric_invalid_destination_test.svh"
   `include  "tnoc_fabric_stress_access_test.svh"
   `include  "tnoc_fabric_random_test.svh"
 endpackage

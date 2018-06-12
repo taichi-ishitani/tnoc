@@ -5,6 +5,13 @@ import  tnoc_enums_pkg::TNOC_NON_POSTED_WRITE;
 import  tnoc_enums_pkg::TNOC_RESPONSE;
 import  tnoc_enums_pkg::TNOC_RESPONSE_WITH_DATA;
 import  tnoc_enums_pkg::TNOC_INVALID_PACKET;
+import  tnoc_enums_pkg::is_valid_packet_type;
+import  tnoc_enums_pkg::is_request_packet_type;
+import  tnoc_enums_pkg::is_posted_request_packet_type;
+import  tnoc_enums_pkg::is_non_posted_request_packet_type;
+import  tnoc_enums_pkg::is_response_packet_type;
+import  tnoc_enums_pkg::is_no_payload_packet_type;
+import  tnoc_enums_pkg::is_with_payload_packet_type;
 
 import  tnoc_enums_pkg::tnoc_routing_mode;
 import  tnoc_enums_pkg::TNOC_X_Y_ROUTING;
