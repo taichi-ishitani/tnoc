@@ -20,6 +20,8 @@ module tnoc_route_selector
   `include  "tnoc_flit.svh"
   `include  "tnoc_flit_utils.svh"
 
+  `define array_slicer(ARRAY, ENTRIES, INDEX) ARRAY[ENTRIES*INDEX:ENTRIES*(INDEX+1)-1]
+
   typedef enum logic [4:0] {
     ROUTE_X_PLUS  = 5'b00001,
     ROUTE_X_MINUS = 5'b00010,
@@ -73,7 +75,7 @@ module tnoc_route_selector
 //--------------------------------------------------------------
   tnoc_flit_if #(CONFIG, 1) flit_routed_if[5*CHANNELS]();
 
-  generate for (genvar i = 0;i < CHANNELS;++i) begin : g_routing
+  for (genvar i = 0;i < CHANNELS;++i) begin : g_routing
     logic   start_of_packet;
     logic   end_of_packet;
     e_route route;
@@ -116,50 +118,48 @@ module tnoc_route_selector
       end
     end
 
-    tnoc_flit_if #(CONFIG, 1) demux_out_if[5]();
-
     tnoc_flit_if_demux #(
       .CONFIG   (CONFIG ),
       .CHANNELS (1      ),
       .ENTRIES  (5      )
     ) u_demux (
-      .i_select     (route          ),
-      .flit_in_if   (flit_in_if[i]  ),
-      .flit_out_if  (demux_out_if   )
+      .i_select     (route                                ),
+      .flit_in_if   (flit_in_if[i]                        ),
+      .flit_out_if  (`array_slicer(flit_routed_if, 5, i)  )
     );
-
-    for (genvar j = 0;j < 5;++j) begin : g_renaming
-      tnoc_flit_if_renamer u_renamer (demux_out_if[j], flit_routed_if[CHANNELS*j+i]);
-    end
-  end endgenerate
+  end
 
 //--------------------------------------------------------------
 //  VC Merging
 //--------------------------------------------------------------
-  generate for (genvar i = 0;i < 5;++i) begin : g_vc_merging
+  tnoc_flit_if #(CONFIG, 1) flit_vc_if[5*CHANNELS]();
+
+  for (genvar i = 0;i < 5;++i) begin : g_vc_merging
+    for (genvar j = 0;j < CHANNELS;++j) begin : g_renamer
+      tnoc_flit_if_renamer u_renamer (
+        flit_routed_if[5*j+i], flit_vc_if[CHANNELS*i+j]
+      );
+    end
+
     if (AVAILABLE_PORTS[i]) begin : g
-      tnoc_flit_if #(CONFIG, 1) flit_vc_if[CHANNELS]();
-
-      for (genvar j = 0;j < CHANNELS;++j) begin : g_renaming
-        tnoc_flit_if_renamer u_renamer (flit_routed_if[CHANNELS*i+j], flit_vc_if[j]);
-      end
-
       tnoc_vc_merger #(CONFIG) u_vc_merger (
-        .clk          (clk                      ),
-        .rst_n        (rst_n                    ),
-        .i_vc_grant   (port_control_if[i].grant ),
-        .flit_in_if   (flit_vc_if               ),
-        .flit_out_if  (flit_out_if[i]           )
+        .clk          (clk                                    ),
+        .rst_n        (rst_n                                  ),
+        .i_vc_grant   (port_control_if[i].grant               ),
+        .flit_in_if   (`array_slicer(flit_vc_if, CHANNELS, i) ),
+        .flit_out_if  (flit_out_if[i]                         )
       );
     end
     else begin : g_dummy
       for (genvar j = 0;j < CHANNELS;++j) begin
-        assign  flit_routed_if[CHANNELS*i+j].ready        = '0;
-        assign  flit_routed_if[CHANNELS*i+j].vc_available = '0;
+        assign  flit_vc_if[CHANNELS*i+j].ready        = '0;
+        assign  flit_vc_if[CHANNELS*i+j].vc_available = '0;
       end
 
       assign  flit_out_if[i].valid  = '0;
       assign  flit_out_if[i].flit   = '0;
     end
-  end endgenerate
+  end
+
+  `undef  array_slicer
 endmodule
