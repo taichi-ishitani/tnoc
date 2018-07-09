@@ -148,13 +148,12 @@ module tnoc_route_selector
       );
     end
     else begin : g_dummy
+      assign  flit_out_if[i].valid  = '0;
       for (genvar j = 0;j < CHANNELS;++j) begin
+        assign  flit_out_if[i].flit[j]                = '0;
         assign  flit_vc_if[CHANNELS*i+j].ready        = '0;
         assign  flit_vc_if[CHANNELS*i+j].vc_available = '0;
       end
-
-      assign  flit_out_if[i].valid  = '0;
-      assign  flit_out_if[i].flit   = '{ default: '0 };
     end
   end
 endmodule

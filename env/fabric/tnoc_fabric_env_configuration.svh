@@ -16,8 +16,8 @@ class tnoc_fabric_env_configuration extends tue_configuration;
   function void create_sub_cfgs(
     input int               size_x,
     input int               size_y,
-    ref   tnoc_bfm_flit_vif tx_vif[int],
-    ref   tnoc_bfm_flit_vif rx_vif[int]
+    ref   tnoc_bfm_flit_vif tx_vif[int][int],
+    ref   tnoc_bfm_flit_vif rx_vif[int][int]
   );
     this.size_x = size_x;
     this.size_y = size_y;
@@ -25,9 +25,13 @@ class tnoc_fabric_env_configuration extends tue_configuration;
     for (int i = 0;i < size_x * size_y;++i) begin
       int x = i % size_x;
       int y = i / size_y;
-      bfm_cfg[i]        = tnoc_bfm_configuration::type_id::create($sformatf("bfm_cfg[%0d][%0d]", y, x));
-      bfm_cfg[i].tx_vif = tx_vif[i];
-      bfm_cfg[i].rx_vif = rx_vif[i];
+      bfm_cfg[i]  = tnoc_bfm_configuration::type_id::create($sformatf("bfm_cfg[%0d][%0d]", y, x));
+      foreach (tx_vif[i][j]) begin
+        bfm_cfg[i].tx_vif[j]  = tx_vif[i][j];
+      end
+      foreach (rx_vif[i][j]) begin
+        bfm_cfg[i].rx_vif[j]  = rx_vif[i][j];
+      end
     end
   endfunction
 

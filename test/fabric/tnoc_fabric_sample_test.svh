@@ -19,8 +19,8 @@ class tnoc_fabric_sample_test_sequence extends tnoc_fabric_test_sequence_base;
 
   task do_noc_access(uvm_sequencer_base sequencer, int y, int x);
     for (int i =0;i < 20;++i) begin
-      tnoc_bfm_packet_item  packet_item;
-      `uvm_do_on_with(packet_item, sequencer, {
+      tnoc_bfm_transmit_packet_sequence transmit_packet_sequence;
+      `uvm_do_on_with(transmit_packet_sequence, sequencer, {
         destination_id.x == x;
         destination_id.y == y;
         if ((i % 2) == 0) {

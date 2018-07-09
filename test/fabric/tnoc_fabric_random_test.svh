@@ -13,8 +13,8 @@ class tnoc_fabric_random_test_sequence extends tnoc_fabric_test_sequence_base;
 
   task do_noc_access(uvm_sequencer_base sequencer);
     repeat (20) begin
-      tnoc_bfm_packet_item  packet_item;
-      `uvm_do_on_with(packet_item, sequencer, {
+      tnoc_bfm_transmit_packet_sequence transmit_packet_sequence;
+      `uvm_do_on_with(transmit_packet_sequence, sequencer, {
         destination_id.x inside {[0:local::configuration.size_x]};
         destination_id.y inside {[0:local::configuration.size_y]};
       })

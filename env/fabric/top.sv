@@ -45,11 +45,11 @@ module top();
   tnoc_flit_if #(CONFIG)  flit_in_if[9]();
   tnoc_flit_if #(CONFIG)  flit_out_if[9]();
 
-  tnoc_bfm_flit_if  bfm_flit_in_if[9](clk, rst_n);
-  tnoc_bfm_flit_if  bfm_flit_out_if[9](clk, rst_n);
+  tnoc_bfm_flit_if  bfm_flit_in_if[9*CONFIG.virtual_channels](clk, rst_n);
+  tnoc_bfm_flit_if  bfm_flit_out_if[9*CONFIG.virtual_channels](clk, rst_n);
 
-  tnoc_bfm_flit_vif tx_vif[int];
-  tnoc_bfm_flit_vif rx_vif[int];
+  tnoc_bfm_flit_vif tx_vif[int][int];
+  tnoc_bfm_flit_vif rx_vif[int][int];
 
   tnoc_flit_array_if_connector #(
     .CONFIG (CONFIG ),
@@ -61,13 +61,15 @@ module top();
     .flit_bfm_out_if  (bfm_flit_out_if  )
   );
 
-  for (genvar g_i = 0;g_i < 9;++g_i) begin
-    assign  bfm_flit_out_if[g_i].ready        = '1;
-    assign  bfm_flit_out_if[g_i].vc_available = '1;
+  for (genvar i = 0;i < 9;++i) begin
+    for (genvar j = 0;j < CONFIG.virtual_channels;++j) begin
+      assign  bfm_flit_out_if[CONFIG.virtual_channels*i+j].ready        = '1;
+      assign  bfm_flit_out_if[CONFIG.virtual_channels*i+j].vc_available = '1;
 
-    initial begin
-      tx_vif[g_i] = bfm_flit_in_if[g_i];
-      rx_vif[g_i] = bfm_flit_out_if[g_i];
+      initial begin
+        tx_vif[i][j]  = bfm_flit_in_if[CONFIG.virtual_channels*i+j];
+        rx_vif[i][j]  = bfm_flit_out_if[CONFIG.virtual_channels*i+j];
+      end
     end
   end
 
