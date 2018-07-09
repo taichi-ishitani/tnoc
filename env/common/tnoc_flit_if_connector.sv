@@ -1,13 +1,14 @@
 module tnoc_flit_if_connector
   import  tnoc_config_pkg::*;
 #(
-  parameter tnoc_config CONFIG      = TNOC_DEFAULT_CONFIG,
-  parameter bit         ACTIVE_MODE = 1
+  parameter   tnoc_config CONFIG      = TNOC_DEFAULT_CONFIG,
+  parameter   bit         ACTIVE_MODE = 1,
+  localparam  int         CHANNELS    = CONFIG.virtual_channels
 )(
   tnoc_flit_if      flit_in_if,
   tnoc_flit_if      flit_out_if,
-  tnoc_bfm_flit_if  flit_bfm_in_if,
-  tnoc_bfm_flit_if  flit_bfm_out_if
+  tnoc_bfm_flit_if  flit_bfm_in_if[CHANNELS],
+  tnoc_bfm_flit_if  flit_bfm_out_if[CHANNELS]
 );
   import  tnoc_bfm_types_pkg::*;
 
@@ -32,26 +33,28 @@ module tnoc_flit_if_connector
     return bfm_flit;
   endfunction
 
-  if (ACTIVE_MODE) begin
-    assign  flit_in_if.valid            = flit_bfm_in_if.valid;
-    assign  flit_bfm_in_if.ready        = flit_in_if.ready;
-    assign  flit_in_if.flit             = convert_to_dut_flit(flit_bfm_in_if.flit);
-    assign  flit_bfm_in_if.vc_available = flit_in_if.vc_available;
+  for (genvar i = 0;i < CHANNELS;++i) begin
+    if (ACTIVE_MODE) begin
+      assign  flit_in_if.valid[i]             = flit_bfm_in_if[i].valid;
+      assign  flit_bfm_in_if[i].ready         = flit_in_if.ready[i];
+      assign  flit_in_if.flit[i]              = convert_to_dut_flit(flit_bfm_in_if[i].flit);
+      assign  flit_bfm_in_if[i].vc_available  = flit_in_if.vc_available[i];
 
-    assign  flit_bfm_out_if.valid     = flit_out_if.valid;
-    assign  flit_out_if.ready         = flit_bfm_out_if.ready;
-    assign  flit_bfm_out_if.flit      = convert_to_bfm_flit(flit_out_if.flit);
-    assign  flit_out_if.vc_available  = flit_bfm_out_if.vc_available;
-  end
-  else begin
-    assign  flit_bfm_in_if.valid         = flit_in_if.valid;
-    assign  flit_bfm_in_if.ready         = flit_in_if.ready;
-    assign  flit_bfm_in_if.flit          = convert_to_bfm_flit(flit_in_if.flit);
-    assign  flit_bfm_in_if.vc_available  = flit_in_if.vc_available;
+      assign  flit_bfm_out_if[i].valid    = flit_out_if.valid[i];
+      assign  flit_out_if.ready[i]        = flit_bfm_out_if[i].ready;
+      assign  flit_bfm_out_if[i].flit     = convert_to_bfm_flit(flit_out_if.flit[i]);
+      assign  flit_out_if.vc_available[i] = flit_bfm_out_if[i].vc_available;
+    end
+    else begin
+      assign  flit_bfm_in_if[i].valid         = flit_in_if.valid[i];
+      assign  flit_bfm_in_if[i].ready         = flit_in_if.ready[i];
+      assign  flit_bfm_in_if[i].flit          = convert_to_bfm_flit(flit_in_if.flit[i]);
+      assign  flit_bfm_in_if[i].vc_available  = flit_in_if.vc_available[i];
 
-    assign  flit_bfm_out_if.valid         = flit_out_if.valid;
-    assign  flit_bfm_out_if.ready         = flit_out_if.ready;
-    assign  flit_bfm_out_if.flit          = convert_to_bfm_flit(flit_out_if.flit);
-    assign  flit_bfm_out_if.vc_available  = flit_out_if.vc_available;
+      assign  flit_bfm_out_if[i].valid        = flit_out_if.valid[i];
+      assign  flit_bfm_out_if[i].ready        = flit_out_if.ready[i];
+      assign  flit_bfm_out_if[i].flit         = convert_to_bfm_flit(flit_out_if.flit[i]);
+      assign  flit_bfm_out_if[i].vc_available = flit_out_if.vc_available[i];
+    end
   end
 endmodule

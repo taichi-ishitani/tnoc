@@ -31,7 +31,7 @@ module tnoc_output_block_dummy
   tnoc_port_control_if_renamer u_port_control_if_renamer_4 (port_control_if_l , port_control_if[4]);
 
   assign  flit_out_if.valid = '0;
-  assign  flit_out_if.flit  = '0;
+  assign  flit_out_if.flit  = '{default: '0};
 
   generate for (genvar i = 0;i < 5;++i) begin
     assign  flit_in_if[i].ready         = '0;

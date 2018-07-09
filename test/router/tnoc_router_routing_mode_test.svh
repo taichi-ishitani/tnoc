@@ -10,8 +10,8 @@ class tnoc_router_routing_mode_test_sequence extends tnoc_router_test_sequence_b
 
   task do_noc_access(tnoc_bfm_location_id destination_id);
     for (int i = 0;i < 20;++i) begin
-      tnoc_bfm_packet_item  packet_item;
-      `uvm_do_on_with(packet_item, p_sequencer.bfm_sequencer[4], {
+      tnoc_bfm_transmit_packet_sequence transmit_packet_sequence;
+      `uvm_do_on_with(transmit_packet_sequence, p_sequencer.bfm_sequencer[4], {
         destination_id == local::destination_id;
         ((i % 2) == 0) -> routing_mode == TNOC_BFM_X_Y_ROUTING;
         ((i % 2) == 1) -> routing_mode == TNOC_BFM_Y_X_ROUTING;

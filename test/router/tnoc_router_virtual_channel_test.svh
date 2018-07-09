@@ -42,8 +42,8 @@ class tnoc_router_virtual_channel_test_sequence extends tnoc_router_test_sequenc
     end
 
     for (int i = 0;i < 20;++i) begin
-      tnoc_bfm_packet_item  packet_item;
-      `uvm_do_on_with(packet_item, sequencer, {
+      tnoc_bfm_transmit_packet_sequence transmit_packet_sequence;
+      `uvm_do_on_with(transmit_packet_sequence, sequencer, {
         ((i % 2) == 0) -> packet_type inside {TNOC_BFM_RESPONSE, TNOC_BFM_RESPONSE_WITH_DATA};
         ((i % 2) == 1) -> packet_type inside {TNOC_BFM_READ, TNOC_BFM_POSTED_WRITE, TNOC_BFM_NON_POSTED_WRITE};
         ((i % 2) == index) -> destination_id == destinations[0];

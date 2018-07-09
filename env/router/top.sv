@@ -1,8 +1,11 @@
 module top();
   timeunit  1ns/1ps;
 
+  `include  "tnoc_macros.svh"
+
   import  uvm_pkg::*;
   import  tue_pkg::*;
+  import  tnoc_enums_pkg::*;
   import  tnoc_config_pkg::*;
   import  tnoc_bfm_types_pkg::*;
   import  tnoc_bfm_pkg::*;
@@ -42,11 +45,34 @@ module top();
     rst_n = 1;
   end
 
-  tnoc_flit_if #(CONFIG)  flit_in_if[5]();
-  tnoc_flit_if #(CONFIG)  flit_out_if[5]();
+  tnoc_flit_if #(CONFIG)                          flit_in_if[5]();
+  tnoc_flit_if #(CONFIG)                          flit_out_if[5]();
+  `tnoc_internal_flit_if(CONFIG.virtual_channels) flit_internal_in_if[4]();
+  `tnoc_internal_flit_if(CONFIG.virtual_channels) flit_internal_out_if[4]();
 
-  tnoc_bfm_flit_if  bfm_flit_in_if[5](clk, rst_n);
-  tnoc_bfm_flit_if  bfm_flit_out_if[5](clk, rst_n);
+  for (genvar i = 0;i < 4;++i) begin : g_internal_port_adapter
+    tnoc_rounter_internal_if_adapter #(CONFIG) u_adapetr (
+      clk, rst_n, flit_in_if[i], flit_out_if[i], flit_internal_out_if[i], flit_internal_in_if[i]
+    );
+  end
+
+  tnoc_bfm_flit_if  bfm_flit_in_if[5*CONFIG.virtual_channels](clk, rst_n);
+  tnoc_bfm_flit_if  bfm_flit_out_if[5*CONFIG.virtual_channels](clk, rst_n);
+  for (genvar i = 0;i < 5*CONFIG.virtual_channels;++i) begin
+    assign  bfm_flit_out_if[i].ready        = '1;
+    assign  bfm_flit_out_if[i].vc_available = '1;
+  end
+
+  virtual tnoc_bfm_flit_if  bfm_flit_in_vif[int][int];
+  virtual tnoc_bfm_flit_if  bfm_flit_out_vif[int][int];
+  for (genvar i = 0;i < 5;++i) begin
+    for (genvar j = 0;j < CONFIG.virtual_channels;++j) begin
+      initial begin
+        bfm_flit_in_vif[i][j]   = bfm_flit_in_if[CONFIG.virtual_channels*i+j];
+        bfm_flit_out_vif[i][j]  = bfm_flit_out_if[CONFIG.virtual_channels*i+j];
+      end
+    end
+  end
 
   tnoc_flit_array_if_connector #(
     .CONFIG (CONFIG ),
@@ -58,31 +84,26 @@ module top();
     .flit_bfm_out_if  (bfm_flit_out_if  )
   );
 
-  for (genvar i = 0;i < 5;++i) begin
-    assign  bfm_flit_out_if[i].ready        = '1;
-    assign  bfm_flit_out_if[i].vc_available = '1;
-  end
-
   tnoc_router #(
     .CONFIG (CONFIG ),
     .X      (1      ),
     .Y      (1      )
   ) u_dut (
-    .clk                  (clk            ),
-    .rst_n                (rst_n          ),
-    .flit_in_if_x_plus    (flit_in_if[0]  ),
-    .flit_out_if_x_plus   (flit_out_if[0] ),
-    .flit_in_if_x_minus   (flit_in_if[1]  ),
-    .flit_out_if_x_minus  (flit_out_if[1] ),
-    .flit_in_if_y_plus    (flit_in_if[2]  ),
-    .flit_out_if_y_plus   (flit_out_if[2] ),
-    .flit_in_if_y_minus   (flit_in_if[3]  ),
-    .flit_out_if_y_minus  (flit_out_if[3] ),
-    .flit_in_if_local     (flit_in_if[4]  ),
-    .flit_out_if_local    (flit_out_if[4] )
+    .clk                  (clk                      ),
+    .rst_n                (rst_n                    ),
+    .flit_in_if_x_plus    (flit_internal_in_if[0]   ),
+    .flit_out_if_x_plus   (flit_internal_out_if[0]  ),
+    .flit_in_if_x_minus   (flit_internal_in_if[1]   ),
+    .flit_out_if_x_minus  (flit_internal_out_if[1]  ),
+    .flit_in_if_y_plus    (flit_internal_in_if[2]   ),
+    .flit_out_if_y_plus   (flit_internal_out_if[2]  ),
+    .flit_in_if_y_minus   (flit_internal_in_if[3]   ),
+    .flit_out_if_y_minus  (flit_internal_out_if[3]  ),
+    .flit_in_if_local     (flit_in_if[4]            ),
+    .flit_out_if_local    (flit_out_if[4]           )
   );
 
-  initial begin
+  task run();
     tnoc_router_env_configuration cfg = new();
     assert(cfg.randomize() with {
       id_x       == 1;
@@ -101,18 +122,19 @@ module top();
       }
     });
 
-    cfg.bfm_cfg[0].tx_vif = bfm_flit_in_if[0];
-    cfg.bfm_cfg[0].rx_vif = bfm_flit_out_if[0];
-    cfg.bfm_cfg[1].tx_vif = bfm_flit_in_if[1];
-    cfg.bfm_cfg[1].rx_vif = bfm_flit_out_if[1];
-    cfg.bfm_cfg[2].tx_vif = bfm_flit_in_if[2];
-    cfg.bfm_cfg[2].rx_vif = bfm_flit_out_if[2];
-    cfg.bfm_cfg[3].tx_vif = bfm_flit_in_if[3];
-    cfg.bfm_cfg[3].rx_vif = bfm_flit_out_if[3];
-    cfg.bfm_cfg[4].tx_vif = bfm_flit_in_if[4];
-    cfg.bfm_cfg[4].rx_vif = bfm_flit_out_if[4];
+    for (int i = 0;i < 5;++i) begin
+      for (int j = 0;j < CONFIG.virtual_channels;++j) begin
+        cfg.bfm_cfg[i].tx_vif[j]  = bfm_flit_in_vif[i][j];
+        cfg.bfm_cfg[i].rx_vif[j]  = bfm_flit_out_vif[i][j];
+      end
+    end
 
     uvm_config_db #(tnoc_router_env_configuration)::set(null, "", "configuration", cfg);
     run_test();
+  endtask
+
+  initial begin
+    uvm_wait_for_nba_region();
+    run();
   end
 endmodule

@@ -1,22 +1,23 @@
-`ifndef TNOC_BFM_PACKET_DRIVER_SVH
-`define TNOC_BFM_PACKET_DRIVER_SVH
+`ifndef TNOC_BFM_PACKET_VC_DRIVER_SVH
+`define TNOC_BFM_PACKET_VC_DRIVER_SVH
 
 typedef tue_driver #(
   .CONFIGURATION  (tnoc_bfm_configuration ),
   .STATUS         (tnoc_bfm_status        ),
   .REQ            (tnoc_bfm_packet_item   )
-) tnoc_bfm_packet_driver_base;
+) tnoc_bfm_packet_vc_driver_base;
 
-class tnoc_bfm_packet_driver extends tnoc_bfm_component_base #(
-  tnoc_bfm_packet_driver_base
+class tnoc_bfm_packet_vc_driver extends tnoc_bfm_component_base #(
+  tnoc_bfm_packet_vc_driver_base
 );
+  int                   vc;
   tnoc_bfm_flit_vif     vif;
   tnoc_bfm_packet_item  packet_item;
   tnoc_bfm_flit_item    flit_items[$];
 
   function void build_phase(uvm_phase phase);
     super.build_phase(phase);
-    vif = configuration.tx_vif;
+    vif = configuration.tx_vif[vc];
   endfunction
 
   task run_phase(uvm_phase phase);
@@ -25,12 +26,15 @@ class tnoc_bfm_packet_driver extends tnoc_bfm_component_base #(
         do_reset();
       end
       else begin
-        if ((vif.monitor_cb.valid & vif.monitor_cb.ready) != '0) begin
+        if (vif.monitor_cb.valid && vif.monitor_cb.ready) begin
           finish_flit();
         end
 
-        if ((packet_item == null) && seq_item_port.has_do_available()) begin
-          get_packet_item();
+        if (packet_item == null) begin
+          uvm_wait_for_nba_region();
+          if (seq_item_port.has_do_available()) begin
+            get_packet_item();
+          end
         end
 
         if (packet_item != null) begin
@@ -58,8 +62,8 @@ class tnoc_bfm_packet_driver extends tnoc_bfm_component_base #(
   task drive_flit();
     if (flit_items[0].begin_event.is_off) begin
       void'(begin_child_tr(flit_items[0], packet_item.tr_handle));
-      vif.master_cb.valid[packet_item.virtual_channel]  <= '1;
-      vif.master_cb.flit                                <= flit_items[0].get_flit();
+      vif.master_cb.valid <= '1;
+      vif.master_cb.flit  <= flit_items[0].get_flit();
     end
   endtask
 
@@ -79,10 +83,9 @@ class tnoc_bfm_packet_driver extends tnoc_bfm_component_base #(
     end_tr(packet_item);
     packet_item = null;
     seq_item_port.item_done();
-    uvm_wait_for_nba_region();
   endtask
 
-  `tue_component_default_constructor(tnoc_bfm_packet_driver)
-  `uvm_component_utils(tnoc_bfm_packet_driver)
+  `tue_component_default_constructor(tnoc_bfm_packet_vc_driver)
+  `uvm_component_utils(tnoc_bfm_packet_vc_driver)
 endclass
 `endif

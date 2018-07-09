@@ -1,5 +1,5 @@
 module tnoc_flit_if_demux
-  import  tnoc_config_pkg::*;
+  `include  "tnoc_default_imports.svh"
 #(
   parameter tnoc_config CONFIG    = TNOC_DEFAULT_CONFIG,
   parameter int         CHANNELS  = CONFIG.virtual_channels,
@@ -12,17 +12,16 @@ module tnoc_flit_if_demux
   `include  "tnoc_packet.svh"
   `include  "tnoc_flit.svh"
 
-  logic [CHANNELS-1:0]    valid[ENTRIES];
-  logic [CHANNELS-1:0]    ready[ENTRIES];
-  logic [FLIT_WIDTH-1:0]  flit[ENTRIES];
-  logic [CHANNELS-1:0]    vc_available[ENTRIES];
+  logic [CHANNELS-1:0]  valid[ENTRIES];
+  logic [CHANNELS-1:0]  ready[ENTRIES];
+  logic [CHANNELS-1:0]  vc_available[ENTRIES];
 
-  generate for (genvar i = 0;i < ENTRIES;++i) begin
+  for (genvar i = 0;i < ENTRIES;++i) begin
     assign  flit_out_if[i].valid  = valid[i];
     assign  ready[i]              = flit_out_if[i].ready;
-    assign  flit_out_if[i].flit   = flit[i];
+    assign  flit_out_if[i].flit   = flit_in_if.flit;
     assign  vc_available[i]       = flit_out_if[i].vc_available;
-  end endgenerate
+  end
 
   tnoc_demux #(
     .WIDTH    (CHANNELS ),
@@ -40,15 +39,6 @@ module tnoc_flit_if_demux
     .i_select (i_select         ),
     .i_value  (ready            ),
     .o_value  (flit_in_if.ready )
-  );
-
-  tnoc_demux #(
-    .WIDTH    (FLIT_WIDTH ),
-    .ENTRIES  (ENTRIES    )
-  ) u_flit_demux (
-    .i_select (i_select         ),
-    .i_value  (flit_in_if.flit  ),
-    .o_value  (flit             )
   );
 
   tnoc_mux #(

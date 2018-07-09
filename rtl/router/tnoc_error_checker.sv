@@ -1,5 +1,5 @@
 module tnoc_error_checker
-  import  tnoc_config_pkg::*;
+  `include  "tnoc_default_imports.svh"
 #(
   parameter tnoc_config CONFIG  = TNOC_DEFAULT_CONFIG
 )(
@@ -8,6 +8,7 @@ module tnoc_error_checker
   tnoc_flit_if.target     flit_in_if,
   tnoc_flit_if.initiator  flit_out_if
 );
+  `include  "tnoc_macros.svh"
   `include  "tnoc_packet.svh"
   `include  "tnoc_packet_utils.svh"
   `include  "tnoc_flit.svh"
@@ -21,7 +22,7 @@ module tnoc_error_checker
 
   logic invalid_destination;
 
-  assign  invalid_destination = check_invalid_destination(flit_in_if.flit);
+  assign  invalid_destination = check_invalid_destination(flit_in_if.flit[0]);
   function automatic logic check_invalid_destination(
     input tnoc_flit flit
   );
@@ -53,7 +54,7 @@ module tnoc_error_checker
   logic [1:0] error_route_busy;
 
   assign  start_of_packet = (
-    flit_in_if.valid && is_head_flit(flit_in_if.flit) && (error_route_busy == '0)
+    flit_in_if.valid && is_head_flit(flit_in_if.flit[0]) && (error_route_busy == '0)
   ) ? '1 : '0;
   assign  route           = (start_of_packet) ? route_next : route_latched;
   assign  route_next      = (!invalid_destination) ? NORMAL_ROUTE : ERROR_ROUTE;
@@ -66,18 +67,29 @@ module tnoc_error_checker
     end
   end
 
-  tnoc_flit_if #(CONFIG, 1) flit_demux_out_if[2]();
-  tnoc_flit_if #(CONFIG, 1) flit_mux_in_if[2]();
-  tnoc_flit_if #(CONFIG, 1) flit_mux_out_if();
+  `tnoc_internal_flit_if(1) flit_demux_out_if[2]();
+  `tnoc_internal_flit_if(1) flit_mux_in_if[2]();
+  `tnoc_internal_flit_if(1) flit_mux_out_if();
 
-  tnoc_flit_if_demux #(CONFIG, 1, 2) u_flit_demux (
+  tnoc_flit_if_demux #(
+    .CONFIG   (CONFIG ),
+    .CHANNELS (1      ),
+    .ENTRIES  (2      )
+  ) u_flit_demux (
     route, flit_in_if, flit_demux_out_if
   );
-  tnoc_flit_if_mux #(CONFIG, 1, 2) u_flit_mux (
+  tnoc_flit_if_mux #(
+    .CONFIG     (CONFIG             ),
+    .CHANNELS   (1                  ),
+    .ENTRIES    (2                  ),
+    .PORT_TYPE  (TNOC_INTERNAL_PORT )
+  ) u_flit_mux (
     route, flit_mux_in_if, flit_mux_out_if
   );
   tnoc_flit_if_slicer #(
-    CONFIG, 1
+    .CONFIG     (CONFIG             ),
+    .CHANNELS   (1                  ),
+    .PORT_TYPE  (TNOC_INTERNAL_PORT )
   ) u_slicer (
     .clk            (clk              ),
     .rst_n          (rst_n            ),
@@ -88,9 +100,7 @@ module tnoc_error_checker
 //--------------------------------------------------------------
 //  Normal Route
 //--------------------------------------------------------------
-  tnoc_flit_if_renamer u_normal_route_renamer (
-    flit_demux_out_if[0], flit_mux_in_if[0]
-  );
+  `tnoc_flit_if_renamer(flit_demux_out_if[0], flit_mux_in_if[0])
 
 //--------------------------------------------------------------
 //  Error Route
@@ -102,7 +112,7 @@ module tnoc_error_checker
     start_of_packet && invalid_destination
   ) ? '1 : '0;
   assign  end_of_error_request    = (
-    flit_demux_out_if[1].valid && flit_demux_out_if[1].ready && is_tail_flit(flit_demux_out_if[1].flit)
+    flit_demux_out_if[1].valid && flit_demux_out_if[1].ready && is_tail_flit(flit_demux_out_if[1].flit[0])
   ) ? '1 : '0;
   always_ff @(posedge clk, negedge rst_n) begin
     if (!rst_n) begin
@@ -123,7 +133,7 @@ module tnoc_error_checker
     start_of_packet && invalid_destination && is_non_posted_request_packet_type(error_request_if.packet_type)
   ) ? '1 : '0;
   assign  end_of_error_response   = (
-    flit_mux_in_if[1].valid && flit_mux_in_if[1].ready && is_tail_flit(flit_mux_in_if[1].flit)
+    flit_mux_in_if[1].valid && flit_mux_in_if[1].ready && is_tail_flit(flit_mux_in_if[1].flit[0])
   ) ? '1 : '0;
   always_ff @(posedge clk, negedge rst_n) begin
     if (!rst_n) begin
@@ -230,7 +240,11 @@ module tnoc_error_checker
     end
   end
 
-  tnoc_packet_packer #(CONFIG, 1) u_packet_packer (
+  tnoc_packet_packer #(
+    .CONFIG     (CONFIG             ),
+    .CHANNELS   (1                  ),
+    .PORT_TYPE  (TNOC_INTERNAL_PORT )
+  ) u_packet_packer (
     .clk          (clk                ),
     .rst_n        (rst_n              ),
     .packet_in_if (error_response_if  ),

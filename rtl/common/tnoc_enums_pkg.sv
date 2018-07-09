@@ -60,5 +60,18 @@ package tnoc_enums_pkg;
     TNOC_HEADER_FLIT  = 'b0,
     TNOC_PAYLOAD_FLIT = 'b1
   } tnoc_flit_type;
+
+  typedef enum bit {
+    TNOC_LOCAL_PORT     = 0,
+    TNOC_INTERNAL_PORT  = 1
+  } tnoc_port_type;
+
+  function automatic bit is_local_port(input tnoc_port_type port_type);
+    return (port_type == TNOC_LOCAL_PORT) ? 1 : 0;
+  endfunction
+
+  function automatic bit is_internal_port(input tnoc_port_type port_type);
+    return (port_type == TNOC_INTERNAL_PORT) ? 1 : 0;
+  endfunction
 endpackage
 `endif
