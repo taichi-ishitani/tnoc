@@ -1,8 +1,9 @@
 module tnoc_packet_packer
-  import  tnoc_config_pkg::*;
+  `include  "tnoc_default_imports.svh"
 #(
-  parameter tnoc_config CONFIG    = TNOC_DEFAULT_CONFIG,
-  parameter int         CHANNELS  = CONFIG.virtual_channels
+  parameter tnoc_config     CONFIG    = TNOC_DEFAULT_CONFIG,
+  parameter int             CHANNELS  = CONFIG.virtual_channels,
+  parameter tnoc_port_type  PORT_TYPE = TNOC_LOCAL_PORT
 )(
   input logic             clk,
   input logic             rst_n,
@@ -36,7 +37,6 @@ module tnoc_packet_packer
   assign  payload_flit_ready  = (current_flit_type == TNOC_PAYLOAD_FLIT) ? flit_ready        : '0;
   assign  flit_ack            = flit_valid & flit_ready;
 
-  assign  flit_out_if.flit  = flit;
   if (CHANNELS == 1) begin : g_single_vc
     assign  flit_out_if.valid = flit_valid;
     assign  flit_ready        = flit_out_if.ready;
@@ -67,6 +67,11 @@ module tnoc_packet_packer
       valid[vc] = flit_valid;
       return valid;
     endfunction
+  end
+
+  localparam  int FLITS = (is_local_port(PORT_TYPE)) ? CHANNELS : 1;
+  for (genvar i = 0;i < FLITS;++i) begin
+    assign  flit_out_if.flit[i] = flit;
   end
 
   always_ff @(posedge clk, negedge rst_n) begin

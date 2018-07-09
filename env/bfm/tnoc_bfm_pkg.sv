@@ -17,9 +17,15 @@ package tnoc_bfm_pkg;
   `include  "tnoc_bfm_packet_item.svh"
 
   `include  "tnoc_bfm_component_base.svh"
-  `include  "tnoc_bfm_packet_monitor.svh"
+  `include  "tnoc_bfm_packet_vc_monitor.svh"
+  `include  "tnoc_bfm_packet_vc_sequencer.svh"
+  `include  "tnoc_bfm_packet_vc_driver.svh"
+  `include  "tnoc_bfm_packet_vc_agent.svh"
+
   `include  "tnoc_bfm_packet_sequencer.svh"
-  `include  "tnoc_bfm_packet_driver.svh"
   `include  "tnoc_bfm_packet_agent.svh"
+
+  `include  "tnoc_bfm_sequence_base.svh"
+  `include  "tnoc_bfm_transmit_packet_sequence.svh"
 endpackage
 `endif

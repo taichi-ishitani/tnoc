@@ -15,8 +15,8 @@ class tnoc_bfm_configuration extends tue_configuration;
         int                     burst_size_width;
   rand  int                     id_x;
   rand  int                     id_y;
-        tnoc_bfm_flit_vif       tx_vif;
-        tnoc_bfm_flit_vif       rx_vif;
+        tnoc_bfm_flit_vif       tx_vif[int];
+        tnoc_bfm_flit_vif       rx_vif[int];
 
   local int               common_header_width;
   local int               request_header_width;

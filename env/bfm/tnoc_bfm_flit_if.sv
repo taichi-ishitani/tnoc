@@ -8,12 +8,10 @@ interface tnoc_bfm_flit_if (
 
   import  tnoc_bfm_types_pkg::tnoc_bfm_flit;
 
-  localparam  int CHANNELS  = `TNOC_BFM_MAX_VIRTUAL_CHANNELS;
-
-  bit [CHANNELS-1:0]  valid;
-  bit [CHANNELS-1:0]  ready;
-  tnoc_bfm_flit       flit;
-  bit [CHANNELS-1:0]  vc_available;
+  bit           valid;
+  bit           ready;
+  tnoc_bfm_flit flit;
+  bit           vc_available;
 
   clocking master_cb @(posedge clk);
     output  valid;

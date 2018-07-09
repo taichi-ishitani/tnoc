@@ -28,8 +28,8 @@ class tnoc_fabric_stress_access_test_sequence extends tnoc_fabric_test_sequence_
 
   task do_noc_access(uvm_sequencer_base sequencer, tnoc_bfm_location_id destination, int test_mode);
     for (int i = 0;i < 20;++i) begin
-      tnoc_bfm_packet_item  packet_item;
-      `uvm_do_on_with(packet_item, sequencer, {
+      tnoc_bfm_transmit_packet_sequence transmit_packet_sequence;
+      `uvm_do_on_with(transmit_packet_sequence, sequencer, {
         destination_id == destination;
         burst_length   >= 8;
         if (test_mode inside {[0:2]}) {

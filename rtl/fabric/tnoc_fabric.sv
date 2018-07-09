@@ -1,5 +1,5 @@
 module tnoc_fabric
-  import  tnoc_config_pkg::*;
+  `include  "tnoc_default_imports.svh"
 #(
   parameter   tnoc_config CONFIG      = TNOC_DEFAULT_CONFIG,
   localparam  int         SIZE_X      = CONFIG.size_x,
@@ -11,13 +11,16 @@ module tnoc_fabric
   tnoc_flit_if.target     flit_in_if[TOTAL_SIZE],
   tnoc_flit_if.initiator  flit_out_if[TOTAL_SIZE]
 );
+  `include  "tnoc_macros.svh"
+
+  localparam  int CHANNELS        = CONFIG.virtual_channels;
   localparam  int FLIT_IF_SIZE_X  = 2 * (SIZE_X + 1) * (SIZE_Y + 0);
   localparam  int FLIT_IF_SIZE_Y  = 2 * (SIZE_X + 0) * (SIZE_Y + 1);
 
-  tnoc_flit_if #(CONFIG)  flit_if_x[FLIT_IF_SIZE_X]();
-  tnoc_flit_if #(CONFIG)  flit_if_y[FLIT_IF_SIZE_Y]();
+  `tnoc_internal_flit_if(CHANNELS)  flit_if_x[FLIT_IF_SIZE_X]();
+  `tnoc_internal_flit_if(CHANNELS)  flit_if_y[FLIT_IF_SIZE_Y]();
 
-  generate for (genvar y = 0;y < SIZE_Y;++y) begin : g_y
+  for (genvar y = 0;y < SIZE_Y;++y) begin : g_y
     for (genvar x = 0;x < SIZE_X;++x) begin : g_x
       localparam  int       FLIT_IF_INDEX_X = 2 * ((SIZE_X + 1) * y + x);
       localparam  int       FLIT_IF_INDEX_Y = 2 * ((SIZE_Y + 1) * x + y);
@@ -51,28 +54,28 @@ module tnoc_fabric
       );
 
       if (x == 0) begin : g_dummy_x_minus
-        tnoc_router_dummy u_dummy (
+        tnoc_router_dummy #(CHANNELS) u_dummy (
           flit_if_x[FLIT_IF_INDEX_X+1], flit_if_x[FLIT_IF_INDEX_X+0]
         );
       end
 
       if (x == (SIZE_X - 1)) begin : g_dummy_x_plus
-        tnoc_router_dummy u_dummy (
+        tnoc_router_dummy #(CHANNELS) u_dummy (
           flit_if_x[FLIT_IF_INDEX_X+2], flit_if_x[FLIT_IF_INDEX_X+3]
         );
       end
 
       if (y == 0) begin : g_dummy_y_minus
-        tnoc_router_dummy u_dummy (
+        tnoc_router_dummy #(CHANNELS) u_dummy (
           flit_if_y[FLIT_IF_INDEX_Y+1], flit_if_y[FLIT_IF_INDEX_Y+0]
         );
       end
 
       if (y == (SIZE_Y - 1)) begin : g_dummy_y_plus
-        tnoc_router_dummy u_dummy (
+        tnoc_router_dummy #(CHANNELS) u_dummy (
           flit_if_y[FLIT_IF_INDEX_Y+2], flit_if_y[FLIT_IF_INDEX_Y+3]
         );
       end
     end
-  end endgenerate
+  end
 endmodule

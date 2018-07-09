@@ -1,15 +1,17 @@
 module tnoc_packet_unpacker
-  import  tnoc_config_pkg::*;
+  `include  "tnoc_default_imports.svh"
 #(
-  parameter tnoc_config CONFIG      = TNOC_DEFAULT_CONFIG,
-  parameter int         CHANNELS    = CONFIG.virtual_channels,
-  parameter int         FIFO_DEPTH  = CONFIG.input_fifo_depth
+  parameter tnoc_config     CONFIG      = TNOC_DEFAULT_CONFIG,
+  parameter int             CHANNELS    = CONFIG.virtual_channels,
+  parameter int             FIFO_DEPTH  = CONFIG.input_fifo_depth,
+  parameter tnoc_port_type  PORT_TYPE   = TNOC_LOCAL_PORT
 )(
   input logic               clk,
   input logic               rst_n,
   tnoc_flit_if.target       flit_in_if,
   tnoc_packet_if.initiator  packet_out_if
 );
+  `include  "tnoc_macros.svh"
   `include  "tnoc_packet.svh"
   `include  "tnoc_flit.svh"
   `include  "tnoc_packet_utils.svh"
@@ -17,7 +19,7 @@ module tnoc_packet_unpacker
 //--------------------------------------------------------------
 //  Flit IF
 //--------------------------------------------------------------
-  tnoc_flit_if #(CONFIG, CHANNELS)  flit_if();
+  tnoc_flit_if #(CONFIG, 1, PORT_TYPE)  flit_if();
 
   logic     flit_valid;
   logic     flit_ready;
@@ -28,32 +30,28 @@ module tnoc_packet_unpacker
   logic     payload_flit_ready;
 
   if (CHANNELS == 1) begin : g_single_vc
-    tnoc_flit_if_renamer u_renamer (flit_in_if, flit_if);
-
-    assign  flit_valid            = flit_if.valid;
-    assign  flit_if.ready         = flit_ready;
-    assign  flit_if.vc_available  = '1;
+    `tnoc_flit_if_renamer(flit_in_if, flit_if);
   end
   else begin : g_multi_vc
     tnoc_vc_selector #(
       .CONFIG     (CONFIG     ),
-      .FIFO_DEPTH (FIFO_DEPTH )
+      .FIFO_DEPTH (FIFO_DEPTH ),
+      .PORT_TYPE  (PORT_TYPE  )
     ) u_vc_selector (
       .clk          (clk        ),
       .rst_n        (rst_n      ),
       .flit_in_if   (flit_in_if ),
       .flit_out_if  (flit_if    )
     );
-
-    assign  flit_valid            = |flit_if.valid;
-    assign  flit_if.ready         = {CHANNELS{flit_ready}};
-    assign  flit_if.vc_available  = '1;
   end
 
-  assign  flit                = flit_if.flit;
-  assign  flit_ready          = (is_header_flit(flit) ) ? header_flit_ready : payload_flit_ready;
-  assign  header_flit_valid   = (is_header_flit(flit) ) ? flit_valid        : '0;
-  assign  payload_flit_valid  = (is_payload_flit(flit)) ? flit_valid        : '0;
+  assign  flit_valid            = flit_if.valid;
+  assign  flit_if.ready         = flit_ready;
+  assign  flit                  = flit_if.flit[0];
+  assign  flit_if.vc_available  = '1;
+  assign  header_flit_valid     = (is_header_flit(flit) ) ? flit_valid        : '0;
+  assign  payload_flit_valid    = (is_payload_flit(flit)) ? flit_valid        : '0;
+  assign  flit_ready            = (is_header_flit(flit) ) ? header_flit_ready : payload_flit_ready;
 
 //--------------------------------------------------------------
 //  Header

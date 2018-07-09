@@ -1,5 +1,5 @@
-module tnoc_port_controller
-  import  tnoc_config_pkg::*;
+module tnoc_internal_port_controller
+  `include  "tnoc_default_imports.svh"
 #(
   parameter   tnoc_config CONFIG    = TNOC_DEFAULT_CONFIG,
   localparam  int         CHANNELS  = CONFIG.virtual_channels
@@ -26,18 +26,18 @@ module tnoc_port_controller
   logic [4:0]           output_grant;
   logic [4:0]           output_grant_temp;
 
-  generate for (genvar i = 0;i < CHANNELS;++i) begin
+  for (genvar i = 0;i < CHANNELS;++i) begin
     for (genvar j = 0;j < 5;++j) begin
       assign  request[i][j]               = port_control_if[j].request[i];
       assign  port_control_if[j].grant[i] = grant[i][j];
       assign  free[i][j]                  = port_control_if[j].free[i];
     end
-  end endgenerate
+  end
 
 //--------------------------------------------------------------
 //  Port Arbitration
 //--------------------------------------------------------------
-  generate for (genvar i = 0;i < CHANNELS;++i) begin : g_port_arbitration
+  for (genvar i = 0;i < CHANNELS;++i) begin : g_port_arbitration
     logic [4:0] port_request;
     logic [4:0] port_free;
 
@@ -56,44 +56,56 @@ module tnoc_port_controller
       .o_grant    (port_grant[i]  ),
       .i_free     (port_free      )
     );
-  end endgenerate
+  end
 
 //--------------------------------------------------------------
 //  VC Arbitration
 //--------------------------------------------------------------
   assign  vc_available  = i_vc_available & {CHANNELS{~fifo_full}};
 
-  generate for (genvar i = 0;i < CHANNELS;++i) begin : g_vc_arbitration
-    assign  vc_request[i] = |(request[i] & port_grant[i] & {5{vc_available[i]}});
-    assign  vc_free[i]    = |(free[i]    & port_grant[i]                       );
-  end endgenerate
+  if (CHANNELS >= 2) begin : g_multi_vc
+    for (genvar i = 0;i < CHANNELS;++i) begin
+      assign  vc_request[i] = |(request[i] & port_grant[i] & {5{vc_available[i]}});
+      assign  vc_free[i]    = |(free[i]    & port_grant[i]                       );
+    end
 
-  tnoc_round_robin_arbiter #(
-    .REQUESTS     (CHANNELS ),
-    .KEEP_RESULT  (1        )
-  ) u_vc_arbiter (
-    .clk        (clk        ),
-    .rst_n      (rst_n      ),
-    .i_request  (vc_request ),
-    .o_grant    (vc_grant   ),
-    .i_free     (vc_free    )
-  );
+    tnoc_round_robin_arbiter #(
+      .REQUESTS     (CHANNELS ),
+      .KEEP_RESULT  (1        )
+    ) u_vc_arbiter (
+      .clk        (clk        ),
+      .rst_n      (rst_n      ),
+      .i_request  (vc_request ),
+      .o_grant    (vc_grant   ),
+      .i_free     (vc_free    )
+    );
+  end
+  else begin : g_single_vc
+    assign  vc_request  = '0;
+    assign  vc_free     = |(free[0]    & port_grant[0]                    );
+    assign  vc_grant    = |(request[0] & port_grant[0] & {5{vc_available}});
+  end
 
 //--------------------------------------------------------------
 //  Grant
 //--------------------------------------------------------------
-  generate for (genvar i = 0;i < CHANNELS;++i) begin
+  for (genvar i = 0;i < CHANNELS;++i) begin
     assign  grant[i]  = (vc_grant[i]) ? port_grant[i] : '0;
-  end endgenerate
+  end
 
-  tnoc_mux #(
-    .WIDTH    (5        ),
-    .ENTRIES  (CHANNELS )
-  ) u_grant_mux (
-    .i_select (vc_grant           ),
-    .i_value  (port_grant         ),
-    .o_value  (output_grant_temp  )
-  );
+  if (CHANNELS >= 2) begin : g_grant_mux
+    tnoc_mux #(
+      .WIDTH    (5        ),
+      .ENTRIES  (CHANNELS )
+    ) u_grant_mux (
+      .i_select (vc_grant           ),
+      .i_value  (port_grant         ),
+      .o_value  (output_grant_temp  )
+    );
+  end
+  else begin
+    assign  output_grant_temp = port_grant;
+  end
 
   assign  fifo_push = |vc_free;
   assign  fifo_pop  = i_output_free;

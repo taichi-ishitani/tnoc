@@ -14,12 +14,12 @@ class tnoc_fabric_invalid_destination_test_sequence extends tnoc_fabric_test_seq
 
   task invalid_destination_test(uvm_sequencer_base sequencer);
     for (int i = 0;i < 40;++i) begin
-      tnoc_bfm_packet_item  packet_item;
-      `uvm_create_on(packet_item, sequencer)
+      tnoc_bfm_transmit_packet_sequence transmit_packet_sequence;
+      `uvm_create_on(transmit_packet_sequence, sequencer)
       if (i >= 30) begin
-        packet_item.c_default_invalid_destination.constraint_mode(0);
+        transmit_packet_sequence.c_default_invalid_destination.constraint_mode(0);
       end
-      `uvm_rand_send_with(packet_item, {
+      `uvm_rand_send_with(transmit_packet_sequence, {
         if (i < 10) {
           destination_id.x >= local::configuration.size_x;
           destination_id.y inside {[0:local::configuration.size_y-1]};

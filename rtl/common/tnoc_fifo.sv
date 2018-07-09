@@ -15,7 +15,7 @@ module tnoc_fifo #(
   input   logic             i_pop,
   output  logic [WIDTH-1:0] o_data
 );
-  generate if (FIFO_MEM) begin : g_fifo_mem
+  if (FIFO_MEM) begin : g_fifo_mem
     tnoc_fifo_mem #(
       .WIDTH      (WIDTH      ),
       .DEPTH      (DEPTH      ),
@@ -50,5 +50,5 @@ module tnoc_fifo #(
       .i_pop          (i_pop         ),
       .o_data         (o_data        )
     );
-  end endgenerate
+  end
 endmodule

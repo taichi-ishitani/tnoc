@@ -12,7 +12,8 @@ class tnoc_bfm_packet_sequencer extends tnoc_bfm_packet_sequencer_base;
 
   uvm_analysis_imp #(tnoc_bfm_packet_item, this_type) rx_packet_export;
 
-  uvm_event packet_waiters[$];
+  tnoc_bfm_packet_vc_sequencer  vc_sequencers[int];
+  uvm_event                     packet_waiters[$];
 
   function void build_phase(uvm_phase phase);
     super.build_phase(phase);
@@ -24,6 +25,11 @@ class tnoc_bfm_packet_sequencer extends tnoc_bfm_packet_sequencer_base;
       packet_waiters[i].trigger(packet_item);
     end
     packet_waiters.delete();
+  endfunction
+
+  function void connect_vc_agent(tnoc_bfm_packet_vc_agent vc_agent);
+    vc_sequencers[vc_agent.vc]  = vc_agent.sequencer;
+    vc_agent.rx_packet_port.connect(rx_packet_export);
   endfunction
 
   task get_rx_packet(ref tnoc_bfm_packet_item packet_item);

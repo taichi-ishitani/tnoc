@@ -1,9 +1,10 @@
 module tnoc_vc_selector
-  import  tnoc_config_pkg::*;
+  `include  "tnoc_default_imports.svh"
 #(
-  parameter tnoc_config CONFIG          = TNOC_DEFAULT_CONFIG,
-  parameter int         FIFO_DEPTH      = CONFIG.input_fifo_depth,
-  parameter int         FIFO_THRESHOLD  = FIFO_DEPTH - 2
+  parameter tnoc_config     CONFIG          = TNOC_DEFAULT_CONFIG,
+  parameter tnoc_port_type  PORT_TYPE       = TNOC_LOCAL_PORT,
+  parameter int             FIFO_DEPTH      = CONFIG.input_fifo_depth,
+  parameter int             FIFO_THRESHOLD  = FIFO_DEPTH - 2
 )(
   input logic             clk,
   input logic             rst_n,
@@ -15,7 +16,7 @@ module tnoc_vc_selector
   tnoc_flit_if #(CONFIG, 1) flit_fifo_in_if[CHANNELS]();
   tnoc_flit_if #(CONFIG, 1) flit_fifo_out_if[CHANNELS]();
 
-  tnoc_vc_demux #(CONFIG) u_vc_demux(
+  tnoc_vc_demux #(CONFIG, PORT_TYPE) u_vc_demux(
     flit_in_if, flit_fifo_in_if
   );
 
@@ -58,7 +59,9 @@ module tnoc_vc_selector
     .i_free     (vc_free    )
   );
 
-  tnoc_vc_mux #(CONFIG) u_vc_mux (
+  tnoc_flit_if_mux #(
+    CONFIG, 1, CHANNELS, PORT_TYPE
+  ) u_flit_mux (
     vc_grant, flit_fifo_out_if, flit_out_if
   );
 endmodule

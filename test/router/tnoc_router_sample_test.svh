@@ -19,8 +19,8 @@ class tnoc_router_sample_test_sequence extends tnoc_router_test_sequence_base;
 
   task do_noc_access(int port, int x, int y);
     for (int i =0;i < 20;++i) begin
-      tnoc_bfm_packet_item  packet_item;
-      `uvm_do_on_with(packet_item, p_sequencer.bfm_sequencer[port], {
+      tnoc_bfm_transmit_packet_sequence transmit_packet_sequence;
+      `uvm_do_on_with(transmit_packet_sequence, p_sequencer.bfm_sequencer[port], {
         destination_id.x == x;
         destination_id.y == y;
         if (i < 10) {
