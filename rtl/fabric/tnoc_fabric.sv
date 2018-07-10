@@ -53,27 +53,24 @@ module tnoc_fabric
         .flit_out_if_local    (flit_out_if[FLIT_IF_INDEX_L] )
       );
 
-      if (x == 0) begin : g_dummy_x_minus
-        tnoc_router_dummy #(CONFIG) u_dummy (
-          flit_if_x[FLIT_IF_INDEX_X+1], flit_if_x[FLIT_IF_INDEX_X+0]
-        );
-      end
-
-      if (x == (SIZE_X - 1)) begin : g_dummy_x_plus
-        tnoc_router_dummy #(CONFIG) u_dummy (
+      if (!AVAILABLE_PORTS[0]) begin : g_dummy_x_plus
+        tnoc_router_dummy #(CONFIG, TNOC_INTERNAL_PORT) u_dummy (
           flit_if_x[FLIT_IF_INDEX_X+2], flit_if_x[FLIT_IF_INDEX_X+3]
         );
       end
-
-      if (y == 0) begin : g_dummy_y_minus
-        tnoc_router_dummy #(CONFIG) u_dummy (
-          flit_if_y[FLIT_IF_INDEX_Y+1], flit_if_y[FLIT_IF_INDEX_Y+0]
+      if (!AVAILABLE_PORTS[1]) begin : g_dummy_x_minus
+        tnoc_router_dummy #(CONFIG, TNOC_INTERNAL_PORT) u_dummy (
+          flit_if_x[FLIT_IF_INDEX_X+1], flit_if_x[FLIT_IF_INDEX_X+0]
         );
       end
-
-      if (y == (SIZE_Y - 1)) begin : g_dummy_y_plus
-        tnoc_router_dummy #(CONFIG) u_dummy (
+      if (!AVAILABLE_PORTS[2]) begin : g_dummy_y_plus
+        tnoc_router_dummy #(CONFIG, TNOC_INTERNAL_PORT) u_dummy (
           flit_if_y[FLIT_IF_INDEX_Y+2], flit_if_y[FLIT_IF_INDEX_Y+3]
+        );
+      end
+      if (!AVAILABLE_PORTS[3]) begin : g_dummy_y_minus
+        tnoc_router_dummy #(CONFIG, TNOC_INTERNAL_PORT) u_dummy (
+          flit_if_y[FLIT_IF_INDEX_Y+1], flit_if_y[FLIT_IF_INDEX_Y+0]
         );
       end
     end
