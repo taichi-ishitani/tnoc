@@ -45,7 +45,7 @@ module tnoc_vc_selector
 
   for (genvar i = 0;i < CHANNELS;++i) begin
     assign  vc_request[i] = flit_fifo_out_if[i].valid;
-    assign  vc_free[i]    = (flit_fifo_out_if[i].flit.tail) ? flit_fifo_out_if[i].valid & flit_fifo_out_if[i].ready : '0;
+    assign  vc_free[i]    = (flit_fifo_out_if[i].flit[0].tail) ? flit_fifo_out_if[i].valid & flit_fifo_out_if[i].ready : '0;
   end
 
   tnoc_round_robin_arbiter #(
