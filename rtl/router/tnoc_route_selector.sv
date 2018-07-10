@@ -148,11 +148,20 @@ module tnoc_route_selector
       );
     end
     else begin : g_dummy
-      assign  flit_out_if[i].valid  = '0;
-      for (genvar j = 0;j < CHANNELS;++j) begin
-        assign  flit_out_if[i].flit[j]                = '0;
-        assign  flit_vc_if[CHANNELS*i+j].ready        = '0;
-        assign  flit_vc_if[CHANNELS*i+j].vc_available = '0;
+      tnoc_flit_if_dummy_initiator #(
+        .CONFIG     (CONFIG             ),
+        .PORT_TYPE  (TNOC_INTERNAL_PORT )
+      ) u_dummy_initiator (
+        flit_out_if[i]
+      );
+      for (genvar j = 0;j < CHANNELS;++j) begin : g
+        tnoc_flit_if_dummy_target #(
+          .CONFIG     (CONFIG             ),
+          .CHANNELS   (1                  ),
+          .PORT_TYPE  (TNOC_INTERNAL_PORT )
+        ) u_dummy_target(
+          flit_vc_if[CHANNELS*i+j]
+        );
       end
     end
   end

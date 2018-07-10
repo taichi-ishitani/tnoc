@@ -54,25 +54,25 @@ module tnoc_fabric
       );
 
       if (x == 0) begin : g_dummy_x_minus
-        tnoc_router_dummy #(CHANNELS) u_dummy (
+        tnoc_router_dummy #(CONFIG) u_dummy (
           flit_if_x[FLIT_IF_INDEX_X+1], flit_if_x[FLIT_IF_INDEX_X+0]
         );
       end
 
       if (x == (SIZE_X - 1)) begin : g_dummy_x_plus
-        tnoc_router_dummy #(CHANNELS) u_dummy (
+        tnoc_router_dummy #(CONFIG) u_dummy (
           flit_if_x[FLIT_IF_INDEX_X+2], flit_if_x[FLIT_IF_INDEX_X+3]
         );
       end
 
       if (y == 0) begin : g_dummy_y_minus
-        tnoc_router_dummy #(CHANNELS) u_dummy (
+        tnoc_router_dummy #(CONFIG) u_dummy (
           flit_if_y[FLIT_IF_INDEX_Y+1], flit_if_y[FLIT_IF_INDEX_Y+0]
         );
       end
 
       if (y == (SIZE_Y - 1)) begin : g_dummy_y_plus
-        tnoc_router_dummy #(CHANNELS) u_dummy (
+        tnoc_router_dummy #(CONFIG) u_dummy (
           flit_if_y[FLIT_IF_INDEX_Y+2], flit_if_y[FLIT_IF_INDEX_Y+3]
         );
       end

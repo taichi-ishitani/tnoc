@@ -32,15 +32,23 @@ module tnoc_output_block_dummy
   `tnoc_port_control_if_renamer(port_control_if_ym, port_control_if[3]);
   `tnoc_port_control_if_renamer(port_control_if_l , port_control_if[4]);
 
-  assign  flit_out_if.valid = '0;
-  for (genvar i = 0;i < CONFIG.virtual_channels;++i) begin
-    assign  flit_out_if.flit[i] = '0;
+  for (genvar i = 0;i < 5;++i) begin : g_dummy_target
+    tnoc_flit_if_dummy_target #(
+      .CONFIG     (CONFIG             ),
+      .PORT_TYPE  (TNOC_INTERNAL_PORT )
+    ) u_dummy_target (
+      flit_in_if[i]
+    );
   end
 
-  for (genvar i = 0;i < 5;++i) begin
-    assign  flit_in_if[i].ready         = '0;
-    assign  flit_in_if[i].vc_available  = '0;
+  tnoc_flit_if_dummy_initiator #(
+    .CONFIG     (CONFIG             ),
+    .PORT_TYPE  (TNOC_INTERNAL_PORT )
+  ) u_dummy_initiator (
+    flit_out_if
+  );
 
+  for (genvar i = 0;i < 5;++i) begin
     assign  port_control_if[i].grant  = '0;
   end
 endmodule
