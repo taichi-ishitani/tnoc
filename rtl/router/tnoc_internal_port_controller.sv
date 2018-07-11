@@ -104,7 +104,7 @@ module tnoc_internal_port_controller
     );
   end
   else begin
-    assign  output_grant_temp = port_grant;
+    assign  output_grant_temp = port_grant[0];
   end
 
   assign  fifo_push = |vc_free;
