@@ -30,7 +30,7 @@ module tnoc_packet_unpacker
   logic     payload_flit_ready;
 
   if (CHANNELS == 1) begin : g_single_vc
-    `tnoc_flit_if_renamer(flit_in_if, flit_if);
+    `tnoc_flit_if_renamer(flit_in_if, flit_if)
   end
   else begin : g_multi_vc
     tnoc_vc_selector #(

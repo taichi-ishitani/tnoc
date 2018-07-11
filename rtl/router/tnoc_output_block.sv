@@ -30,11 +30,11 @@ module tnoc_output_block
   logic [4:0]                           output_grant[SWITCHES];
   logic                                 output_free[SWITCHES];
 
-  `tnoc_port_control_if_renamer(port_control_if_xp, port_control_if[0]);
-  `tnoc_port_control_if_renamer(port_control_if_xm, port_control_if[1]);
-  `tnoc_port_control_if_renamer(port_control_if_yp, port_control_if[2]);
-  `tnoc_port_control_if_renamer(port_control_if_ym, port_control_if[3]);
-  `tnoc_port_control_if_renamer(port_control_if_l , port_control_if[4]);
+  `tnoc_port_control_if_renamer(port_control_if_xp, port_control_if[0])
+  `tnoc_port_control_if_renamer(port_control_if_xm, port_control_if[1])
+  `tnoc_port_control_if_renamer(port_control_if_yp, port_control_if[2])
+  `tnoc_port_control_if_renamer(port_control_if_ym, port_control_if[3])
+  `tnoc_port_control_if_renamer(port_control_if_l , port_control_if[4])
 
   if (is_local_port(PORT_TYPE)) begin : g_input_local_port_renamer
     for (genvar i = 0;i < CHANNELS;++i) begin : g
@@ -54,11 +54,11 @@ module tnoc_output_block
     end
   end
   else begin : g_input_internal_port_renamer
-    `tnoc_flit_if_renamer(flit_in_if_xp, flit_in_if[0]);
-    `tnoc_flit_if_renamer(flit_in_if_xm, flit_in_if[1]);
-    `tnoc_flit_if_renamer(flit_in_if_yp, flit_in_if[2]);
-    `tnoc_flit_if_renamer(flit_in_if_ym, flit_in_if[3]);
-    `tnoc_flit_if_renamer(flit_in_if_l , flit_in_if[4]);
+    `tnoc_flit_if_renamer(flit_in_if_xp, flit_in_if[0])
+    `tnoc_flit_if_renamer(flit_in_if_xm, flit_in_if[1])
+    `tnoc_flit_if_renamer(flit_in_if_yp, flit_in_if[2])
+    `tnoc_flit_if_renamer(flit_in_if_ym, flit_in_if[3])
+    `tnoc_flit_if_renamer(flit_in_if_l , flit_in_if[4])
   end
 
   if (is_local_port(PORT_TYPE)) begin : g_local_port_contoller

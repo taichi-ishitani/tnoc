@@ -6,7 +6,7 @@
 `endif
 
 package tnoc_config_pkg;
-  typedef struct {
+  typedef struct packed {
     int                             address_width;
     int                             data_width;
     int                             id_x_width;
