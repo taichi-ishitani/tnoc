@@ -84,13 +84,15 @@ module top();
     .flit_bfm_out_if  (bfm_flit_out_if  )
   );
 
+  localparam  bit [CONFIG.id_x_width-1:0] ID_X  = 1;
+  localparam  bit [CONFIG.id_y_width-1:0] ID_Y  = 1;
   tnoc_router #(
-    .CONFIG (CONFIG ),
-    .X      (1      ),
-    .Y      (1      )
+    .CONFIG (CONFIG )
   ) u_dut (
     .clk                  (clk                      ),
     .rst_n                (rst_n                    ),
+    .i_id_x               (ID_X                     ),
+    .i_id_y               (ID_Y                     ),
     .flit_in_if_x_plus    (flit_internal_in_if[0]   ),
     .flit_out_if_x_plus   (flit_internal_out_if[0]  ),
     .flit_in_if_x_minus   (flit_internal_in_if[1]   ),

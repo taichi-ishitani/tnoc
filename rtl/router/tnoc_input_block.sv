@@ -1,14 +1,16 @@
 module tnoc_input_block
   `include  "tnoc_default_imports.svh"
 #(
-  parameter tnoc_config     CONFIG          = TNOC_DEFAULT_CONFIG,
-  parameter int             X               = 0,
-  parameter int             Y               = 0,
-  parameter tnoc_port_type  PORT_TYPE       = TNOC_LOCAL_PORT,
-  parameter bit [4:0]       AVAILABLE_PORTS = 5'b11111
+  parameter   tnoc_config     CONFIG          = TNOC_DEFAULT_CONFIG,
+  parameter   tnoc_port_type  PORT_TYPE       = TNOC_LOCAL_PORT,
+  parameter   bit [4:0]       AVAILABLE_PORTS = 5'b11111,
+  localparam  int             ID_X_WIDTH      = CONFIG.id_x_width,
+  localparam  int             ID_Y_WIDTH      = CONFIG.id_y_width
 )(
   input logic                     clk,
   input logic                     rst_n,
+  input logic [ID_X_WIDTH-1:0]    i_id_x,
+  input logic [ID_Y_WIDTH-1:0]    i_id_y,
   tnoc_flit_if.target             flit_in_if,
   tnoc_flit_if.initiator          flit_out_if_xp,
   tnoc_flit_if.initiator          flit_out_if_xm,
@@ -81,12 +83,12 @@ module tnoc_input_block
 //--------------------------------------------------------------
   tnoc_route_selector #(
     .CONFIG           (CONFIG           ),
-    .X                (X                ),
-    .Y                (Y                ),
     .AVAILABLE_PORTS  (AVAILABLE_PORTS  )
   ) u_route_selector (
     .clk              (clk                    ),
     .rst_n            (rst_n                  ),
+    .i_id_x           (i_id_x                 ),
+    .i_id_y           (i_id_y                 ),
     .flit_in_if       (flit_error_checker_if  ),
     .flit_out_if      (flit_out_if            ),
     .port_control_if  (port_control_if        )

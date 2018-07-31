@@ -2,20 +2,19 @@ module tnoc_route_selector
   `include  "tnoc_default_imports.svh"
 #(
   parameter   tnoc_config CONFIG          = TNOC_DEFAULT_CONFIG,
-  parameter   int         X               = 0,
-  parameter   int         Y               = 0,
   parameter   bit [4:0]   AVAILABLE_PORTS = 5'b11111,
-  localparam  int         CHANNELS        = CONFIG.virtual_channels
+  localparam  int         CHANNELS        = CONFIG.virtual_channels,
+  localparam  int         ID_X_WIDTH      = CONFIG.id_x_width,
+  localparam  int         ID_Y_WIDTH      = CONFIG.id_y_width
 )(
   input logic                     clk,
   input logic                     rst_n,
+  input logic [ID_X_WIDTH-1:0]    i_id_x,
+  input logic [ID_Y_WIDTH-1:0]    i_id_y,
   tnoc_flit_if.target             flit_in_if[CHANNELS],
   tnoc_flit_if.initiator          flit_out_if[5],
   tnoc_port_control_if.requester  port_control_if[5]
 );
-  localparam  int SIZE_X  = CONFIG.size_x;
-  localparam  int SIZE_Y  = CONFIG.size_y;
-
   `include  "tnoc_macros.svh"
   `include  "tnoc_packet.svh"
   `include  "tnoc_flit.svh"
@@ -30,16 +29,20 @@ module tnoc_route_selector
     ROUTE_NA      = 5'b00000
   } e_route;
 
-  function automatic e_route select_route(input tnoc_flit flit);
+  function automatic e_route select_route(
+    input tnoc_flit               flit,
+    input logic [ID_X_WIDTH-1:0]  id_x,
+    input logic [ID_Y_WIDTH-1:0]  id_y
+  );
     tnoc_common_header  header        = get_common_header(flit);
     tnoc_location_id    id            = header.destination_id;
     tnoc_routing_mode   routing_mode  = header.routing_mode;
     logic [3:0]         result;
 
-    result[0] = ((id.x > X) && AVAILABLE_PORTS[0]) ? '1 : '0;
-    result[1] = ((id.x < X) && AVAILABLE_PORTS[1]) ? '1 : '0;
-    result[2] = ((id.y > Y) && AVAILABLE_PORTS[2]) ? '1 : '0;
-    result[3] = ((id.y < Y) && AVAILABLE_PORTS[3]) ? '1 : '0;
+    result[0] = ((id.x > id_x) && AVAILABLE_PORTS[0]) ? '1 : '0;
+    result[1] = ((id.x < id_x) && AVAILABLE_PORTS[1]) ? '1 : '0;
+    result[2] = ((id.y > id_y) && AVAILABLE_PORTS[2]) ? '1 : '0;
+    result[3] = ((id.y < id_y) && AVAILABLE_PORTS[3]) ? '1 : '0;
 
     if (header.routing_mode == TNOC_X_Y_ROUTING) begin
       return x_y_routing(result);
@@ -89,7 +92,7 @@ module tnoc_route_selector
     ) ? '1 : '0;
 
     assign  route       = (start_of_packet) ? route_next : route_latched;
-    assign  route_next  = select_route(flit_in_if[i].flit[0]);
+    assign  route_next  = select_route(flit_in_if[i].flit[0], i_id_x, i_id_y);
     always_ff @(posedge clk, negedge rst_n) begin
       if (!rst_n) begin
         route_latched <= ROUTE_NA;

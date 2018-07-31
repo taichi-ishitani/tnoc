@@ -2,23 +2,25 @@ module tnoc_router
   `include  "tnoc_default_imports.svh"
 #(
   parameter   tnoc_config CONFIG          = TNOC_DEFAULT_CONFIG,
-  parameter   int         X               = 0,
-  parameter   int         Y               = 0,
   parameter   bit [4:0]   AVAILABLE_PORTS = 5'b11111,
-  localparam  int         LOCAL_PORTS     = CONFIG.virtual_channels
+  localparam  int         LOCAL_PORTS     = CONFIG.virtual_channels,
+  localparam  int         ID_X_WIDTH      = CONFIG.id_x_width,
+  localparam  int         ID_Y_WIDTH      = CONFIG.id_y_width
 )(
-  input logic             clk,
-  input logic             rst_n,
-  tnoc_flit_if.target     flit_in_if_x_plus,
-  tnoc_flit_if.initiator  flit_out_if_x_plus,
-  tnoc_flit_if.target     flit_in_if_x_minus,
-  tnoc_flit_if.initiator  flit_out_if_x_minus,
-  tnoc_flit_if.target     flit_in_if_y_plus,
-  tnoc_flit_if.initiator  flit_out_if_y_plus,
-  tnoc_flit_if.target     flit_in_if_y_minus,
-  tnoc_flit_if.initiator  flit_out_if_y_minus,
-  tnoc_flit_if.target     flit_in_if_local,
-  tnoc_flit_if.initiator  flit_out_if_local
+  input logic                   clk,
+  input logic                   rst_n,
+  input logic [ID_X_WIDTH-1:0]  i_id_x,
+  input logic [ID_Y_WIDTH-1:0]  i_id_y,
+  tnoc_flit_if.target           flit_in_if_x_plus,
+  tnoc_flit_if.initiator        flit_out_if_x_plus,
+  tnoc_flit_if.target           flit_in_if_x_minus,
+  tnoc_flit_if.initiator        flit_out_if_x_minus,
+  tnoc_flit_if.target           flit_in_if_y_plus,
+  tnoc_flit_if.initiator        flit_out_if_y_plus,
+  tnoc_flit_if.target           flit_in_if_y_minus,
+  tnoc_flit_if.initiator        flit_out_if_y_minus,
+  tnoc_flit_if.target           flit_in_if_local,
+  tnoc_flit_if.initiator        flit_out_if_local
 );
   `include  "tnoc_macros.svh"
 
@@ -33,13 +35,13 @@ module tnoc_router
       (index == 4) ? TNOC_LOCAL_PORT : TNOC_INTERNAL_PORT; \
     tnoc_input_block #( \
       .CONFIG           (CONFIG           ), \
-      .X                (X                ), \
-      .Y                (Y                ), \
       .PORT_TYPE        (PORT_TYPE        ), \
       .AVAILABLE_PORTS  (AVAILABLE_PORTS  ) \
     ) u_input_block ( \
       .clk                (clk                        ), \
       .rst_n              (rst_n                      ), \
+      .i_id_x             (i_id_x                     ), \
+      .i_id_y             (i_id_y                     ), \
       .flit_in_if         (flit_in_if``port_suffix``  ), \
       .flit_out_if_xp     (flit_if[5*0+index]         ), \
       .flit_out_if_xm     (flit_if[5*1+index]         ), \
