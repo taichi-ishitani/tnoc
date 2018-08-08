@@ -18,9 +18,9 @@ class tnoc_router_output_arbitration_test_sequence extends tnoc_router_test_sequ
 
   function void setup();
     tnoc_bfm_location_id  port_list[5]  = '{
-      '{x: 2, y: 1}, '{x: 0, y: 1},
-      '{x: 1, y: 2}, '{x: 1, y: 0},
-      '{x: 1, y: 1}
+      get_location_id(1, 2), get_location_id(1, 0),
+      get_location_id(2, 1), get_location_id(0, 1),
+      get_location_id(1, 1)
     };
     port_list.shuffle();
     destinations[0] = port_list[0];

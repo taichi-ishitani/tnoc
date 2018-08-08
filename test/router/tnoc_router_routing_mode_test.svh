@@ -2,10 +2,10 @@
 `define TNOC_ROUTER_ROUTING_MODE_TEST_SVH
 class tnoc_router_routing_mode_test_sequence extends tnoc_router_test_sequence_base;
   task body();
-    do_noc_access('{y: 0, x: 0});
-    do_noc_access('{y: 0, x: 2});
-    do_noc_access('{y: 2, x: 0});
-    do_noc_access('{y: 2, x: 2});
+    do_noc_access(get_location_id(0, 0));
+    do_noc_access(get_location_id(0, 2));
+    do_noc_access(get_location_id(2, 0));
+    do_noc_access(get_location_id(2, 2));
   endtask
 
   task do_noc_access(tnoc_bfm_location_id destination_id);

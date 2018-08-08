@@ -12,6 +12,7 @@ package tnoc_common_env_pkg;
   `uvm_analysis_imp_decl(_tx)
   `uvm_analysis_imp_decl(_rx)
 
+  `include  "tnoc_common_utilities.svh"
   `include  "tnoc_packet_scoreboard.svh"
   `include  "tnoc_model_base.svh"
   `include  "tnoc_sequence_base.svh"
