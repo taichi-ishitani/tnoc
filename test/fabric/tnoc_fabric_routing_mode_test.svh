@@ -3,15 +3,15 @@
 class tnoc_fabric_routing_mode_test_sequence extends tnoc_fabric_test_sequence_base;
   task body();
     fork
-      do_noc_access(p_sequencer.bfm_sequencer[0][0], '{y: 1, x: 2}, TNOC_BFM_X_Y_ROUTING);
-      do_noc_access(p_sequencer.bfm_sequencer[0][1], '{y: 2, x: 2}, TNOC_BFM_X_Y_ROUTING);
+      do_noc_access(p_sequencer.bfm_sequencer[0][0], get_location_id(1, 2), TNOC_BFM_X_Y_ROUTING);
+      do_noc_access(p_sequencer.bfm_sequencer[0][1], get_location_id(2, 2), TNOC_BFM_X_Y_ROUTING);
     join
 
     #(1us);
 
     fork
-      do_noc_access(p_sequencer.bfm_sequencer[0][0], '{y: 1, x: 2}, TNOC_BFM_X_Y_ROUTING);
-      do_noc_access(p_sequencer.bfm_sequencer[0][1], '{y: 2, x: 2}, TNOC_BFM_Y_X_ROUTING);
+      do_noc_access(p_sequencer.bfm_sequencer[0][0], get_location_id(1, 2), TNOC_BFM_X_Y_ROUTING);
+      do_noc_access(p_sequencer.bfm_sequencer[0][1], get_location_id(2, 2), TNOC_BFM_Y_X_ROUTING);
     join
   endtask
 
