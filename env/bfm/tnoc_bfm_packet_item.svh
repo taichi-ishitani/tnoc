@@ -151,41 +151,24 @@ class tnoc_bfm_packet_item extends tnoc_bfm_packet_item_base;
     return (packet_type[6]) ? '1 : '0;
   endfunction
 
-  function void pack_flits(ref tnoc_bfm_flit flits[$]);
-    get_header_flits(flits);
-    get_payload_flits(flits);
+  function bit has_no_payload();
+    return (!packet_type[6]) ? '1 : '0;
   endfunction
 
   function void pack_flit_items(ref tnoc_bfm_flit_item flit_items[$]);
-    tnoc_bfm_flit flits[$];
-    pack_flits(flits);
-    foreach (flits[i]) begin
-      tnoc_bfm_flit_item  flit_item;
-      flit_item = tnoc_bfm_flit_item::type_id::create($sformatf("flit_item[%0d]", i));
-      flit_item.unpack_flit(flits[i]);
-      flit_items.push_back(flit_item);
-    end
-  endfunction
-
-  function void unpack_flits(const ref tnoc_bfm_flit flits[$]);
-    unpack_header_flits(flits);
-
-    if (!has_payload()) begin
-      return;
-    end
-
-    unpack_payload_flits(flits);
+    pack_header_flit_items(flit_items);
+    pack_payload_flit_items(flit_items);
   endfunction
 
   function void unpack_flit_items(const ref tnoc_bfm_flit_item flit_items[$]);
-    tnoc_bfm_flit flits[$];
-    foreach (flit_items[i]) begin
-      flits.push_back(flit_items[i].get_flit());
+    unpack_header_flit_items(flit_items);
+    if (!has_payload()) begin
+      return;
     end
-    unpack_flits(flits);
+    unpack_payload_flit_items(flit_items);
   endfunction
 
-  local function void get_header_flits(ref tnoc_bfm_flit flits[$]);
+  local function void pack_header_flit_items(ref tnoc_bfm_flit_item flit_items[$]);
     uvm_packer  packer;
     int         header_width;
 
@@ -213,8 +196,8 @@ class tnoc_bfm_packet_item extends tnoc_bfm_packet_item_base;
     packer.set_packed_size();
 
     while (header_width > 0) begin
-      int           unpack_size;
-      tnoc_bfm_flit flit;
+      int                 unpack_size;
+      tnoc_bfm_flit_item  flit_item;
 
       if (header_width > configuration.get_flit_width()) begin
         unpack_size = configuration.get_flit_width();
@@ -223,27 +206,28 @@ class tnoc_bfm_packet_item extends tnoc_bfm_packet_item_base;
         unpack_size = header_width;
       end
 
-      flit.flit_type  = TNOC_BFM_HEADER_FLIT;
-      flit.data       = packer.unpack_field(unpack_size);
-      flits.push_back(flit);
+      flit_item = tnoc_bfm_flit_item::create_header_flit_item(
+        "flit_item", 0, 0, packer.unpack_field(unpack_size)
+      );
+      flit_items.push_back(flit_item);
 
       header_width  -= unpack_size;
     end
 
-    flits[0].head = 1;
-    if (!packet_type[6]) begin
-      flits[$].tail = 1;
+    flit_items[0].head  = 1;
+    if (has_no_payload()) begin
+      flit_items[$].tail  = 1;
     end
   endfunction
 
-  local function void unpack_header_flits(const ref tnoc_bfm_flit flits[$]);
+  local function void unpack_header_flit_items(const ref tnoc_bfm_flit_item flit_items[$]);
     uvm_packer    packer  = get_flit_packer();
 
-    foreach (flits[i]) begin
-      if (flits[i].flit_type == TNOC_BFM_PAYLOAD_FLIT) begin
+    foreach (flit_items[i]) begin
+      if (flit_items[i].is_payload_flit()) begin
         break;
       end
-      packer.pack_field(flits[i].data, configuration.get_flit_width());
+      packer.pack_field(flit_items[i].data, configuration.get_flit_width());
     end
     packer.set_packed_size();
 
@@ -267,10 +251,10 @@ class tnoc_bfm_packet_item extends tnoc_bfm_packet_item_base;
     end
   endfunction
 
-  local function void get_payload_flits(ref tnoc_bfm_flit flits[$]);
+  local function void pack_payload_flit_items(ref tnoc_bfm_flit_item flit_items[$]);
     foreach (data[i]) begin
-      uvm_packer    packer;
-      tnoc_bfm_flit flit;
+      uvm_packer          packer;
+      tnoc_bfm_flit_item  flit_item;
 
       packer  = get_flit_packer();
       packer.pack_field(data[i], configuration.data_width);
@@ -282,29 +266,30 @@ class tnoc_bfm_packet_item extends tnoc_bfm_packet_item_base;
       end
       packer.set_packed_size();
 
-      flit.flit_type  = TNOC_BFM_PAYLOAD_FLIT;
-      flit.data       = packer.unpack_field(configuration.get_payload_width());
-      flits.push_back(flit);
+      flit_item = tnoc_bfm_flit_item::create_payload_flit_item(
+        "flit_item", 0, packer.unpack_field(configuration.get_payload_width())
+      );
+      flit_items.push_back(flit_item);
     end
 
-    flits[$].tail = 1;
+    flit_items[$].tail = 1;
   endfunction
 
-  local function void unpack_payload_flits(const ref tnoc_bfm_flit flits[$]);
-    tnoc_bfm_flit payload_flits[$];
+  local function void unpack_payload_flit_items(const ref tnoc_bfm_flit_item flit_items[$]);
+    tnoc_bfm_flit_item  payload_flit_items[$];
 
-    payload_flits = flits.find(flit) with (flit.flit_type == TNOC_BFM_PAYLOAD_FLIT);
+    payload_flit_items  = flit_items.find(flit_item) with (flit_item.is_payload_flit());
 
-    data  = new[payload_flits.size];
+    data  = new[payload_flit_items.size];
     if (is_request()) begin
-      byte_enable = new[payload_flits.size];
+      byte_enable = new[payload_flit_items.size];
     end
 
     foreach (data[i]) begin
       uvm_packer  packer;
 
       packer  = get_flit_packer();
-      packer.pack_field(payload_flits[i].data, configuration.get_payload_width());
+      packer.pack_field(payload_flit_items[i].data, configuration.get_payload_width());
       packer.set_packed_size();
 
       data[i] = packer.unpack_field(configuration.data_width);

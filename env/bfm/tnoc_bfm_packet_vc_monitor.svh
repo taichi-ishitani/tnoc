@@ -57,8 +57,7 @@ class tnoc_bfm_packet_vc_monitor extends tnoc_bfm_component_base #(
     tnoc_bfm_flit       flit;
     tnoc_bfm_flit_item  flit_item;
     flit      = vif.monitor_cb.flit;
-    flit_item = tnoc_bfm_flit_item::type_id::create("flit_item");
-    flit_item.unpack_flit(flit);
+    flit_item = tnoc_bfm_flit_item::create_flit_item("flit_item", flit);
     void'(begin_child_tr(flit_item, packet_item.tr_handle));
     return flit_item;
   endfunction
