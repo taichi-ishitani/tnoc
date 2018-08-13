@@ -104,9 +104,9 @@ module tnoc_flit_if_fifo
       .THRESHOLD  (THRESHOLD          ),
       .FIFO_MEM   (FIFO_MEM           )
     ) u_fifo (
-      .clk  (clk  ),
-      .rst_n  (rst_n  ),
-      .i_clear  (i_clear  ),
+      .clk            (clk          ),
+      .rst_n          (rst_n        ),
+      .i_clear        (i_clear      ),
       .o_empty        (empty        ),
       .o_almost_full  (almost_full  ),
       .o_full         (full         ),
