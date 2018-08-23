@@ -52,7 +52,7 @@ ifeq ($(DUMP), ida)
 	XMSIM_ARGS	+= -input @"ida_probe -wave -wave_probe_args=\"-all -depth to_cells\""
 	ifeq ($(SV_DEBUG), on)
 		XMVLOG_ARGS	+= -classlinedebug
-		XMSIM_ARGS	+= -input @"ida_probe -sv_flow -ignore_sv_functions new -ignore_sv_files \"tue_* *_agent *_monitor *_driver cdns_*\""
+		XMSIM_ARGS	+= -input @"ida_probe -sv_flow -ignore_sv_functions \"new is_* has_* get_* set_*\" -ignore_sv_files \"tnoc_*_item tue_* *_agent *_monitor *_driver cdns_*\""
 	endif
 	ifeq ($(TR_DEBU), on)
 		XMSIM_ARGS	+= -input @"uvm_set -config * recording_detail UVM_FULL"
