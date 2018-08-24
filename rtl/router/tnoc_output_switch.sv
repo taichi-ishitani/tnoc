@@ -31,9 +31,10 @@ module tnoc_output_switch
   end
 
   tnoc_flit_if_mux #(
-    .CONFIG   (CONFIG   ),
-    .CHANNELS (CHANNELS ),
-    .ENTRIES  (5        )
+    .CONFIG     (CONFIG     ),
+    .CHANNELS   (CHANNELS   ),
+    .ENTRIES    (5          ),
+    .PORT_TYPE  (PORT_TYPE  )
   ) u_output_mux (
     .i_select     (i_output_grant ),
     .flit_in_if   (flit_in_if     ),
