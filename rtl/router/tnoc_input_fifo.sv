@@ -31,12 +31,12 @@ module tnoc_input_fifo
 
   for (genvar i = 0;i < CHANNELS;++i) begin : g_fifo
     tnoc_flit_if_fifo #(
-      .CONFIG     (CONFIG     ),
-      .CHANNELS   (1          ),
-      .DEPTH      (DEPTH      ),
-      .THRESHOLD  (THRESHOLD  ),
-      .FIFO_MEM   (1          ),
-      .PORT_TYPE  (PORT_TYPE  )
+      .CONFIG       (CONFIG     ),
+      .CHANNELS     (1          ),
+      .DEPTH        (DEPTH      ),
+      .THRESHOLD    (THRESHOLD  ),
+      .DATA_FF_OUT  (0          ),
+      .PORT_TYPE    (PORT_TYPE  )
     ) u_fifo (
       .clk            (clk              ),
       .rst_n          (rst_n            ),

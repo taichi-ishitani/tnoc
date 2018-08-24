@@ -1,13 +1,13 @@
 module tnoc_flit_if_fifo
   `include  "tnoc_default_imports.svh"
 #(
-  parameter   tnoc_config     CONFIG    = TNOC_DEFAULT_CONFIG,
-  parameter   int             CHANNELS  = CONFIG.virtual_channels,
-  parameter   int             DEPTH     = 8,
-  parameter   int             THRESHOLD = DEPTH,
-  parameter   bit             FIFO_MEM  = 0,
-  parameter   tnoc_port_type  PORT_TYPE = TNOC_LOCAL_PORT,
-  localparam  int             FLITS     = (is_local_port(PORT_TYPE)) ? CHANNELS : 1
+  parameter   tnoc_config     CONFIG      = TNOC_DEFAULT_CONFIG,
+  parameter   int             CHANNELS    = CONFIG.virtual_channels,
+  parameter   int             DEPTH       = 8,
+  parameter   int             THRESHOLD   = DEPTH,
+  parameter   bit             DATA_FF_OUT = 0,
+  parameter   tnoc_port_type  PORT_TYPE   = TNOC_LOCAL_PORT,
+  localparam  int             FLITS       = (is_local_port(PORT_TYPE)) ? CHANNELS : 1
 )(
   input   logic             clk,
   input   logic             rst_n,
@@ -41,10 +41,10 @@ module tnoc_flit_if_fifo
       assign  flit_out_if.valid[i]    = ~empty[i];
 
       tnoc_fifo #(
-        .WIDTH      (FLIT_WIDTH ),
-        .DEPTH      (DEPTH      ),
-        .THRESHOLD  (THRESHOLD  ),
-        .FIFO_MEM   (FIFO_MEM   )
+        .WIDTH        (FLIT_WIDTH   ),
+        .DEPTH        (DEPTH        ),
+        .THRESHOLD    (THRESHOLD    ),
+        .DATA_FF_OUT  (DATA_FF_OUT  )
       ) u_fifo (
         .clk            (clk                  ),
         .rst_n          (rst_n                ),
@@ -65,10 +65,10 @@ module tnoc_flit_if_fifo
     assign  flit_out_if.valid       = ~empty;
 
     tnoc_fifo #(
-      .WIDTH      (FLIT_WIDTH ),
-      .DEPTH      (DEPTH      ),
-      .THRESHOLD  (THRESHOLD  ),
-      .FIFO_MEM   (FIFO_MEM   )
+      .WIDTH        (FLIT_WIDTH   ),
+      .DEPTH        (DEPTH        ),
+      .THRESHOLD    (THRESHOLD    ),
+      .DATA_FF_OUT  (DATA_FF_OUT  )
     ) u_fifo (
       .clk            (clk                  ),
       .rst_n          (rst_n                ),
@@ -99,10 +99,10 @@ module tnoc_flit_if_fifo
     assign  pop             = |(flit_out_if.valid & flit_out_if.ready);
 
     tnoc_fifo #(
-      .WIDTH      ($bits(s_fifo_data) ),
-      .DEPTH      (DEPTH              ),
-      .THRESHOLD  (THRESHOLD          ),
-      .FIFO_MEM   (FIFO_MEM           )
+      .WIDTH        ($bits(s_fifo_data) ),
+      .DEPTH        (DEPTH              ),
+      .THRESHOLD    (THRESHOLD          ),
+      .DATA_FF_OUT  (DATA_FF_OUT        )
     ) u_fifo (
       .clk            (clk          ),
       .rst_n          (rst_n        ),
