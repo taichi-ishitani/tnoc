@@ -3,8 +3,6 @@
 ${TNOC_HOME}/rtl/common/tnoc_config_pkg.sv
 ${TNOC_HOME}/rtl/common/tnoc_enums_pkg.sv
 
-${TNOC_HOME}/rtl/common/tnoc_fifo_sr.sv
-${TNOC_HOME}/rtl/common/tnoc_fifo_mem.sv
 ${TNOC_HOME}/rtl/common/tnoc_fifo.sv
 ${TNOC_HOME}/rtl/common/tnoc_mux.sv
 ${TNOC_HOME}/rtl/common/tnoc_demux.sv
