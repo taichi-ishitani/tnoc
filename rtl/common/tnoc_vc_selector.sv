@@ -25,8 +25,7 @@ module tnoc_vc_selector
       .CONFIG     (CONFIG         ),
       .CHANNELS   (1              ),
       .DEPTH      (FIFO_DEPTH     ),
-      .THRESHOLD  (FIFO_THRESHOLD ),
-      .FIFO_MEM   (1              )
+      .THRESHOLD  (FIFO_THRESHOLD )
     ) u_fifo (
       .clk            (clk                  ),
       .rst_n          (rst_n                ),
