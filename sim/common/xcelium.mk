@@ -12,12 +12,12 @@ XRUN_COMMON_ARGS	+= -timedetail
 XRUN_COMMON_ARGS	+= -status
 
 XMVLOG_ARGS	+= -compile
-XMVLOG_ARGS	+= -uvm
+XMVLOG_ARGS	+= -uvmhome CDNS-$(UVM_VERSION)
 XMVLOG_ARGS	+= -plusperf
 XMVLOG_ARGS += -l xmvlog.log
 
 XMELAB_ARGS	+= -elaborate
-XMELAB_ARGS	+= -uvm
+XMELAB_ARGS	+= -uvmhome CDNS-$(UVM_VERSION)
 XMELAB_ARGS	+= -uvmnoautocompile
 XMELAB_ARGS	+= -nxmbind
 XMELAB_ARGS	+= -newperf
@@ -31,6 +31,7 @@ XMSIM_ARGS	+= -R
 XMSIM_ARGS	+= -xmlibdirname ../xcelium.d
 XMSIM_ARGS	+= -xceligen on
 XMSIM_ARGS	+= +UVM_TESTNAME=$(TEST_NAME)
+XMSIM_ARGS	+= +UVM_VERBOSITY=$(VERBOSITY)
 XMSIM_ARGS	+= -l xmsim.log
 
 ifeq ($(GUI), simvision)
@@ -54,7 +55,7 @@ ifeq ($(DUMP), ida)
 		XMVLOG_ARGS	+= -classlinedebug
 		XMSIM_ARGS	+= -input @"ida_probe -sv_flow -ignore_sv_functions \"new is_* has_* get_* set_*\" -ignore_sv_files \"tnoc_*_item tue_* *_agent *_monitor *_driver cdns_*\""
 	endif
-	ifeq ($(TR_DEBU), on)
+	ifeq ($(TR_DEBUG), on)
 		XMSIM_ARGS	+= -input @"uvm_set -config * recording_detail UVM_FULL"
 	endif
 endif

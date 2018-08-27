@@ -7,6 +7,8 @@ DUMP				?= off
 GUI					?= off
 TR_DEBUG		?= off
 RANDOM_SEED	?= auto
+UVM_VERSION	?= 1.2
+VERBOSITY		?= UVM_LOW
 SIMULATOR		?= vcs
 
 TNOC_HOME	?= $(shell git rev-parse --show-toplevel)

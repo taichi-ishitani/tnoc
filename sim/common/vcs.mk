@@ -5,8 +5,8 @@ endif
 CLEAN_TARGETS	+= simv* csrc
 
 VCS_ARGS	+= -full64 -sverilog -timescale="1ns/1ps" -l vcs.log
-VCS_ARGS	+= -ntb_opts uvm +define+UVM_NO_DEPRECATED +define+UVM_OBJECT_MUST_HAVE_CONSTRUCTO
-SIMV_ARGS	+= +vcs+lic+wait -l simv.log +UVM_TESTNAME=$(TEST_NAME)
+VCS_ARGS	+= -ntb_opts uvm-$(UVM_VERSION) +define+UVM_NO_DEPRECATED +define+UVM_OBJECT_MUST_HAVE_CONSTRUCTO
+SIMV_ARGS	+= +vcs+lic+wait -l simv.log +UVM_TESTNAME=$(TEST_NAME) +UVM_VERBOSITY=$(VERBOSITY)
 
 ifeq ($(GUI), verdi)
 	VCS_ARGS	+= -lca -debug_access+all -kdb +vcs+fsdbon
