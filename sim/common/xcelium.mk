@@ -14,7 +14,7 @@ XRUN_COMMON_ARGS	+= -status
 XMVLOG_ARGS	+= -compile
 XMVLOG_ARGS	+= -uvmhome CDNS-$(UVM_VERSION)
 XMVLOG_ARGS	+= -plusperf
-XMVLOG_ARGS += -l xmvlog.log
+XMVLOG_ARGS	+= -l xmvlog.log
 
 XMELAB_ARGS	+= -elaborate
 XMELAB_ARGS	+= -uvmhome CDNS-$(UVM_VERSION)
