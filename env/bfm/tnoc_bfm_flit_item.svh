@@ -75,6 +75,7 @@ class tnoc_bfm_flit_item extends tnoc_bfm_flit_item_base;
   `tue_object_default_constructor(tnoc_bfm_flit_item)
   `uvm_field_utils_begin(tnoc_bfm_flit_item)
     `uvm_field_enum(tnoc_bfm_flit_type, flit_type, UVM_DEFAULT)
+    `uvm_field_int(head, UVM_DEFAULT | UVM_BIN)
     `uvm_field_int(tail, UVM_DEFAULT | UVM_BIN)
     `uvm_field_int(data, UVM_DEFAULT | UVM_HEX)
   `uvm_field_utils_end
