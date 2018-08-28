@@ -32,6 +32,8 @@ XMSIM_ARGS	+= -xmlibdirname ../xcelium.d
 XMSIM_ARGS	+= -xceligen on
 XMSIM_ARGS	+= +UVM_TESTNAME=$(TEST_NAME)
 XMSIM_ARGS	+= +UVM_VERBOSITY=$(VERBOSITY)
+XMSIM_ARGS	+= +UVM_TIMEOUT=$(TIMEOUT),NO
+XMSIM_ARGS	+= +UVM_MAX_QUIT_COUNT=$(MAX_ERROR_COUNT),NO
 XMSIM_ARGS	+= -l xmsim.log
 
 ifeq ($(GUI), simvision)
