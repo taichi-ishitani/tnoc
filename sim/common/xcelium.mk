@@ -65,6 +65,9 @@ ifeq ($(DUMP), shm)
 	XMELAB_ARGS	+= -xmdebug
 	XMSIM_ARGS	+= -mcdump
 	XMSIM_ARGS	+= -input @"database -open dump.shm -default;probe -all -depth to_cells"
+	ifeq ($(TR_DEBUG), on)
+		XMSIM_ARGS	+= -input @"uvm_set -config * recording_detail UVM_FULL"
+	endif
 endif
 
 ifeq ($(RANDOM_SEED), auto)
