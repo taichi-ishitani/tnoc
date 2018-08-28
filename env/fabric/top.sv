@@ -14,12 +14,16 @@ module top();
     `define TNOC_FABRIC_ENV_DATA_WIDTH TNOC_DEFAULT_CONFIG.data_width
   `endif
 
+  `ifndef TNOC_ROUTER_ENV_VIRTUAL_CHANNELS
+    `define TNOC_ROUTER_ENV_VIRTUAL_CHANNELS  TNOC_DEFAULT_CONFIG.virtual_channels
+  `endif
+
   localparam  tnoc_config CONFIG  = '{
     address_width:      TNOC_DEFAULT_CONFIG.address_width,
     data_width:         `TNOC_FABRIC_ENV_DATA_WIDTH,
     id_x_width:         TNOC_DEFAULT_CONFIG.id_x_width,
     id_y_width:         TNOC_DEFAULT_CONFIG.id_y_width,
-    virtual_channels:   TNOC_DEFAULT_CONFIG.virtual_channels,
+    virtual_channels:   `TNOC_ROUTER_ENV_VIRTUAL_CHANNELS,
     tag_width:          TNOC_DEFAULT_CONFIG.tag_width,
     burst_length_width: TNOC_DEFAULT_CONFIG.burst_length_width,
     input_fifo_depth:   TNOC_DEFAULT_CONFIG.input_fifo_depth,
