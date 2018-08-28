@@ -9,6 +9,9 @@ FILE_LISTS	+= $(TNOC_HOME)/test/router/compile.f
 SOURCE_FILES	+= $(TNOC_HOME)/env/router/top.sv
 
 DEFINES	+= TNOC_ROUTER_ENV_DATA_WIDTH=256
+DEFINES	+= TNOC_ROUTER_ENV_VIRTUAL_CHANNELS=1
 
 TOP_MODULE	+= top
+
+IGNORED_TESTS	+= tnoc_router_virtual_channel_test
 

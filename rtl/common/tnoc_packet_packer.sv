@@ -13,6 +13,7 @@ module tnoc_packet_packer
   `include  "tnoc_packet.svh"
   `include  "tnoc_flit.svh"
   `include  "tnoc_packet_utils.svh"
+  `include  "tnoc_flit_utils.svh"
 
 //--------------------------------------------------------------
 //  Flit IF
@@ -91,8 +92,10 @@ module tnoc_packet_packer
 //--------------------------------------------------------------
 //  Header
 //--------------------------------------------------------------
-  localparam  int HEADER_FLITS      = (HEADER_WIDTH + FLIT_DATA_WIDTH - 1) / FLIT_DATA_WIDTH;
-  localparam  int HEADER_DATA_WIDTH = HEADER_FLITS * FLIT_DATA_WIDTH;
+  localparam  int REQUEST_HEADER_FLITS  = calc_request_header_flits();
+  localparam  int RESPONSE_HEADER_FLITS = calc_response_header_flits();
+  localparam  int HEADER_FLITS          = calc_header_flits();
+  localparam  int HEADER_DATA_WIDTH     = HEADER_FLITS * FLIT_DATA_WIDTH;
 
   //  renaming
   tnoc_common_header_fields     common_header_fields;
@@ -152,7 +155,7 @@ module tnoc_packet_packer
     assign  header_flit.head          = (flit_count == 0) ? '1 : '0;
     assign  header_flit.tail          = no_payload & header_flit_last;
     assign  header_flit.data          = header_data[flit_count*FLIT_DATA_WIDTH+:FLIT_DATA_WIDTH];
-    assign  header_flit_last          = (flit_count == (HEADER_FLITS - 1)) ? '1 : '0;
+    assign  header_flit_last          = (flit_count == get_last_count(packet_in_if.packet_type)) ? '1 : '0;
 
     always_ff @(posedge clk, negedge rst_n) begin
       if (!rst_n) begin
@@ -167,6 +170,17 @@ module tnoc_packet_packer
         end
       end
     end
+
+    function automatic logic [COUNTER_WIDTH-1:0] get_last_count(
+      input tnoc_packet_type  packet_type
+    );
+      if (is_request_packet_type(packet_type)) begin
+        return REQUEST_HEADER_FLITS - 1;
+      end
+      else begin
+        return RESPONSE_HEADER_FLITS - 1;
+      end
+    endfunction
   end
 
 //--------------------------------------------------------------

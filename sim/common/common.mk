@@ -3,13 +3,15 @@ SOURCE_FILES	=
 DEFINES				=
 TEST_LIST			=
 
-DUMP				?= off
-GUI					?= off
-TR_DEBUG		?= off
-RANDOM_SEED	?= auto
-UVM_VERSION	?= 1.2
-VERBOSITY		?= UVM_LOW
-SIMULATOR		?= vcs
+DUMP						?= off
+GUI							?= off
+TR_DEBUG				?= off
+RANDOM_SEED			?= auto
+UVM_VERSION			?= 1.2
+VERBOSITY				?= UVM_LOW
+TIMEOUT					?= 1_000_000
+MAX_ERROR_COUNT	?= 1
+SIMULATOR				?= vcs
 
 TNOC_HOME	?= $(shell git rev-parse --show-toplevel)
 TUE_HOME	?= $(TNOC_HOME)/env/tue
@@ -20,11 +22,17 @@ export TUE_HOME
 -include local.mk
 -include test_list.mk
 
-.PHONY: all $(TEST_LIST) clean clean_all
+ifdef IGNORED_TESTS
+	FILTERED_TEST_LIST	= $(filter-out $(IGNORED_TESTS),$(TEST_LIST))
+else
+	FILTERED_TEST_LIST	= $(TEST_LIST)
+endif
 
-all: $(TEST_LIST)
+.PHONY: all $(FILTERED_TEST_LIST) clean clean_all
 
-$(TEST_LIST):
+all: $(FILTERED_TEST_LIST)
+
+$(FILTERED_TEST_LIST):
 	make $(RUN_SIMULATION) TEST_NAME=$@
 
 CLEAN_TARGETS	+= *.log *.h
@@ -33,7 +41,7 @@ clean:
 
 clean_all:
 	make clean
-	rm -rf $(TEST_LIST)
+	rm -rf $(FILTERED_TEST_LIST)
 
 include $(TNOC_HOME)/sim/common/vcs.mk
 include $(TNOC_HOME)/sim/common/xcelium.mk
