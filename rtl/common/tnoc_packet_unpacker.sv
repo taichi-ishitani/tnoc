@@ -15,6 +15,7 @@ module tnoc_packet_unpacker
   `include  "tnoc_packet.svh"
   `include  "tnoc_flit.svh"
   `include  "tnoc_packet_utils.svh"
+  `include  "tnoc_flit_utils.svh"
 
 //--------------------------------------------------------------
 //  Flit IF
@@ -56,8 +57,10 @@ module tnoc_packet_unpacker
 //--------------------------------------------------------------
 //  Header
 //--------------------------------------------------------------
-  localparam  int HEADER_FLITS      = (HEADER_WIDTH + FLIT_DATA_WIDTH - 1) / FLIT_DATA_WIDTH;
-  localparam  int HEADER_DATA_WIDTH = HEADER_FLITS * FLIT_DATA_WIDTH;
+  localparam  int REQUEST_HEADER_FLITS  = calc_request_header_flits();
+  localparam  int RESPONSE_HEADER_FLITS = calc_response_header_flits();
+  localparam  int HEADER_FLITS          = calc_header_flits();
+  localparam  int HEADER_DATA_WIDTH     = HEADER_FLITS * FLIT_DATA_WIDTH;
 
   logic [HEADER_DATA_WIDTH-1:0] header_data;
   tnoc_common_header_fields     common_header_fields;
@@ -92,7 +95,7 @@ module tnoc_packet_unpacker
     tnoc_flit_data            flit_buffer[HEADER_FLITS-1];
     logic                     header_flit_last;
 
-    assign  header_flit_last            = (flit_count == (HEADER_FLITS - 1)) ? '1 : '0;
+    assign  header_flit_last            = (flit_count == get_last_count(common_header_fields)) ? '1 : '0;
     assign  packet_out_if.header_valid  = (header_flit_last) ? header_flit_valid          : '0;
     assign  header_flit_ready           = (header_flit_last) ? packet_out_if.header_ready : '1;
 
@@ -113,7 +116,7 @@ module tnoc_packet_unpacker
       end
       else if (header_flit_valid && header_flit_ready) begin
         if (header_flit_last) begin
-          flit_count  <= '0;
+          flit_count  <= 0;
           flit_buffer <= '{default: '0};
         end
         else begin
@@ -122,6 +125,17 @@ module tnoc_packet_unpacker
         end
       end
     end
+
+    function automatic logic [COUNTER_WIDTH-1:0] get_last_count(
+      input tnoc_common_header_fields common_header_fields
+    );
+      if (is_request_packet_type(common_header_fields.packet_type)) begin
+        return REQUEST_HEADER_FLITS - 1;
+      end
+      else begin
+        return RESPONSE_HEADER_FLITS - 1;
+      end
+    endfunction
   end
 
 //--------------------------------------------------------------

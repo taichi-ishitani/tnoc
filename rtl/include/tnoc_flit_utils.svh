@@ -1,3 +1,15 @@
+function automatic int calc_request_header_flits();
+  return (REQUEST_HEADER_WIDTH + FLIT_DATA_WIDTH - 1) / FLIT_DATA_WIDTH;
+endfunction
+
+function automatic int calc_response_header_flits();
+  return (RESPONSE_HEADER_WIDTH + FLIT_DATA_WIDTH - 1) / FLIT_DATA_WIDTH;
+endfunction
+
+function automatic int calc_header_flits();
+  return (HEADER_WIDTH + FLIT_DATA_WIDTH - 1) / FLIT_DATA_WIDTH;
+endfunction
+
 function automatic logic is_header_flit(input tnoc_flit flit);
   return (flit.flit_type == TNOC_HEADER_FLIT) ? '1 : '0;
 endfunction
