@@ -27,11 +27,8 @@ class tnoc_bfm_transmit_packet_sequence extends tnoc_bfm_sequence_base;
   }
 
   constraint c_default_virtual_channel {
-    if (packet_type inside {TNOC_BFM_RESPONSE, TNOC_BFM_RESPONSE_WITH_DATA}) {
-      soft virtual_channel == 0;
-    }
-    else {
-      soft virtual_channel == 1;
+    if (configuration.vc_map[packet_type] >= 0) {
+      soft virtual_channel == configuration.vc_map[packet_type];
     }
   }
 

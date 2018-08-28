@@ -9,6 +9,7 @@ class tnoc_bfm_configuration extends tue_configuration;
   rand  int                     id_y_width;
   rand  int                     id_width;
   rand  int                     virtual_channels;
+  rand  int                     vc_map[tnoc_bfm_packet_type];
   rand  int                     vc_width;
   rand  int                     tag_width;
   rand  int                     burst_length_width;
@@ -53,6 +54,19 @@ class tnoc_bfm_configuration extends tue_configuration;
     virtual_channels inside {[1:`TNOC_BFM_MAX_VIRTUAL_CHANNELS]};
   }
 
+  constraint c_valid_vc_map {
+    solve virtual_channels before vc_map;
+    foreach (vc_map[packet_type]) {
+      vc_map[packet_type] inside {-1, [0:virtual_channels-1]};
+    }
+  }
+
+  constraint c_default_vc_map {
+    foreach (vc_map[packet_type]) {
+      soft vc_map[packet_type] == -1;
+    }
+  }
+
   constraint c_valid_vc_width {
     solve virtual_channels before vc_width;
     if (virtual_channels == 1) {
@@ -77,6 +91,11 @@ class tnoc_bfm_configuration extends tue_configuration;
     id_x inside {[0:(2**id_x_width)-1]};
     id_y inside {[0:(2**id_y_width)-1]};
   }
+
+  function new(string name = "tnoc_bfm_configuration");
+    super.new(name);
+    setup_default_vc_map();
+  endfunction
 
   function void post_randomize();
     burst_size_width  = (data_width <= 16) ? 1 : $clog2($clog2(data_width / 8));
@@ -151,7 +170,20 @@ class tnoc_bfm_configuration extends tue_configuration;
     return flit_width;
   endfunction
 
-  `tue_object_default_constructor(tnoc_bfm_configuration)
+  local function void setup_default_vc_map();
+    tnoc_bfm_packet_type  packet_type;
+    packet_type = packet_type.first();
+    while (1) begin
+      vc_map[packet_type] = -1;
+      if (packet_type == packet_type.last()) begin
+        break;
+      end
+      else begin
+        packet_type = packet_type.next();
+      end
+    end
+  endfunction
+
   `uvm_object_utils_begin(tnoc_bfm_configuration)
     `uvm_field_enum(uvm_active_passive_enum, agent_mode, UVM_DEFAULT)
     `uvm_field_int(address_width      , UVM_DEFAULT | UVM_DEC)
@@ -160,6 +192,7 @@ class tnoc_bfm_configuration extends tue_configuration;
     `uvm_field_int(id_x_width         , UVM_DEFAULT | UVM_DEC)
     `uvm_field_int(id_y_width         , UVM_DEFAULT | UVM_DEC)
     `uvm_field_int(virtual_channels   , UVM_DEFAULT | UVM_DEC)
+    `uvm_field_aa_int_enumkey(tnoc_bfm_packet_type, vc_map, UVM_DEFAULT | UVM_DEC)
     `uvm_field_int(vc_width           , UVM_DEFAULT | UVM_DEC)
     `uvm_field_int(tag_width          , UVM_DEFAULT | UVM_DEC)
     `uvm_field_int(burst_length_width , UVM_DEFAULT | UVM_DEC)

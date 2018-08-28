@@ -29,7 +29,9 @@ class tnoc_router_virtual_channel_test_sequence extends tnoc_router_test_sequenc
   endfunction
 
   task do_noc_access(int index);
-    uvm_sequencer_base  sequencer;
+    uvm_sequencer_base      sequencer;
+    tnoc_bfm_configuration  bfm_cfg;
+    int                     vc[2];
 
     foreach (configuration.bfm_cfg[i]) begin
       if (
@@ -37,15 +39,22 @@ class tnoc_router_virtual_channel_test_sequence extends tnoc_router_test_sequenc
         (configuration.bfm_cfg[i].id_y == sources[index].y)
       ) begin
         sequencer = p_sequencer.bfm_sequencer[i];
+        bfm_cfg   = configuration.bfm_cfg[i];
         break;
       end
     end
 
+    void'(std::randomize(vc) with {
+      vc[0] != vc[1];
+      foreach (vc[i]) {
+        vc[i] inside {[0:bfm_cfg.virtual_channels-1]};
+      }
+    });
+
     for (int i = 0;i < 20;++i) begin
       tnoc_bfm_transmit_packet_sequence transmit_packet_sequence;
       `uvm_do_on_with(transmit_packet_sequence, sequencer, {
-        ((i % 2) == 0) -> packet_type inside {TNOC_BFM_RESPONSE, TNOC_BFM_RESPONSE_WITH_DATA};
-        ((i % 2) == 1) -> packet_type inside {TNOC_BFM_READ, TNOC_BFM_POSTED_WRITE, TNOC_BFM_NON_POSTED_WRITE};
+        virtual_channel == local::vc[i%2];
         ((i % 2) == index) -> destination_id == destinations[0];
         ((i % 2) != index) -> destination_id == destinations[1];
       })
