@@ -110,7 +110,7 @@ module tnoc_packet_packer
   assign  common_header_fields.routing_mode         = packet_in_if.routing_mode;
   assign  common_header_fields.invalid_destination  = packet_in_if.invalid_destination;
   assign  request_header_fields.burst_type          = packet_in_if.burst_type;
-  assign  request_header_fields.burst_length        = packet_in_if.burst_length;
+  assign  request_header_fields.burst_length        = pack_burst_length(packet_in_if.burst_length);
   assign  request_header_fields.burst_size          = packet_in_if.burst_size;
   assign  request_header_fields.address             = packet_in_if.address;
   assign  response_header_fields.status             = packet_in_if.status;

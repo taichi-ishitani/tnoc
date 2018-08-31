@@ -77,7 +77,7 @@ module tnoc_packet_unpacker
   assign  packet_out_if.invalid_destination = common_header_fields.invalid_destination;
   assign  request_header_fields             = tnoc_request_header_fields'(header_data[REQUEST_HEADER_WIDTH-1:COMMON_HEADER_WIDTH]);
   assign  packet_out_if.burst_type          = request_header_fields.burst_type;
-  assign  packet_out_if.burst_length        = request_header_fields.burst_length;
+  assign  packet_out_if.burst_length        = unpack_burst_length(request_header_fields.burst_length);
   assign  packet_out_if.burst_size          = request_header_fields.burst_size;
   assign  packet_out_if.address             = request_header_fields.address;
   assign  response_header_fields            = tnoc_response_header_fields'(header_data[RESPONSE_HEADER_WIDTH-1:COMMON_HEADER_WIDTH]);

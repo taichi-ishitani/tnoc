@@ -21,7 +21,8 @@ package tnoc_bfm_types_pkg;
   localparam  int TNOC_BFM_VC_WIDTH = (`TNOC_BFM_MAX_VIRTUAL_CHANNELS == 1) ? 1 : $clog2(`TNOC_BFM_MAX_VIRTUAL_CHANNELS);
   typedef bit [TNOC_BFM_VC_WIDTH-1:0] tnoc_bfm_vc;
 
-  typedef bit [`TNOC_BFM_MAX_TAG_WIDTH-1:0] tnoc_bfm_tag;
+  localparam  int TNOC_BFM_TAG_WIDTH  = (`TNOC_BFM_MAX_TAGS == 1) ? 1 : $clog2(`TNOC_BFM_MAX_TAGS);
+  typedef bit [TNOC_BFM_TAG_WIDTH-1:0]  tnoc_bfm_tag;
 
   typedef enum bit {
     TNOC_BFM_X_Y_ROUTING  = 0,
@@ -34,7 +35,8 @@ package tnoc_bfm_types_pkg;
     TNOC_BFM_WRAPPING_BURST     = 'b10
   } tnoc_bfm_burst_type;
 
-  typedef bit [`TNOC_BFM_MAX_BURST_LENGTH_WIDTH-1:0]  tnoc_bfm_burst_length;
+  localparam  int TNOC_BFM_BURST_LENGTH_WIDTH   = (`TNOC_BFM_MAX_BURST_LENGTH == 1) ? 1 : $clog2(`TNOC_BFM_MAX_BURST_LENGTH);
+  typedef bit [TNOC_BFM_BURST_LENGTH_WIDTH-1:0] tnoc_bfm_burst_length;
 
   localparam  int TNOC_BFM_BURST_SIZE_WIDTH = (
     `TNOC_BFM_MAX_DATA_WIDTH <= 16

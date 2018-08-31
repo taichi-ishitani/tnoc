@@ -152,21 +152,20 @@ module tnoc_error_checker
     end
   end
 
-  tnoc_packet_if #(CONFIG)  error_request_if();
-  tnoc_packet_if #(CONFIG)  error_response_if();
-  logic                     last_payload_valid;
-  logic                     last_error_payload_ready;
-  logic [2:0]               error_response_busy;
-  tnoc_common_header        error_request_header;
-  tnoc_burst_length         payload_count;
+  tnoc_packet_if #(CONFIG)    error_request_if();
+  tnoc_packet_if #(CONFIG)    error_response_if();
+  logic                       last_payload_valid;
+  logic                       last_error_payload_ready;
+  logic [1:0]                 error_response_busy;
+  tnoc_common_header          error_request_header;
+  tnoc_unpacked_burst_length  payload_count;
 
   assign  error_request_if.header_ready   =
-    (!error_route_busy[1]  ) ? error_route_busy[0]            :
-    (error_response_busy[0]) ? last_error_payload_ready       :
-    (error_response_busy[1]) ? error_response_if.header_ready :
-    (error_response_busy[2]) ? error_route_busy[0]            : '0;
+    (!error_route_busy[1]  ) ? error_route_busy[0]      :
+    (error_response_busy[0]) ? last_error_payload_ready :
+    (error_response_busy[1]) ? error_route_busy[0]      : '0;
   assign  error_request_if.payload_ready  =
-    (error_response_busy[2] && last_payload_valid) ? error_response_if.header_ready : error_route_busy[0];
+    (error_response_busy[1] && last_payload_valid) ? error_response_if.header_ready : error_route_busy[0];
   assign  last_payload_valid              =
     error_request_if.payload_valid & error_request_if.payload_last;
   tnoc_packet_unpacker #(CONFIG, 1) u_packet_unpacker (
@@ -178,12 +177,10 @@ module tnoc_error_checker
 
   assign  error_response_if.header_valid        =
     (error_response_busy[0]) ? error_request_if.header_valid :
-    (error_response_busy[1]) ? error_request_if.header_valid :
-    (error_response_busy[2]) ? last_payload_valid            : '0;
+    (error_response_busy[1]) ? last_payload_valid            : '0;
   assign  error_response_if.packet_type         =
     (error_response_busy[0]) ? TNOC_RESPONSE_WITH_DATA :
-    (error_response_busy[1]) ? TNOC_RESPONSE           :
-    (error_response_busy[2]) ? TNOC_RESPONSE           : TNOC_INVALID_PACKET;
+    (error_response_busy[1]) ? TNOC_RESPONSE           : TNOC_INVALID_PACKET;
   assign  error_response_if.destination_id      = error_request_header.source_id;
   assign  error_response_if.source_id           = error_request_header.destination_id;
   assign  error_response_if.vc                  = error_request_header.vc;
@@ -214,9 +211,10 @@ module tnoc_error_checker
     else if (
       error_route_busy[1] && error_request_if.header_valid && (error_response_busy == '0)
     ) begin
-      error_response_busy   <= get_error_response_type(
-        error_request_if.packet_type, error_request_if.burst_length
-      );
+      error_response_busy   <= {
+        ((is_with_payload_packet_type(error_request_if.packet_type)) ? 1'b1 : 1'b0),
+        ((  is_no_payload_packet_type(error_request_if.packet_type)) ? 1'b1 : 1'b0)
+      };
       error_request_header  <= '{
         packet_type:          error_request_if.packet_type,
         destination_id:       error_request_if.destination_id,
@@ -228,17 +226,6 @@ module tnoc_error_checker
       };
     end
   end
-
-  function automatic logic [2:0] get_error_response_type (
-    input tnoc_packet_type  packet_type,
-    input tnoc_burst_length burst_length
-  );
-    return {
-      ((is_with_payload_packet_type(packet_type)                       ) ? 1'b1 : 1'b0),
-      ((  is_no_payload_packet_type(packet_type) && (burst_length == 0)) ? 1'b1 : 1'b0),
-      ((  is_no_payload_packet_type(packet_type) && (burst_length >= 1)) ? 1'b1 : 1'b0)
-    };
-  endfunction
 
   always_ff @(posedge clk, negedge rst_n) begin
     if (!rst_n) begin
