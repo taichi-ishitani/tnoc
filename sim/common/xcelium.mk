@@ -30,6 +30,7 @@ XMELAB_ARGS	+= -l xmelab.log
 XMSIM_ARGS	+= -R
 XMSIM_ARGS	+= -xmlibdirname ../xcelium.d
 XMSIM_ARGS	+= -xceligen on
+XMSIM_ARGS	+= -uvmhome CDNS-$(UVM_VERSION)
 XMSIM_ARGS	+= +UVM_TESTNAME=$(TEST_NAME)
 XMSIM_ARGS	+= +UVM_VERBOSITY=$(VERBOSITY)
 XMSIM_ARGS	+= +UVM_TIMEOUT=$(TIMEOUT),NO
