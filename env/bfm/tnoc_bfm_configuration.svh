@@ -11,7 +11,9 @@ class tnoc_bfm_configuration extends tue_configuration;
   rand  int                     virtual_channels;
   rand  int                     vc_map[tnoc_bfm_packet_type];
   rand  int                     vc_width;
+  rand  int                     tags;
   rand  int                     tag_width;
+  rand  int                     max_burst_length;
   rand  int                     burst_length_width;
         int                     burst_size_width;
   rand  int                     id_x;
@@ -77,12 +79,32 @@ class tnoc_bfm_configuration extends tue_configuration;
     }
   }
 
+  constraint c_valid_tags {
+    tags inside {[1:`TNOC_BFM_MAX_TAGS]};
+  }
+
   constraint c_valid_tag_width {
-    tag_width inside {[1:`TNOC_BFM_MAX_TAG_WIDTH]};
+    solve tags before tag_width;
+    if (tags == 1) {
+      tag_width == 1;
+    }
+    else {
+      tag_width == $clog2(tags);
+    }
+  }
+
+  constraint c_valid_max_bursts {
+    max_burst_length inside {[1:`TNOC_BFM_MAX_BURST_LENGTH]};
   }
 
   constraint c_valid_burst_length {
-    burst_length_width inside {[1:`TNOC_BFM_MAX_BURST_LENGTH_WIDTH]};
+    solve max_burst_length before burst_length_width;
+    if (max_burst_length == 1) {
+      burst_length_width == 1;
+    }
+    else {
+      burst_length_width == $clog2(max_burst_length);
+    }
   }
 
   constraint c_valid_id {
@@ -194,7 +216,9 @@ class tnoc_bfm_configuration extends tue_configuration;
     `uvm_field_int(virtual_channels   , UVM_DEFAULT | UVM_DEC)
     `uvm_field_aa_int_enumkey(tnoc_bfm_packet_type, vc_map, UVM_DEFAULT | UVM_DEC)
     `uvm_field_int(vc_width           , UVM_DEFAULT | UVM_DEC)
+    `uvm_field_int(tags               , UVM_DEFAULT | UVM_DEC)
     `uvm_field_int(tag_width          , UVM_DEFAULT | UVM_DEC)
+    `uvm_field_int(max_burst_length   , UVM_DEFAULT | UVM_DEC)
     `uvm_field_int(burst_length_width , UVM_DEFAULT | UVM_DEC)
     `uvm_field_int(burst_size_width   , UVM_DEFAULT | UVM_DEC)
     `uvm_field_int(id_x               , UVM_DEFAULT | UVM_DEC)

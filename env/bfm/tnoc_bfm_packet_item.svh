@@ -41,7 +41,7 @@ class tnoc_bfm_packet_item extends tnoc_bfm_packet_item_base;
   }
 
   constraint c_valid_tag {
-    tag < 2**configuration.tag_width;
+    tag inside {[0:configuration.tags-1]};
   }
 
   constraint c_default_invalid_destination {
@@ -58,7 +58,7 @@ class tnoc_bfm_packet_item extends tnoc_bfm_packet_item_base;
   constraint c_valid_burst_length {
     solve packet_type before burst_length;
     if ((!packet_type[7]) || packet_type[6]) {
-      burst_length inside {[1:2**configuration.burst_length_width]};
+      burst_length inside {[1:configuration.max_burst_length]};
     }
     else {
       burst_length == 0;
@@ -180,10 +180,10 @@ class tnoc_bfm_packet_item extends tnoc_bfm_packet_item_base;
     packer.pack_field_int(routing_mode       , $bits(tnoc_bfm_routing_mode));
     packer.pack_field_int(invalid_destination, 1                           );
     if (is_request()) begin
-      packer.pack_field_int(burst_type        , $bits(tnoc_bfm_burst_type)      );
-      packer.pack_field_int(burst_length      , configuration.burst_length_width);
-      packer.pack_field_int($clog2(burst_size), configuration.burst_size_width  );
-      packer.pack_field_int(address           , configuration.address_width     );
+      packer.pack_field_int(burst_type               , $bits(tnoc_bfm_burst_type)      );
+      packer.pack_field_int(get_packed_burst_length(), configuration.burst_length_width);
+      packer.pack_field_int($clog2(burst_size)       , configuration.burst_size_width  );
+      packer.pack_field_int(address                  , configuration.address_width     );
       header_width  = configuration.get_request_header_width();
     end
     else begin
@@ -239,7 +239,7 @@ class tnoc_bfm_packet_item extends tnoc_bfm_packet_item_base;
     invalid_destination = packer.unpack_field_int(1);
     if (is_request()) begin
       burst_type    = tnoc_bfm_burst_type'(packer.unpack_field_int($bits(tnoc_bfm_burst_type)));
-      burst_length  = packer.unpack_field_int(configuration.burst_length_width);
+      burst_length  = unpack_burst_length(packer.unpack_field_int(configuration.burst_length_width));
       burst_size    = 2**packer.unpack_field_int(configuration.burst_size_width);
       address       = packer.unpack_field_int(configuration.address_width);
     end
@@ -303,6 +303,20 @@ class tnoc_bfm_packet_item extends tnoc_bfm_packet_item_base;
     end
     flit_packer.reset();
     return flit_packer;
+  endfunction
+
+  local function tnoc_bfm_burst_length get_packed_burst_length();
+    tnoc_bfm_burst_length packed_burst_length = burst_length;
+    return  packed_burst_length;
+  endfunction
+
+  local function int unpack_burst_length(tnoc_bfm_burst_length packed_burst_length);
+    if (packed_burst_length == 0) begin
+      return  2**configuration.burst_length_width;
+    end
+    else begin
+      return  packed_burst_length;
+    end
   endfunction
 
   `tue_object_default_constructor(tnoc_bfm_packet_item)

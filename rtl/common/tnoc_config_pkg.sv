@@ -1,19 +1,16 @@
 `ifndef TNOC_CONFIG_PKG_SV
 `define TNOC_CONFIG_PKG_SV
-
-`ifndef TNOC_MAX_DATA_WIDTH
-  `define TNOC_MAX_DATA_WIDTH 256
-`endif
-
 package tnoc_config_pkg;
+  `include  "tnoc_defines.svh"
+
   typedef struct packed {
     int                             address_width;
     int                             data_width;
     int                             id_x_width;
     int                             id_y_width;
     int                             virtual_channels;
-    int                             tag_width;
-    int                             burst_length_width;
+    int                             tags;
+    int                             max_burst_length;
     int                             input_fifo_depth;
     int                             size_x;
     int                             size_y;
@@ -21,17 +18,17 @@ package tnoc_config_pkg;
   } tnoc_config;
 
   parameter tnoc_config TNOC_DEFAULT_CONFIG = '{
-    address_width:      64,
-    data_width:         256,
-    id_x_width:         5,
-    id_y_width:         5,
-    virtual_channels:   2,
-    tag_width:          8,
-    burst_length_width: 8,
-    input_fifo_depth:   8,
-    size_x:             3,
-    size_y:             3,
-    error_data:         '1
+    address_width:    `TNOC_DEFAULT_ADDRESS_WIDTH,
+    data_width:       `TNOC_DEFAULT_DATA_WIDTH,
+    id_x_width:       `TNOC_DEFAULT_ID_X_WIDTH,
+    id_y_width:       `TNOC_DEFAULT_ID_Y_WIDTH,
+    virtual_channels: `TNOC_DEFAULT_VIRTUAL_CHANNELS,
+    tags:             `TNOC_DEFAULT_TAGS,
+    max_burst_length: `TNOC_DEFAULT_MAX_BURST_LENGTH,
+    input_fifo_depth: `TNOC_DEFAULT_FIFO_DEPTH,
+    size_x:           `TNOC_DEFAULT_SIZE_X,
+    size_y:           `TNOC_DEFAULT_SIZE_Y,
+    error_data:       `TNOC_DEFAULT_ERROR_DATA
   };
 endpackage
 `endif

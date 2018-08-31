@@ -33,7 +33,7 @@ class tnoc_bfm_transmit_packet_sequence extends tnoc_bfm_sequence_base;
   }
 
   constraint c_valid_tag {
-    tag < 2**configuration.tag_width;
+    tag inside {[0:configuration.tags-1]};
   }
 
   constraint c_default_invalid_destination {
@@ -50,7 +50,7 @@ class tnoc_bfm_transmit_packet_sequence extends tnoc_bfm_sequence_base;
   constraint c_valid_burst_length {
     solve packet_type before burst_length;
     if ((!packet_type[7]) || packet_type[6]) {
-      burst_length inside {[1:2**configuration.burst_length_width]};
+      burst_length inside {[1:configuration.max_burst_length]};
     }
     else {
       burst_length == 0;

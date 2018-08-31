@@ -4,8 +4,6 @@ interface tnoc_bfm_flit_if (
   input logic clk,
   input logic rst_n
 );
-  `include  "tnoc_bfm_macro.svh"
-
   import  tnoc_bfm_types_pkg::tnoc_bfm_flit;
 
   bit           valid;

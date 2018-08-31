@@ -8,26 +8,26 @@ interface tnoc_packet_if
   `include  "tnoc_packet.svh"
 
   //  Header
-  logic                 header_valid;
-  logic                 header_ready;
-  tnoc_packet_type      packet_type;
-  tnoc_location_id      destination_id;
-  tnoc_location_id      source_id;
-  tnoc_vc               vc;
-  tnoc_tag              tag;
-  tnoc_routing_mode     routing_mode;
-  logic                 invalid_destination;
-  tnoc_burst_type       burst_type;
-  tnoc_burst_length     burst_length;
-  tnoc_burst_length     burst_size;
-  tnoc_address          address;
-  tnoc_response_status  status;
+  logic                       header_valid;
+  logic                       header_ready;
+  tnoc_packet_type            packet_type;
+  tnoc_location_id            destination_id;
+  tnoc_location_id            source_id;
+  tnoc_vc                     vc;
+  tnoc_tag                    tag;
+  tnoc_routing_mode           routing_mode;
+  logic                       invalid_destination;
+  tnoc_burst_type             burst_type;
+  tnoc_unpacked_burst_length  burst_length;
+  tnoc_burst_size             burst_size;
+  tnoc_address                address;
+  tnoc_response_status        status;
   //  Payload
-  logic                 payload_valid;
-  logic                 payload_ready;
-  logic                 payload_last;
-  tnoc_data             data;
-  tnoc_byte_enable      byte_enable;
+  logic                       payload_valid;
+  logic                       payload_ready;
+  logic                       payload_last;
+  tnoc_data                   data;
+  tnoc_byte_enable            byte_enable;
 
   modport initiator (
     output  header_valid,

@@ -39,9 +39,13 @@ typedef struct packed {
 localparam  int VC_WIDTH  = (CONFIG.virtual_channels == 1) ? 1 : $clog2(CONFIG.virtual_channels);
 typedef logic [VC_WIDTH-1:0]  tnoc_vc;
 
-typedef logic [CONFIG.tag_width-1:0]  tnoc_tag;
+localparam  int TAG_WIDTH = (CONFIG.tags == 1) ? 1 : $clog2(CONFIG.tags);
+typedef logic [TAG_WIDTH-1:0] tnoc_tag;
 
-typedef logic [CONFIG.burst_length_width-1:0] tnoc_burst_length;
+localparam  int PACKED_BURST_LENGTH_WIDTH   = (CONFIG.max_burst_length == 0) ? 1 : $clog2(CONFIG.max_burst_length);
+localparam  int UNPACKED_BURST_LENGTH_WIDTH = $clog2(CONFIG.max_burst_length + 1);
+typedef logic [PACKED_BURST_LENGTH_WIDTH-1:0]   tnoc_packed_burst_length;
+typedef logic [UNPACKED_BURST_LENGTH_WIDTH-1:0] tnoc_unpacked_burst_length;
 
 localparam  int BURST_SIZE_WIDTH  = (
   CONFIG.data_width <= 16
@@ -60,10 +64,10 @@ tnoc_location_id  destination_id; \
 tnoc_packet_type  packet_type;
 
 `define tnoc_packet_header_request_fields \
-tnoc_address      address; \
-tnoc_burst_size   burst_size; \
-tnoc_burst_length burst_length; \
-tnoc_burst_type   burst_type;
+tnoc_address              address; \
+tnoc_burst_size           burst_size; \
+tnoc_packed_burst_length  burst_length; \
+tnoc_burst_type           burst_type;
 
 `define tnoc_packet_header_response_fields \
 tnoc_response_status  status;
