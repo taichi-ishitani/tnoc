@@ -57,6 +57,19 @@ package tnoc_enums_pkg;
   } tnoc_response_status;
 
   typedef enum logic {
+    TNOC_WRITE_PAYLOAD  = 'b0,
+    TNOC_READ_PAYLOAD   = 'b1
+  } tnoc_payload_type;
+
+  function automatic logic is_write_payload(input tnoc_payload_type payload_type);
+    return (payload_type == TNOC_WRITE_PAYLOAD) ? '1 : '0;
+  endfunction
+
+  function automatic logic is_read_payload(input tnoc_payload_type payload_type);
+    return (payload_type == TNOC_READ_PAYLOAD) ? '1 : '0;
+  endfunction
+
+  typedef enum logic {
     TNOC_HEADER_FLIT  = 'b0,
     TNOC_PAYLOAD_FLIT = 'b1
   } tnoc_flit_type;

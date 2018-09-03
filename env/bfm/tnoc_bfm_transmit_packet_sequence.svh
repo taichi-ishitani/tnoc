@@ -12,9 +12,10 @@ class tnoc_bfm_transmit_packet_sequence extends tnoc_bfm_sequence_base;
   rand  int                       burst_length;
   rand  int                       burst_size;
   rand  tnoc_bfm_address          address;
-  rand  tnoc_bfm_response_status  status;
+  rand  tnoc_bfm_response_status  packet_status;
   rand  tnoc_bfm_data             data[];
   rand  tnoc_bfm_byte_enable      byte_enable[];
+  rand  tnoc_bfm_response_status  payload_status[];
 
   constraint c_default_source_id {
     soft source_id.x == configuration.id_x;
@@ -75,16 +76,10 @@ class tnoc_bfm_transmit_packet_sequence extends tnoc_bfm_sequence_base;
     }
   }
 
-  constraint c_valid_status {
-    solve packet_type before status;
+  constraint c_valid_packet_status {
+    solve packet_type before packet_status;
     if (!packet_type[7]) {
-      status == TNOC_BFM_OKAY;
-    }
-  }
-
-  constraint c_defualt_status {
-    if (packet_type[7]) {
-      soft status == TNOC_BFM_OKAY;
+      packet_status == TNOC_BFM_OKAY;
     }
   }
 
@@ -111,6 +106,16 @@ class tnoc_bfm_transmit_packet_sequence extends tnoc_bfm_sequence_base;
     }
     else {
       byte_enable.size == 0;
+    }
+  }
+
+  constraint c_valid_payload_status {
+    solve packet_type, burst_length before packet_status;
+    if (packet_type[7] && packet_type[6]) {
+      payload_status.size == burst_length;
+    }
+    else {
+      payload_status.size == 0;
     }
   }
 
@@ -148,7 +153,7 @@ class tnoc_bfm_transmit_packet_sequence extends tnoc_bfm_sequence_base;
       end
       TNOC_BFM_RESPONSE,
       TNOC_BFM_RESPONSE_WITH_DATA: begin
-        packet_item.status  = status;
+        packet_item.packet_status = packet_status;
       end
     endcase
     case (packet_type)
@@ -158,7 +163,8 @@ class tnoc_bfm_transmit_packet_sequence extends tnoc_bfm_sequence_base;
         packet_item.byte_enable = new[byte_enable.size](byte_enable);
       end
       TNOC_BFM_RESPONSE_WITH_DATA: begin
-        packet_item.data  = new[data.size](data);
+        packet_item.data            = new[data.size](data);
+        packet_item.payload_status  = new[payload_status.size](payload_status);
       end
     endcase
   endfunction
@@ -170,15 +176,16 @@ class tnoc_bfm_transmit_packet_sequence extends tnoc_bfm_sequence_base;
     `uvm_field_int(source_id          , UVM_DEFAULT | UVM_HEX)
     `uvm_field_int(virtual_channel    , UVM_DEFAULT | UVM_DEC)
     `uvm_field_int(tag                , UVM_DEFAULT | UVM_HEX)
-    `uvm_field_enum(tnoc_bfm_routing_mode   , routing_mode, UVM_DEFAULT)
+    `uvm_field_enum(tnoc_bfm_routing_mode   , routing_mode , UVM_DEFAULT)
     `uvm_field_int(invalid_destination, UVM_DEFAULT | UVM_BIN)
-    `uvm_field_enum(tnoc_bfm_burst_type     , burst_type  , UVM_DEFAULT)
+    `uvm_field_enum(tnoc_bfm_burst_type     , burst_type   , UVM_DEFAULT)
     `uvm_field_int(burst_length       , UVM_DEFAULT | UVM_DEC)
     `uvm_field_int(burst_size         , UVM_DEFAULT | UVM_DEC)
     `uvm_field_int(address            , UVM_DEFAULT | UVM_HEX)
-    `uvm_field_enum(tnoc_bfm_response_status, status, UVM_DEFAULT)
+    `uvm_field_enum(tnoc_bfm_response_status, packet_status, UVM_DEFAULT)
     `uvm_field_array_int(data       , UVM_DEFAULT | UVM_HEX)
     `uvm_field_array_int(byte_enable, UVM_DEFAULT | UVM_HEX)
+    `uvm_field_array_enum(tnoc_bfm_response_status, payload_status, UVM_DEFAULT)
   `uvm_object_utils_end
 endclass
 `endif

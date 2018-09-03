@@ -25,6 +25,8 @@ class tnoc_bfm_configuration extends tue_configuration;
   local int               request_header_width;
   local int               resposne_header_width;
   local int               header_width;
+  local int               write_payload_width;
+  local int               read_payload_width;
   local int               payload_width;
   local int               flit_width;
 
@@ -173,9 +175,28 @@ class tnoc_bfm_configuration extends tue_configuration;
     return header_width;
   endfunction
 
+  function int get_write_payload_width();
+    if (write_payload_width <= 0) begin
+      write_payload_width = data_width + byte_enable_width;
+    end
+    return write_payload_width;
+  endfunction
+
+  function int get_read_payload_width();
+    if (read_payload_width <= 0) begin
+      read_payload_width  = data_width + $bits(tnoc_bfm_response_status);
+    end
+    return read_payload_width;
+  endfunction
+
   function int get_payload_width();
     if (payload_width <= 0) begin
-      payload_width = data_width + byte_enable_width;
+      if (get_write_payload_width() > get_read_payload_width()) begin
+        payload_width = get_write_payload_width();
+      end
+      else begin
+        payload_width = get_read_payload_width();
+      end
     end
     return payload_width;
   endfunction

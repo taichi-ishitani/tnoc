@@ -28,6 +28,12 @@ import  tnoc_enums_pkg::TNOC_EXOKAY;
 import  tnoc_enums_pkg::TNOC_SLAVE_ERROR;
 import  tnoc_enums_pkg::TNOC_DECODE_ERROR;
 
+import  tnoc_enums_pkg::tnoc_payload_type;
+import  tnoc_enums_pkg::TNOC_WRITE_PAYLOAD;
+import  tnoc_enums_pkg::TNOC_READ_PAYLOAD;
+import  tnoc_enums_pkg::is_write_payload;
+import  tnoc_enums_pkg::is_read_payload;
+
 typedef logic [CONFIG.id_x_width-1:0] tnoc_id_x;
 typedef logic [CONFIG.id_y_width-1:0] tnoc_id_y;
 
@@ -106,7 +112,12 @@ typedef logic [CONFIG.data_width/8-1:0] tnoc_byte_enable;
 typedef struct packed {
   tnoc_byte_enable byte_enable;
   tnoc_data        data;
-} tnoc_payload;
+} tnoc_write_payload;
+
+typedef struct packed {
+  tnoc_response_status  status;
+  tnoc_data             data;
+} tnoc_read_payload;
 
 localparam  int COMMON_HEADER_WIDTH   = $bits(tnoc_common_header);
 localparam  int REQUEST_HEADER_WIDTH  = $bits(tnoc_request_header);
@@ -114,4 +125,8 @@ localparam  int RESPONSE_HEADER_WIDTH = $bits(tnoc_response_header);
 localparam  int HEADER_WIDTH          = (
   REQUEST_HEADER_WIDTH > RESPONSE_HEADER_WIDTH
 ) ? REQUEST_HEADER_WIDTH : RESPONSE_HEADER_WIDTH;
-localparam  int PAYLOD_WIDTH          = $bits(tnoc_payload);
+localparam  int WRITE_PAYLOAD_WIDTH   = $bits(tnoc_write_payload);
+localparam  int READ_PAYLOAD_WIDTH    = $bits(tnoc_read_payload);
+localparam  int PAYLOD_WIDTH          = (
+  WRITE_PAYLOAD_WIDTH > READ_PAYLOAD_WIDTH
+) ? WRITE_PAYLOAD_WIDTH : READ_PAYLOAD_WIDTH;

@@ -77,9 +77,15 @@ package tnoc_bfm_types_pkg;
   typedef struct packed {
     tnoc_bfm_data        data;
     tnoc_bfm_byte_enable byte_enable;
-  } tnoc_bfm_payload;
+  } tnoc_bfm_write_payload;
+  typedef struct packed {
+    tnoc_bfm_data             data;
+    tnoc_bfm_response_status  status;
+  } tnoc_bfm_read_payload;
 
-  localparam  int TNOC_BFM_PAYLOAD_WIDTH  = $bits(tnoc_bfm_payload);
+  localparam  int TNOC_BFM_PAYLOAD_WIDTH  = (
+    $bits(tnoc_bfm_write_payload) >= $bits(tnoc_bfm_read_payload)
+  ) ? $bits(tnoc_bfm_write_payload) : $bits(tnoc_bfm_read_payload);
 
   typedef enum bit {
     TNOC_BFM_HEADER_FLIT,

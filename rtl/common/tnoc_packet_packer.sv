@@ -113,7 +113,7 @@ module tnoc_packet_packer
   assign  request_header_fields.burst_length        = pack_burst_length(packet_in_if.burst_length);
   assign  request_header_fields.burst_size          = packet_in_if.burst_size;
   assign  request_header_fields.address             = packet_in_if.address;
-  assign  response_header_fields.status             = packet_in_if.status;
+  assign  response_header_fields.status             = packet_in_if.packet_status;
 
   //  packing
   logic [HEADER_DATA_WIDTH-1:0] header_data;
@@ -191,19 +191,31 @@ module tnoc_packet_packer
   assign  payload_flit.flit_type      = TNOC_PAYLOAD_FLIT;
   assign  payload_flit.head           = '0;
   assign  payload_flit.tail           = packet_in_if.payload_last;
-  assign  payload_flit.data           = pack_payload(packet_in_if.data, packet_in_if.byte_enable);
+  assign  payload_flit.data           = pack_payload(
+    packet_in_if.payload_type, packet_in_if.data, packet_in_if.byte_enable, packet_in_if.payload_status
+  );
 
   function automatic tnoc_flit_data pack_payload(
-    input tnoc_data         data,
-    input tnoc_byte_enable  byte_enable
+    input tnoc_payload_type     payload_type,
+    input tnoc_data             data,
+    input tnoc_byte_enable      byte_enable,
+    input tnoc_response_status  status
   );
-    tnoc_payload    payload;
     tnoc_flit_data  flit_data;
 
-    payload.data                = data;
-    payload.byte_enable         = byte_enable;
-    flit_data                   = '0;
-    flit_data[PAYLOD_WIDTH-1:0] = payload;
+    flit_data = '0;
+    if (is_write_payload(payload_type)) begin
+      tnoc_write_payload  write_payload;
+      write_payload.data        = data;
+      write_payload.byte_enable = byte_enable;
+      flit_data[WRITE_PAYLOAD_WIDTH-1:0]  = write_payload;
+    end
+    else begin
+      tnoc_read_payload read_payload;
+      read_payload.data   = data;
+      read_payload.status = status;
+      flit_data[READ_PAYLOAD_WIDTH-1:0] = read_payload;
+    end
 
     return flit_data;
   endfunction

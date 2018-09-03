@@ -79,11 +79,13 @@ virtual class tnoc_model_base #(
     response_item.tag                 = item.tag;
     response_item.routing_mode        = item.routing_mode;
     response_item.invalid_destination = 0;
-    response_item.status              = TNOC_BFM_DECODE_ERROR;
-    if ((!item.has_payload()) && (item.burst_length > 0)) begin
-      response_item.data  = new[item.burst_length];
+    response_item.packet_status       = TNOC_BFM_DECODE_ERROR;
+    if (!item.has_payload()) begin
+      response_item.data            = new[item.burst_length];
+      response_item.payload_status  = new[item.burst_length];
       foreach (response_item.data[i]) begin
-        response_item.data[i] = configuration.error_data;
+        response_item.data[i]           = configuration.error_data;
+        response_item.payload_status[i] = TNOC_BFM_DECODE_ERROR;
       end
     end
     return response_item;
