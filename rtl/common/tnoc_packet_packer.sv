@@ -186,34 +186,33 @@ module tnoc_packet_packer
 //--------------------------------------------------------------
 //  Payload
 //--------------------------------------------------------------
+  tnoc_write_payload  write_payload;
+  tnoc_read_payload   read_payload;
+
   assign  payload_flit_valid          = packet_in_if.payload_valid;
   assign  packet_in_if.payload_ready  = payload_flit_ready;
   assign  payload_flit.flit_type      = TNOC_PAYLOAD_FLIT;
   assign  payload_flit.head           = '0;
   assign  payload_flit.tail           = packet_in_if.payload_last;
-  assign  payload_flit.data           = pack_payload(
-    packet_in_if.payload_type, packet_in_if.data, packet_in_if.byte_enable, packet_in_if.payload_status
-  );
+  assign  write_payload.data          = packet_in_if.data;
+  assign  write_payload.byte_enable   = packet_in_if.byte_enable;
+  assign  read_payload.data           = packet_in_if.data;
+  assign  read_payload.status         = packet_in_if.payload_status;
+  assign  read_payload.response_last  = packet_in_if.response_last;
+  assign  payload_flit.data           = pack_payload(packet_in_if.payload_type, write_payload, read_payload);
 
   function automatic tnoc_flit_data pack_payload(
     input tnoc_payload_type     payload_type,
-    input tnoc_data             data,
-    input tnoc_byte_enable      byte_enable,
-    input tnoc_response_status  status
+    input tnoc_write_payload    write_payload,
+    input tnoc_read_payload     read_payload
   );
     tnoc_flit_data  flit_data;
 
     flit_data = '0;
     if (is_write_payload(payload_type)) begin
-      tnoc_write_payload  write_payload;
-      write_payload.data        = data;
-      write_payload.byte_enable = byte_enable;
       flit_data[WRITE_PAYLOAD_WIDTH-1:0]  = write_payload;
     end
     else begin
-      tnoc_read_payload read_payload;
-      read_payload.data   = data;
-      read_payload.status = status;
       flit_data[READ_PAYLOAD_WIDTH-1:0] = read_payload;
     end
 

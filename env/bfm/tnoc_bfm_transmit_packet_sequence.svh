@@ -16,6 +16,7 @@ class tnoc_bfm_transmit_packet_sequence extends tnoc_bfm_sequence_base;
   rand  tnoc_bfm_data             data[];
   rand  tnoc_bfm_byte_enable      byte_enable[];
   rand  tnoc_bfm_response_status  payload_status[];
+  rand  bit                       response_last;
 
   constraint c_default_source_id {
     soft source_id.x == configuration.id_x;
@@ -119,6 +120,13 @@ class tnoc_bfm_transmit_packet_sequence extends tnoc_bfm_sequence_base;
     }
   }
 
+  constraint c_valid_response_last {
+    solve packet_type before response_last;
+    if (packet_type != TNOC_BFM_RESPONSE_WITH_DATA) {
+      response_last == 0;
+    }
+  }
+
   function void post_randomize();
     if (packet_type inside {TNOC_BFM_RESPONSE, TNOC_BFM_RESPONSE_WITH_DATA}) begin
       burst_length  = 0;
@@ -165,6 +173,7 @@ class tnoc_bfm_transmit_packet_sequence extends tnoc_bfm_sequence_base;
       TNOC_BFM_RESPONSE_WITH_DATA: begin
         packet_item.data            = new[data.size](data);
         packet_item.payload_status  = new[payload_status.size](payload_status);
+        packet_item.response_last   = response_last;
       end
     endcase
   endfunction

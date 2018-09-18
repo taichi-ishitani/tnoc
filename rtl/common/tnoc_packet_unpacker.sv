@@ -154,6 +154,7 @@ module tnoc_packet_unpacker
   assign  packet_out_if.data            = write_payload.data;
   assign  packet_out_if.byte_enable     = write_payload.byte_enable;
   assign  packet_out_if.payload_status  = read_payload.status;
+  assign  packet_out_if.response_last   = read_payload.response_last;
 
   always_ff @(posedge clk, negedge rst_n) begin
     if (!rst_n) begin

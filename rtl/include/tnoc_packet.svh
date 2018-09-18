@@ -115,6 +115,7 @@ typedef struct packed {
 } tnoc_write_payload;
 
 typedef struct packed {
+  logic                 response_last;
   tnoc_response_status  status;
   tnoc_data             data;
 } tnoc_read_payload;

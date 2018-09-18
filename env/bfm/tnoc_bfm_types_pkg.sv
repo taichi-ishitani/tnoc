@@ -81,6 +81,7 @@ package tnoc_bfm_types_pkg;
   typedef struct packed {
     tnoc_bfm_data             data;
     tnoc_bfm_response_status  status;
+    bit                       last;
   } tnoc_bfm_read_payload;
 
   localparam  int TNOC_BFM_PAYLOAD_WIDTH  = (

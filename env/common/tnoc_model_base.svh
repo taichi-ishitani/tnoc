@@ -80,6 +80,7 @@ virtual class tnoc_model_base #(
     response_item.routing_mode        = item.routing_mode;
     response_item.invalid_destination = 0;
     response_item.packet_status       = TNOC_BFM_DECODE_ERROR;
+    response_item.response_last       = (!item.has_payload()) ? 1 : 0;
     if (!item.has_payload()) begin
       response_item.data            = new[item.burst_length];
       response_item.payload_status  = new[item.burst_length];

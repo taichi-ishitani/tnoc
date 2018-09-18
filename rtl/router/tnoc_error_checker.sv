@@ -198,6 +198,7 @@ module tnoc_error_checker
   assign  error_response_if.data                = CONFIG.error_data[CONFIG.data_width-1:0];
   assign  error_response_if.byte_enable         = '0;
   assign  error_response_if.payload_status      = TNOC_DECODE_ERROR;
+  assign  error_response_if.response_last       = (payload_count == 1) ? '1 : '0;
   assign  last_error_payload_ready              =
     error_response_if.payload_last & error_response_if.payload_ready;
 

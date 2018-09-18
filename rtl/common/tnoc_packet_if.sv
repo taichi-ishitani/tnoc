@@ -30,6 +30,7 @@ interface tnoc_packet_if
   tnoc_data                   data;
   tnoc_byte_enable            byte_enable;
   tnoc_response_status        payload_status;
+  logic                       response_last;
 
   modport initiator (
     output  header_valid,
@@ -52,7 +53,8 @@ interface tnoc_packet_if
     output  payload_last,
     output  data,
     output  byte_enable,
-    output  payload_status
+    output  payload_status,
+    output  response_last
   );
 
   modport target (
@@ -76,7 +78,8 @@ interface tnoc_packet_if
     input   payload_last,
     input   data,
     input   byte_enable,
-    input   payload_status
+    input   payload_status,
+    input   response_last
   );
 
   modport monitor (
@@ -100,7 +103,8 @@ interface tnoc_packet_if
     input payload_last,
     input data,
     input byte_enable,
-    input payload_status
+    input payload_status,
+    input response_last
   );
 endinterface
 `endif
