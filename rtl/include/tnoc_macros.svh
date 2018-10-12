@@ -3,8 +3,8 @@
 
 `define tnoc_array_slicer(ARRAY, INDEX, ELEMENTS) ARRAY[INDEX*ELEMENTS:(INDEX+1)*ELEMENTS-1]
 
-`define tnoc_internal_flit_if(channel, if_config = CONFIG) \
-tnoc_flit_if #(if_config, channel, TNOC_INTERNAL_PORT)
+`define tnoc_internal_flit_if(channel) \
+tnoc_flit_if #(CONFIG, channel, TNOC_INTERNAL_PORT)
 
 `define tnoc_flit_if_renamer(flit_in_if, flit_out_if) \
 if (1) begin \

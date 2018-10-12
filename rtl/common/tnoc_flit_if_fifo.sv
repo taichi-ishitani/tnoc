@@ -22,8 +22,8 @@ module tnoc_flit_if_fifo
   `include  "tnoc_flit.svh"
 
   typedef struct packed {
-    logic [CHANNELS-1:0]    valid;
-    logic [FLIT_WIDTH-1:0]  flit;
+    logic [CHANNELS-1:0]        valid;
+    logic [TNOC_FLIT_WIDTH-1:0] flit;
   } s_fifo_data;
 
   logic [FLITS-1:0] empty;
@@ -41,10 +41,10 @@ module tnoc_flit_if_fifo
       assign  flit_out_if.valid[i]    = ~empty[i];
 
       tnoc_fifo #(
-        .WIDTH        (FLIT_WIDTH   ),
-        .DEPTH        (DEPTH        ),
-        .THRESHOLD    (THRESHOLD    ),
-        .DATA_FF_OUT  (DATA_FF_OUT  )
+        .WIDTH        (TNOC_FLIT_WIDTH  ),
+        .DEPTH        (DEPTH            ),
+        .THRESHOLD    (THRESHOLD        ),
+        .DATA_FF_OUT  (DATA_FF_OUT      )
       ) u_fifo (
         .clk            (clk                  ),
         .rst_n          (rst_n                ),
@@ -65,10 +65,10 @@ module tnoc_flit_if_fifo
     assign  flit_out_if.valid       = ~empty;
 
     tnoc_fifo #(
-      .WIDTH        (FLIT_WIDTH   ),
-      .DEPTH        (DEPTH        ),
-      .THRESHOLD    (THRESHOLD    ),
-      .DATA_FF_OUT  (DATA_FF_OUT  )
+      .WIDTH        (TNOC_FLIT_WIDTH  ),
+      .DEPTH        (DEPTH            ),
+      .THRESHOLD    (THRESHOLD        ),
+      .DATA_FF_OUT  (DATA_FF_OUT      )
     ) u_fifo (
       .clk            (clk                  ),
       .rst_n          (rst_n                ),

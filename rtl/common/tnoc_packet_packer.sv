@@ -95,7 +95,7 @@ module tnoc_packet_packer
   localparam  int REQUEST_HEADER_FLITS  = calc_request_header_flits();
   localparam  int RESPONSE_HEADER_FLITS = calc_response_header_flits();
   localparam  int HEADER_FLITS          = calc_header_flits();
-  localparam  int HEADER_DATA_WIDTH     = HEADER_FLITS * FLIT_DATA_WIDTH;
+  localparam  int HEADER_DATA_WIDTH     = HEADER_FLITS * TNOC_FLIT_DATA_WIDTH;
 
   //  renaming
   tnoc_common_header_fields     common_header_fields;
@@ -126,12 +126,12 @@ module tnoc_packet_packer
     input tnoc_response_header_fields response_header_fields
   );
     logic [HEADER_DATA_WIDTH-1:0] header  = '0;
-    header[COMMON_HEADER_WIDTH-1:0] = common_header_fields;
+    header[TNOC_COMMON_HEADER_WIDTH-1:0]  = common_header_fields;
     if (is_request_packet_type(common_header_fields.packet_type)) begin
-      header[REQUEST_HEADER_WIDTH-1:COMMON_HEADER_WIDTH]  = request_header_fields;
+      header[TNOC_REQUEST_HEADER_WIDTH-1:TNOC_COMMON_HEADER_WIDTH]  = request_header_fields;
     end
     else begin
-      header[RESPONSE_HEADER_WIDTH-1:COMMON_HEADER_WIDTH] = response_header_fields;
+      header[TNOC_RESPONSE_HEADER_WIDTH-1:TNOC_COMMON_HEADER_WIDTH] = response_header_fields;
     end
     return header;
   endfunction
@@ -154,7 +154,7 @@ module tnoc_packet_packer
     assign  packet_in_if.header_ready = header_flit_ready & header_flit_last;
     assign  header_flit.head          = (flit_count == 0) ? '1 : '0;
     assign  header_flit.tail          = no_payload & header_flit_last;
-    assign  header_flit.data          = header_data[flit_count*FLIT_DATA_WIDTH+:FLIT_DATA_WIDTH];
+    assign  header_flit.data          = header_data[flit_count*TNOC_FLIT_DATA_WIDTH+:TNOC_FLIT_DATA_WIDTH];
     assign  header_flit_last          = (flit_count == get_last_count(packet_in_if.packet_type)) ? '1 : '0;
 
     always_ff @(posedge clk, negedge rst_n) begin
@@ -210,10 +210,10 @@ module tnoc_packet_packer
 
     flit_data = '0;
     if (is_write_payload(payload_type)) begin
-      flit_data[WRITE_PAYLOAD_WIDTH-1:0]  = write_payload;
+      flit_data[TNOC_WRITE_PAYLOAD_WIDTH-1:0] = write_payload;
     end
     else begin
-      flit_data[READ_PAYLOAD_WIDTH-1:0] = read_payload;
+      flit_data[TNOC_READ_PAYLOAD_WIDTH-1:0]  = read_payload;
     end
 
     return flit_data;

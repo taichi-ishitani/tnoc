@@ -42,21 +42,21 @@ typedef struct packed {
   tnoc_id_y  y;
 } tnoc_location_id;
 
-localparam  int VC_WIDTH  = (CONFIG.virtual_channels == 1) ? 1 : $clog2(CONFIG.virtual_channels);
-typedef logic [VC_WIDTH-1:0]  tnoc_vc;
+localparam  int TNOC_VC_WIDTH = (CONFIG.virtual_channels == 1) ? 1 : $clog2(CONFIG.virtual_channels);
+typedef logic [TNOC_VC_WIDTH-1:0] tnoc_vc;
 
-localparam  int TAG_WIDTH = (CONFIG.tags == 1) ? 1 : $clog2(CONFIG.tags);
-typedef logic [TAG_WIDTH-1:0] tnoc_tag;
+localparam  int TNOC_TAG_WIDTH  = (CONFIG.tags == 1) ? 1 : $clog2(CONFIG.tags);
+typedef logic [TNOC_TAG_WIDTH-1:0]  tnoc_tag;
 
-localparam  int PACKED_BURST_LENGTH_WIDTH   = (CONFIG.max_burst_length == 0) ? 1 : $clog2(CONFIG.max_burst_length);
-localparam  int UNPACKED_BURST_LENGTH_WIDTH = $clog2(CONFIG.max_burst_length + 1);
-typedef logic [PACKED_BURST_LENGTH_WIDTH-1:0]   tnoc_packed_burst_length;
-typedef logic [UNPACKED_BURST_LENGTH_WIDTH-1:0] tnoc_unpacked_burst_length;
+localparam  int TNOC_PACKED_BURST_LENGTH_WIDTH    = (CONFIG.max_burst_length == 0) ? 1 : $clog2(CONFIG.max_burst_length);
+localparam  int TNOC_UNPACKED_BURST_LENGTH_WIDTH  = $clog2(CONFIG.max_burst_length + 1);
+typedef logic [TNOC_PACKED_BURST_LENGTH_WIDTH-1:0]    tnoc_packed_burst_length;
+typedef logic [TNOC_UNPACKED_BURST_LENGTH_WIDTH-1:0]  tnoc_unpacked_burst_length;
 
-localparam  int BURST_SIZE_WIDTH  = (
+localparam  int TNOC_BURST_SIZE_WIDTH = (
   CONFIG.data_width <= 16
 ) ? 1 : $clog2($clog2(CONFIG.data_width));
-typedef logic [BURST_SIZE_WIDTH-1:0]  tnoc_burst_size;
+typedef logic [TNOC_BURST_SIZE_WIDTH-1:0] tnoc_burst_size;
 
 typedef logic [CONFIG.address_width-1:0]  tnoc_address;
 
@@ -120,14 +120,14 @@ typedef struct packed {
   tnoc_data             data;
 } tnoc_read_payload;
 
-localparam  int COMMON_HEADER_WIDTH   = $bits(tnoc_common_header);
-localparam  int REQUEST_HEADER_WIDTH  = $bits(tnoc_request_header);
-localparam  int RESPONSE_HEADER_WIDTH = $bits(tnoc_response_header);
-localparam  int HEADER_WIDTH          = (
-  REQUEST_HEADER_WIDTH > RESPONSE_HEADER_WIDTH
-) ? REQUEST_HEADER_WIDTH : RESPONSE_HEADER_WIDTH;
-localparam  int WRITE_PAYLOAD_WIDTH   = $bits(tnoc_write_payload);
-localparam  int READ_PAYLOAD_WIDTH    = $bits(tnoc_read_payload);
-localparam  int PAYLOD_WIDTH          = (
-  WRITE_PAYLOAD_WIDTH > READ_PAYLOAD_WIDTH
-) ? WRITE_PAYLOAD_WIDTH : READ_PAYLOAD_WIDTH;
+localparam  int TNOC_COMMON_HEADER_WIDTH    = $bits(tnoc_common_header);
+localparam  int TNOC_REQUEST_HEADER_WIDTH   = $bits(tnoc_request_header);
+localparam  int TNOC_RESPONSE_HEADER_WIDTH  = $bits(tnoc_response_header);
+localparam  int TNOC_HEADER_WIDTH           = (
+  TNOC_REQUEST_HEADER_WIDTH > TNOC_RESPONSE_HEADER_WIDTH
+) ? TNOC_REQUEST_HEADER_WIDTH : TNOC_RESPONSE_HEADER_WIDTH;
+localparam  int TNOC_WRITE_PAYLOAD_WIDTH  = $bits(tnoc_write_payload);
+localparam  int TNOC_READ_PAYLOAD_WIDTH   = $bits(tnoc_read_payload);
+localparam  int TNOC_PAYLOD_WIDTH         = (
+  TNOC_WRITE_PAYLOAD_WIDTH > TNOC_READ_PAYLOAD_WIDTH
+) ? TNOC_WRITE_PAYLOAD_WIDTH : TNOC_READ_PAYLOAD_WIDTH;

@@ -39,10 +39,10 @@ module tnoc_output_block
   if (is_local_port(PORT_TYPE)) begin : g_input_local_port_renamer
     for (genvar i = 0;i < CHANNELS;++i) begin : g
       `define input_port_renamer(suffix, index) \
-      assign  flit_in_if[5*i+index].valid           = flit_in_if_``suffix``.valid[i]; \
-      assign  flit_in_if_``suffix``.ready[i]        = flit_in_if[5*i+index].ready; \
-      assign  flit_in_if[5*i+index].flit[0]         = flit_in_if_``suffix``.flit[0]; \
-      assign  flit_in_if_``suffix``.vc_available[i] = flit_in_if[5*i+index].vc_available;
+      assign  flit_in_if[5*i+index].valid         = flit_in_if_``suffix.valid[i]; \
+      assign  flit_in_if_``suffix.ready[i]        = flit_in_if[5*i+index].ready; \
+      assign  flit_in_if[5*i+index].flit[0]       = flit_in_if_``suffix.flit[0]; \
+      assign  flit_in_if_``suffix.vc_available[i] = flit_in_if[5*i+index].vc_available;
 
       `input_port_renamer(xp, 0)
       `input_port_renamer(xm, 1)

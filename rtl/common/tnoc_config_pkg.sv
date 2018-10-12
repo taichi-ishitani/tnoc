@@ -17,7 +17,7 @@ package tnoc_config_pkg;
     bit [`TNOC_MAX_DATA_WIDTH-1:0]  error_data;
   } tnoc_config;
 
-  parameter tnoc_config TNOC_DEFAULT_CONFIG = '{
+  localparam tnoc_config TNOC_DEFAULT_CONFIG = '{
     address_width:    `TNOC_DEFAULT_ADDRESS_WIDTH,
     data_width:       `TNOC_DEFAULT_DATA_WIDTH,
     id_x_width:       `TNOC_DEFAULT_ID_X_WIDTH,

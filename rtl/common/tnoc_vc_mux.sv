@@ -21,7 +21,7 @@ module tnoc_vc_mux
     end
   end
   else begin : g_vc_mux_internal_port
-    logic [FLIT_WIDTH-1:0]  flit_in[CHANNELS];
+    logic [TNOC_FLIT_WIDTH-1:0] flit_in[CHANNELS];
 
     for (genvar i = 0;i < CHANNELS;++i) begin
       assign  flit_out_if.valid[i]        = i_vc_grant[i] & flit_in_if[i].valid;
@@ -31,8 +31,8 @@ module tnoc_vc_mux
     end
 
     tnoc_mux #(
-      .WIDTH     (FLIT_WIDTH  ),
-      .ENTRIES   (CHANNELS    )
+      .WIDTH     (TNOC_FLIT_WIDTH ),
+      .ENTRIES   (CHANNELS        )
     ) ttnoc_mux (
       .i_select  (i_vc_grant          ),
       .i_value   (flit_in             ),
