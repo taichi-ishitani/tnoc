@@ -1,7 +1,7 @@
 `ifndef TNOC_PACKET_IF_SV
 `define TNOC_PACKET_IF_SV
 interface tnoc_packet_if
-  import  tnoc_config_pkg::*;
+  `include  "tnoc_default_imports.svh"
 #(
   parameter tnoc_config CONFIG  = TNOC_DEFAULT_CONFIG
 )();

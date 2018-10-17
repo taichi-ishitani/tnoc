@@ -1,5 +1,5 @@
 module tnoc_flit_if_connector
-  import  tnoc_config_pkg::*;
+  `include  "tnoc_default_imports.svh"
 #(
   parameter   tnoc_config CONFIG      = TNOC_DEFAULT_CONFIG,
   parameter   bit         ACTIVE_MODE = 1,

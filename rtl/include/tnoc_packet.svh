@@ -1,39 +1,3 @@
-import  tnoc_enums_pkg::tnoc_packet_type;
-import  tnoc_enums_pkg::TNOC_READ;
-import  tnoc_enums_pkg::TNOC_POSTED_WRITE;
-import  tnoc_enums_pkg::TNOC_NON_POSTED_WRITE;
-import  tnoc_enums_pkg::TNOC_RESPONSE;
-import  tnoc_enums_pkg::TNOC_RESPONSE_WITH_DATA;
-import  tnoc_enums_pkg::TNOC_INVALID_PACKET;
-import  tnoc_enums_pkg::is_valid_packet_type;
-import  tnoc_enums_pkg::is_request_packet_type;
-import  tnoc_enums_pkg::is_posted_request_packet_type;
-import  tnoc_enums_pkg::is_non_posted_request_packet_type;
-import  tnoc_enums_pkg::is_response_packet_type;
-import  tnoc_enums_pkg::is_no_payload_packet_type;
-import  tnoc_enums_pkg::is_with_payload_packet_type;
-
-import  tnoc_enums_pkg::tnoc_routing_mode;
-import  tnoc_enums_pkg::TNOC_X_Y_ROUTING;
-import  tnoc_enums_pkg::TNOC_Y_X_ROUTING;
-
-import  tnoc_enums_pkg::tnoc_burst_type;
-import  tnoc_enums_pkg::TNOC_FIXED_BURST;
-import  tnoc_enums_pkg::TNOC_INCREMENTING_BURST;
-import  tnoc_enums_pkg::TNOC_WRAPPING_BURST;
-
-import  tnoc_enums_pkg::tnoc_response_status;
-import  tnoc_enums_pkg::TNOC_OKAY;
-import  tnoc_enums_pkg::TNOC_EXOKAY;
-import  tnoc_enums_pkg::TNOC_SLAVE_ERROR;
-import  tnoc_enums_pkg::TNOC_DECODE_ERROR;
-
-import  tnoc_enums_pkg::tnoc_payload_type;
-import  tnoc_enums_pkg::TNOC_WRITE_PAYLOAD;
-import  tnoc_enums_pkg::TNOC_READ_PAYLOAD;
-import  tnoc_enums_pkg::is_write_payload;
-import  tnoc_enums_pkg::is_read_payload;
-
 typedef logic [CONFIG.id_x_width-1:0] tnoc_id_x;
 typedef logic [CONFIG.id_y_width-1:0] tnoc_id_y;
 

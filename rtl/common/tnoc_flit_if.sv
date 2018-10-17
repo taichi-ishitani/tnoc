@@ -16,26 +16,32 @@ interface tnoc_flit_if
   logic [CHANNELS-1:0]  ready;
   tnoc_flit             flit[FLITS];
   logic [CHANNELS-1:0]  vc_available;
+  logic [CHANNELS-1:0]  acknowledgement;
+
+  assign  acknowledgement = valid & ready;
 
   modport initiator (
     output  valid,
     input   ready,
     output  flit,
-    input   vc_available
+    input   vc_available,
+    input   acknowledgement
   );
 
   modport target (
     input   valid,
     output  ready,
     input   flit,
-    output  vc_available
+    output  vc_available,
+    input   acknowledgement
   );
 
   modport monitor (
     input valid,
     input ready,
     input flit,
-    input vc_available
+    input vc_available,
+    input acknowledgement
   );
 
 `ifndef SYNTHESIS

@@ -26,7 +26,7 @@ module tnoc_fabric
     for (genvar x = 0;x < SIZE_X;++x) begin : g_x
       localparam  int                   FLIT_IF_INDEX_X = 2 * ((SIZE_X + 1) * y + x);
       localparam  int                   FLIT_IF_INDEX_Y = 2 * ((SIZE_Y + 1) * x + y);
-      localparam  int                   FLIT_IF_INDEX_L = 1 * ((SIZE_Y + 0) * y + x);
+      localparam  int                   FLIT_IF_INDEX_L = 1 * ((SIZE_X + 0) * y + x);
       localparam  bit [ID_X_WIDTH-1:0]  ID_X            = x;
       localparam  bit [ID_Y_WIDTH-1:0]  ID_Y            = y;
       localparam  bit [4:0]             AVAILABLE_PORTS = {

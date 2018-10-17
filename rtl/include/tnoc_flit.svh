@@ -1,7 +1,3 @@
-import  tnoc_enums_pkg::tnoc_flit_type;
-import  tnoc_enums_pkg::TNOC_HEADER_FLIT;
-import  tnoc_enums_pkg::TNOC_PAYLOAD_FLIT;
-
 localparam  int TNOC_FLIT_DATA_WIDTH  = (
   TNOC_COMMON_HEADER_WIDTH > TNOC_PAYLOD_WIDTH
 ) ? TNOC_COMMON_HEADER_WIDTH : TNOC_PAYLOD_WIDTH;

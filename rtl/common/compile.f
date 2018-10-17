@@ -13,6 +13,7 @@ ${TNOC_HOME}/rtl/common/tnoc_flit_if_mux.sv
 ${TNOC_HOME}/rtl/common/tnoc_flit_if_demux.sv
 ${TNOC_HOME}/rtl/common/tnoc_flit_if_fifo.sv
 ${TNOC_HOME}/rtl/common/tnoc_flit_if_slicer.sv
+${TNOC_HOME}/rtl/common/tnoc_flit_if_arbiter.sv
 ${TNOC_HOME}/rtl/common/tnoc_flit_if_dummy_initiator.sv
 ${TNOC_HOME}/rtl/common/tnoc_flit_if_dummy_target.sv
 
