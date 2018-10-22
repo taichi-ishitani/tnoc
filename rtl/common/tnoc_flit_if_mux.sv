@@ -59,19 +59,19 @@ module tnoc_flit_if_mux
 //--------------------------------------------------------------
   localparam  int FLITS = (is_local_port(PORT_TYPE)) ? CHANNELS : 1;
 
-  logic [FLITS*FLIT_WIDTH-1:0]  flit_in[ENTRIES];
-  logic [FLITS*FLIT_WIDTH-1:0]  flit_out;
+  logic [FLITS*TNOC_FLIT_WIDTH-1:0] flit_in[ENTRIES];
+  logic [FLITS*TNOC_FLIT_WIDTH-1:0] flit_out;
 
   for (genvar i = 0;i < FLITS;++i) begin
     for (genvar j = 0;j < ENTRIES;++j) begin
-      assign  flit_in[j][i*FLIT_WIDTH+:FLIT_WIDTH]  = flit_in_if[j].flit[i];
+      assign  flit_in[j][i*TNOC_FLIT_WIDTH+:TNOC_FLIT_WIDTH]  = flit_in_if[j].flit[i];
     end
-    assign  flit_out_if.flit[i] = flit_out[i*FLIT_WIDTH+:FLIT_WIDTH];
+    assign  flit_out_if.flit[i] = flit_out[i*TNOC_FLIT_WIDTH+:TNOC_FLIT_WIDTH];
   end
 
   tnoc_mux #(
-    .WIDTH    (FLITS*FLIT_WIDTH ),
-    .ENTRIES  (ENTRIES          )
+    .WIDTH    (FLITS*TNOC_FLIT_WIDTH  ),
+    .ENTRIES  (ENTRIES                )
   ) u_flit_mux (
     .i_select (i_select ),
     .i_value  (flit_in  ),

@@ -16,9 +16,11 @@ class tnoc_bfm_packet_item extends tnoc_bfm_packet_item_base;
   rand  int                       burst_length;
   rand  int                       burst_size;
   rand  tnoc_bfm_address          address;
-  rand  tnoc_bfm_response_status  status;
+  rand  tnoc_bfm_response_status  packet_status;
   rand  tnoc_bfm_data             data[];
   rand  tnoc_bfm_byte_enable      byte_enable[];
+  rand  tnoc_bfm_response_status  payload_status[];
+  rand  bit                       response_last;
 
         int                       tr_handle;
 
@@ -83,16 +85,10 @@ class tnoc_bfm_packet_item extends tnoc_bfm_packet_item_base;
     }
   }
 
-  constraint c_valid_status {
-    solve packet_type before status;
+  constraint c_valid_packet_status {
+    solve packet_type before packet_status;
     if (!packet_type[7]) {
-      status == TNOC_BFM_OKAY;
-    }
-  }
-
-  constraint c_defualt_status {
-    if (packet_type[7]) {
-      soft status == TNOC_BFM_OKAY;
+      packet_status == TNOC_BFM_OKAY;
     }
   }
 
@@ -119,6 +115,23 @@ class tnoc_bfm_packet_item extends tnoc_bfm_packet_item_base;
     }
     else {
       byte_enable.size == 0;
+    }
+  }
+
+  constraint c_valid_payload_status {
+    solve packet_type, burst_length before payload_status;
+    if (packet_type[7] && packet_type[6]) {
+      payload_status.size == burst_length;
+    }
+    else {
+      payload_status.size == 0;
+    }
+  }
+
+  constraint c_valid_response_last {
+    solve packet_type before response_last;
+    if (packet_type != TNOC_BFM_RESPONSE_WITH_DATA) {
+      response_last == 0;
     }
   }
 
@@ -187,7 +200,7 @@ class tnoc_bfm_packet_item extends tnoc_bfm_packet_item_base;
       header_width  = configuration.get_request_header_width();
     end
     else begin
-      packer.pack_field_int(status, $bits(tnoc_bfm_response_status));
+      packer.pack_field_int(packet_status, $bits(tnoc_bfm_response_status));
       header_width  = configuration.get_response_header_width();
     end
     packer.set_packed_size();
@@ -244,27 +257,32 @@ class tnoc_bfm_packet_item extends tnoc_bfm_packet_item_base;
       address       = packer.unpack_field_int(configuration.address_width);
     end
     else begin
-      status  = tnoc_bfm_response_status'(packer.unpack_field_int($bits(tnoc_bfm_response_status)));
+      packet_status = tnoc_bfm_response_status'(packer.unpack_field_int($bits(tnoc_bfm_response_status)));
     end
   endfunction
 
   local function void pack_payload_flit_items(ref tnoc_bfm_flit_item flit_items[$]);
     foreach (data[i]) begin
       uvm_packer          packer;
+      int                 pack_width;
       tnoc_bfm_flit_item  flit_item;
 
       packer  = get_flit_packer();
-      packer.pack_field(data[i], configuration.data_width);
       if (is_request()) begin
+        packer.pack_field(data[i], configuration.data_width);
         packer.pack_field_int(byte_enable[i], configuration.byte_enable_width);
       end
-      else begin
-        packer.pack_field_int('0, configuration.byte_enable_width);
+      else if (is_response()) begin
+        packer.pack_field(data[i], configuration.data_width);
+        packer.pack_field_int(payload_status[i], $bits(tnoc_bfm_response_status));
+        packer.pack_field_int(
+          (response_last && (i == (data.size() - 1))) ? 1 : 0, 1
+        );
       end
       packer.set_packed_size();
 
       flit_item = tnoc_bfm_flit_item::create_payload_flit_item(
-        "flit_item", 0, packer.unpack_field(configuration.get_payload_width())
+        "flit_item", 0, packer.unpack_field(packer.get_packed_size())
       );
       flit_items.push_back(flit_item);
     end
@@ -281,6 +299,9 @@ class tnoc_bfm_packet_item extends tnoc_bfm_packet_item_base;
     if (is_request()) begin
       byte_enable = new[payload_flit_items.size];
     end
+    else begin
+      payload_status  = new[payload_flit_items.size];
+    end
 
     foreach (data[i]) begin
       uvm_packer  packer;
@@ -289,9 +310,18 @@ class tnoc_bfm_packet_item extends tnoc_bfm_packet_item_base;
       packer.pack_field(payload_flit_items[i].data, configuration.get_payload_width());
       packer.set_packed_size();
 
-      data[i] = packer.unpack_field(configuration.data_width);
       if (is_request()) begin
+        data[i]         = packer.unpack_field(configuration.data_width);
         byte_enable[i]  = packer.unpack_field_int(configuration.byte_enable_width);
+      end
+      else if (is_response()) begin
+        data[i]           = packer.unpack_field(configuration.data_width);
+        payload_status[i] = tnoc_bfm_response_status'(
+          packer.unpack_field_int($bits(tnoc_bfm_response_status))
+        );
+        response_last     = (
+          packer.unpack_field_int(1) && (i == (data.size() - 1))
+        ) ? 1 : 0;
       end
     end
   endfunction
@@ -326,15 +356,17 @@ class tnoc_bfm_packet_item extends tnoc_bfm_packet_item_base;
     `uvm_field_int(source_id          , UVM_DEFAULT | UVM_HEX)
     `uvm_field_int(virtual_channel    , UVM_DEFAULT | UVM_DEC)
     `uvm_field_int(tag                , UVM_DEFAULT | UVM_HEX)
-    `uvm_field_enum(tnoc_bfm_routing_mode   , routing_mode, UVM_DEFAULT)
+    `uvm_field_enum(tnoc_bfm_routing_mode   , routing_mode , UVM_DEFAULT)
     `uvm_field_int(invalid_destination, UVM_DEFAULT | UVM_BIN)
-    `uvm_field_enum(tnoc_bfm_burst_type     , burst_type  , UVM_DEFAULT)
+    `uvm_field_enum(tnoc_bfm_burst_type     , burst_type   , UVM_DEFAULT)
     `uvm_field_int(burst_length       , UVM_DEFAULT | UVM_DEC)
     `uvm_field_int(burst_size         , UVM_DEFAULT | UVM_DEC)
     `uvm_field_int(address            , UVM_DEFAULT | UVM_HEX)
-    `uvm_field_enum(tnoc_bfm_response_status, status, UVM_DEFAULT)
+    `uvm_field_enum(tnoc_bfm_response_status, packet_status, UVM_DEFAULT)
     `uvm_field_array_int(data       , UVM_DEFAULT | UVM_HEX)
     `uvm_field_array_int(byte_enable, UVM_DEFAULT | UVM_HEX)
+    `uvm_field_array_enum(tnoc_bfm_response_status, payload_status, UVM_DEFAULT)
+    `uvm_field_int(response_last      , UVM_DEFAULT | UVM_BIN)
   `uvm_object_utils_end
 endclass
 `endif

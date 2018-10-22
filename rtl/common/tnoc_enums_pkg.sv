@@ -57,21 +57,34 @@ package tnoc_enums_pkg;
   } tnoc_response_status;
 
   typedef enum logic {
+    TNOC_WRITE_PAYLOAD  = 'b0,
+    TNOC_READ_PAYLOAD   = 'b1
+  } tnoc_payload_type;
+
+  function automatic logic is_write_payload(input tnoc_payload_type payload_type);
+    return (payload_type == TNOC_WRITE_PAYLOAD) ? '1 : '0;
+  endfunction
+
+  function automatic logic is_read_payload(input tnoc_payload_type payload_type);
+    return (payload_type == TNOC_READ_PAYLOAD) ? '1 : '0;
+  endfunction
+
+  typedef enum logic {
     TNOC_HEADER_FLIT  = 'b0,
     TNOC_PAYLOAD_FLIT = 'b1
   } tnoc_flit_type;
 
   typedef enum bit {
-    TNOC_LOCAL_PORT     = 0,
-    TNOC_INTERNAL_PORT  = 1
+    TNOC_LOCAL_PORT     = 'b0,
+    TNOC_INTERNAL_PORT  = 'b1
   } tnoc_port_type;
 
   function automatic bit is_local_port(input tnoc_port_type port_type);
-    return (port_type == TNOC_LOCAL_PORT) ? 1 : 0;
+    return (port_type == TNOC_LOCAL_PORT) ? 'b1 : 'b0;
   endfunction
 
   function automatic bit is_internal_port(input tnoc_port_type port_type);
-    return (port_type == TNOC_INTERNAL_PORT) ? 1 : 0;
+    return (port_type == TNOC_INTERNAL_PORT) ? 'b1 : 'b0;
   endfunction
 endpackage
 `endif

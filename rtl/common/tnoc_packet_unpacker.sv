@@ -60,14 +60,14 @@ module tnoc_packet_unpacker
   localparam  int REQUEST_HEADER_FLITS  = calc_request_header_flits();
   localparam  int RESPONSE_HEADER_FLITS = calc_response_header_flits();
   localparam  int HEADER_FLITS          = calc_header_flits();
-  localparam  int HEADER_DATA_WIDTH     = HEADER_FLITS * FLIT_DATA_WIDTH;
+  localparam  int HEADER_DATA_WIDTH     = HEADER_FLITS * TNOC_FLIT_DATA_WIDTH;
 
   logic [HEADER_DATA_WIDTH-1:0] header_data;
   tnoc_common_header_fields     common_header_fields;
   tnoc_request_header_fields    request_header_fields;
   tnoc_response_header_fields   response_header_fields;
 
-  assign  common_header_fields              = tnoc_common_header_fields'(header_data[COMMON_HEADER_WIDTH-1:0]);
+  assign  common_header_fields              = tnoc_common_header_fields'(header_data[TNOC_COMMON_HEADER_WIDTH-1:0]);
   assign  packet_out_if.packet_type         = common_header_fields.packet_type;
   assign  packet_out_if.destination_id      = common_header_fields.destination_id;
   assign  packet_out_if.source_id           = common_header_fields.source_id;
@@ -75,13 +75,13 @@ module tnoc_packet_unpacker
   assign  packet_out_if.tag                 = common_header_fields.tag;
   assign  packet_out_if.routing_mode        = common_header_fields.routing_mode;
   assign  packet_out_if.invalid_destination = common_header_fields.invalid_destination;
-  assign  request_header_fields             = tnoc_request_header_fields'(header_data[REQUEST_HEADER_WIDTH-1:COMMON_HEADER_WIDTH]);
+  assign  request_header_fields             = tnoc_request_header_fields'(header_data[TNOC_REQUEST_HEADER_WIDTH-1:TNOC_COMMON_HEADER_WIDTH]);
   assign  packet_out_if.burst_type          = request_header_fields.burst_type;
   assign  packet_out_if.burst_length        = unpack_burst_length(request_header_fields.burst_length);
   assign  packet_out_if.burst_size          = request_header_fields.burst_size;
   assign  packet_out_if.address             = request_header_fields.address;
-  assign  response_header_fields            = tnoc_response_header_fields'(header_data[RESPONSE_HEADER_WIDTH-1:COMMON_HEADER_WIDTH]);
-  assign  packet_out_if.status              = response_header_fields.status;
+  assign  response_header_fields            = tnoc_response_header_fields'(header_data[TNOC_RESPONSE_HEADER_WIDTH-1:TNOC_COMMON_HEADER_WIDTH]);
+  assign  packet_out_if.packet_status       = response_header_fields.status;
 
   if (HEADER_FLITS == 1) begin : g_single_header_flit
     assign  packet_out_if.header_valid  = header_flit_valid;
@@ -101,11 +101,11 @@ module tnoc_packet_unpacker
 
     for (genvar i = 0;i < HEADER_FLITS;++i) begin
       if (i < (HEADER_FLITS - 1)) begin
-        assign  header_data[i*FLIT_DATA_WIDTH+:FLIT_DATA_WIDTH] =
+        assign  header_data[i*TNOC_FLIT_DATA_WIDTH+:TNOC_FLIT_DATA_WIDTH] =
           (flit_count == i) ? flit.data : flit_buffer[i];
       end
       else begin
-        assign  header_data[i*FLIT_DATA_WIDTH+:FLIT_DATA_WIDTH] = flit.data;
+        assign  header_data[i*TNOC_FLIT_DATA_WIDTH+:TNOC_FLIT_DATA_WIDTH] = flit.data;
       end
     end
 
@@ -141,12 +141,29 @@ module tnoc_packet_unpacker
 //--------------------------------------------------------------
 //  Payload
 //--------------------------------------------------------------
-  tnoc_payload  payload;
+  tnoc_payload_type   payload_type;
+  tnoc_write_payload  write_payload;
+  tnoc_read_payload   read_payload;
 
-  assign  payload                     = tnoc_payload'(flit.data[PAYLOD_WIDTH-1:0]);
-  assign  packet_out_if.payload_valid = payload_flit_valid;
-  assign  payload_flit_ready          = packet_out_if.payload_ready;
-  assign  packet_out_if.payload_last  = flit.tail;
-  assign  packet_out_if.data          = payload.data;
-  assign  packet_out_if.byte_enable   = payload.byte_enable;
+  assign  write_payload                 = tnoc_write_payload'(flit.data[TNOC_WRITE_PAYLOAD_WIDTH-1:0]);
+  assign  read_payload                  = tnoc_read_payload'(flit.data[TNOC_READ_PAYLOAD_WIDTH-1:0]);
+  assign  packet_out_if.payload_valid   = payload_flit_valid;
+  assign  payload_flit_ready            = packet_out_if.payload_ready;
+  assign  packet_out_if.payload_type    = payload_type;
+  assign  packet_out_if.payload_last    = flit.tail;
+  assign  packet_out_if.data            = write_payload.data;
+  assign  packet_out_if.byte_enable     = write_payload.byte_enable;
+  assign  packet_out_if.payload_status  = read_payload.status;
+  assign  packet_out_if.response_last   = read_payload.response_last;
+
+  always_ff @(posedge clk, negedge rst_n) begin
+    if (!rst_n) begin
+      payload_type  <= TNOC_WRITE_PAYLOAD;
+    end
+    else if (header_flit_valid) begin
+      payload_type  <= (
+        is_response_packet_type(common_header_fields.packet_type)
+      ) ? TNOC_READ_PAYLOAD : TNOC_WRITE_PAYLOAD;
+    end
+  end
 endmodule

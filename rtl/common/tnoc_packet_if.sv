@@ -1,7 +1,7 @@
 `ifndef TNOC_PACKET_IF_SV
 `define TNOC_PACKET_IF_SV
 interface tnoc_packet_if
-  import  tnoc_config_pkg::*;
+  `include  "tnoc_default_imports.svh"
 #(
   parameter tnoc_config CONFIG  = TNOC_DEFAULT_CONFIG
 )();
@@ -21,13 +21,16 @@ interface tnoc_packet_if
   tnoc_unpacked_burst_length  burst_length;
   tnoc_burst_size             burst_size;
   tnoc_address                address;
-  tnoc_response_status        status;
+  tnoc_response_status        packet_status;
   //  Payload
   logic                       payload_valid;
   logic                       payload_ready;
+  tnoc_payload_type           payload_type;
   logic                       payload_last;
   tnoc_data                   data;
   tnoc_byte_enable            byte_enable;
+  tnoc_response_status        payload_status;
+  logic                       response_last;
 
   modport initiator (
     output  header_valid,
@@ -43,12 +46,15 @@ interface tnoc_packet_if
     output  burst_length,
     output  burst_size,
     output  address,
-    output  status,
+    output  packet_status,
     output  payload_valid,
     input   payload_ready,
+    output  payload_type,
     output  payload_last,
     output  data,
-    output  byte_enable
+    output  byte_enable,
+    output  payload_status,
+    output  response_last
   );
 
   modport target (
@@ -65,12 +71,15 @@ interface tnoc_packet_if
     input   burst_length,
     input   burst_size,
     input   address,
-    input   status,
+    input   packet_status,
     input   payload_valid,
     output  payload_ready,
+    input   payload_type,
     input   payload_last,
     input   data,
-    input   byte_enable
+    input   byte_enable,
+    input   payload_status,
+    input   response_last
   );
 
   modport monitor (
@@ -87,12 +96,15 @@ interface tnoc_packet_if
     input burst_length,
     input burst_size,
     input address,
-    input status,
+    input packet_status,
     input payload_valid,
     input payload_ready,
+    input payload_type,
     input payload_last,
     input data,
-    input byte_enable
+    input byte_enable,
+    input payload_status,
+    input response_last
   );
 endinterface
 `endif

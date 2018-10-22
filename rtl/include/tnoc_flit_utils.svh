@@ -1,13 +1,13 @@
 function automatic int calc_request_header_flits();
-  return (REQUEST_HEADER_WIDTH + FLIT_DATA_WIDTH - 1) / FLIT_DATA_WIDTH;
+  return (TNOC_REQUEST_HEADER_WIDTH + TNOC_FLIT_DATA_WIDTH - 1) / TNOC_FLIT_DATA_WIDTH;
 endfunction
 
 function automatic int calc_response_header_flits();
-  return (RESPONSE_HEADER_WIDTH + FLIT_DATA_WIDTH - 1) / FLIT_DATA_WIDTH;
+  return (TNOC_RESPONSE_HEADER_WIDTH + TNOC_FLIT_DATA_WIDTH - 1) / TNOC_FLIT_DATA_WIDTH;
 endfunction
 
 function automatic int calc_header_flits();
-  return (HEADER_WIDTH + FLIT_DATA_WIDTH - 1) / FLIT_DATA_WIDTH;
+  return (TNOC_HEADER_WIDTH + TNOC_FLIT_DATA_WIDTH - 1) / TNOC_FLIT_DATA_WIDTH;
 endfunction
 
 function automatic logic is_header_flit(input tnoc_flit flit);
@@ -27,16 +27,13 @@ function automatic logic is_tail_flit(input tnoc_flit flit);
 endfunction
 
 function automatic tnoc_common_header get_common_header(input tnoc_flit flit);
-  return tnoc_common_header'(flit.data[COMMON_HEADER_WIDTH-1:0]);
+  return tnoc_common_header'(flit.data[TNOC_COMMON_HEADER_WIDTH-1:0]);
 endfunction
 
-function automatic tnoc_payload get_payload(input tnoc_flit flit);
-  return tnoc_payload'(flit.data[PAYLOD_WIDTH-1:0]);
+function automatic tnoc_write_payload get_write_payload(input tnoc_flit flit);
+  return tnoc_write_payload'(flit.data[TNOC_WRITE_PAYLOAD_WIDTH-1:0]);
 endfunction
 
-function automatic tnoc_flit set_common_header(input tnoc_flit flit, input tnoc_common_header header);
-  tnoc_flit flit_out;
-  flit_out                                = flit;
-  flit_out.data[COMMON_HEADER_WIDTH-1:0]  = header;
-  return flit;
+function automatic tnoc_read_payload get_read_payload(input tnoc_flit flit);
+  return tnoc_read_payload'(flit.data[TNOC_READ_PAYLOAD_WIDTH-1:0]);
 endfunction
