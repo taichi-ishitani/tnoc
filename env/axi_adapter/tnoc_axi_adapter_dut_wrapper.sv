@@ -55,7 +55,7 @@ module tnoc_axi_adapter_dut_wrapper
 
   function automatic s_decode_result decode_address(tnoc_address address);
     s_decode_result result;
-    case (address[ADDRESS_WIDTH-1:ADDRESS_WIDTH-3])
+    case (address[ADDRESS_WIDTH-1:ADDRESS_WIDTH-2])
       0: begin
         result.location_id.x        = 1;
         result.location_id.y        = 0;
@@ -191,7 +191,7 @@ module tnoc_axi_adapter_dut_wrapper
     assign  master_if[i].awlen    = axi_if.awlen;
     assign  master_if[i].awsize   = tvip_axi_burst_size'(axi_if.awsize);
     assign  master_if[i].awburst  = tvip_axi_burst_type'(axi_if.awburst);
-    assign  master_if[i].wvalid   = axi_if.awvalid;
+    assign  master_if[i].wvalid   = axi_if.wvalid;
     assign  axi_if.wready         = master_if[i].wready;
     assign  master_if[i].wdata    = axi_if.wdata;
     assign  master_if[i].wstrb    = axi_if.wstrb;
@@ -215,9 +215,10 @@ module tnoc_axi_adapter_dut_wrapper
     assign  axi_if.rlast          = master_if[i].rlast;
 
     tnoc_axi_master_adapter #(
-      .CONFIG   (CONFIG   ),
-      .WRITE_VC (WRITE_VC ),
-      .READ_VC  (READ_VC  )
+      .CONFIG             (CONFIG             ),
+      .WRITE_VC           (WRITE_VC           ),
+      .READ_VC            (READ_VC            ),
+      .READ_INTERLEAVING  (READ_INTERLEAVING  )
     ) u_adapter (
       .clk                  (clk                            ),
       .rst_n                (rst_n                          ),

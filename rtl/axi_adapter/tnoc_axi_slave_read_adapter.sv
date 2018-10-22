@@ -96,9 +96,11 @@ module tnoc_axi_slave_read_adapter
   always_ff @(posedge clk, negedge rst_n) begin
     if (!rst_n) begin
       packet_status <= TNOC_OKAY;
+      rid           <= '0;
     end
     else if (response_if.header_valid) begin
       packet_status <= response_if.packet_status;
+      rid           <= '{location_id: '0, tag: response_if.tag};
     end
   end
 
@@ -109,8 +111,6 @@ module tnoc_axi_slave_read_adapter
   assign  axi_if.rdata              = response_if.data;
   assign  axi_if.rresp              = get_rresp(packet_status, response_if.payload_status);
   assign  axi_if.rlast              = response_if.response_last;
-  assign  rid.location_id           = '0;
-  assign  rid.tag                   = response_if.tag;
 
   function automatic tnoc_axi_response get_rresp(
     input tnoc_response_status  packet_status,

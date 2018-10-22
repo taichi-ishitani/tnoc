@@ -31,7 +31,7 @@ class tnoc_bfm_packet_vc_monitor extends tnoc_bfm_component_base #(
         if (vif.monitor_cb.valid && (packet_item == null)) begin
           packet_item = create_item("packet_item");
         end
-        if (vif.monitor_cb.valid  && (flit_item == null)) begin
+        if (vif.monitor_cb.valid && (flit_item == null)) begin
           flit_item = sample_flit_item();
         end
 

@@ -53,8 +53,9 @@ module tnoc_axi_master_read_adapter
   localparam  int DATA_WIDTH  = CONFIG.data_width;
 
   tnoc_packet_if #(CONFIG)  response_if();
-  logic                     rvalid;
-  logic                     rready;
+  logic                     header_valid;
+  logic                     payload_valid;
+  logic                     payload_ready;
   tnoc_axi_id               rid;
   logic [DATA_WIDTH-1:0]    rdata;
   tnoc_axi_response         rresp;
@@ -62,7 +63,7 @@ module tnoc_axi_master_read_adapter
   logic                     header_done;
   logic                     payload_last;
 
-  assign  response_if.header_valid        = (rvalid && (!header_done)) ? '1 : '0;
+  assign  response_if.header_valid        = (header_valid && (!header_done)) ? '1 : '0;
   assign  response_if.packet_type         = TNOC_RESPONSE_WITH_DATA;
   assign  response_if.destination_id      = rid.location_id;
   assign  response_if.source_id.x         = i_id_x;
@@ -76,8 +77,8 @@ module tnoc_axi_master_read_adapter
   assign  response_if.burst_size          = '0;
   assign  response_if.address             = '0;
   assign  response_if.packet_status       = TNOC_OKAY;
-  assign  response_if.payload_valid       = (rvalid && header_done) ? '1 : '0;
-  assign  rready                          = (response_if.payload_ready && header_done) ? '1 : '0;
+  assign  response_if.payload_valid       = (payload_valid             && header_done) ? '1 : '0;
+  assign  payload_ready                   = (response_if.payload_ready && header_done) ? '1 : '0;
   assign  response_if.payload_type        = TNOC_READ_PAYLOAD;
   assign  response_if.payload_last        = payload_last;
   assign  response_if.data                = rdata;
@@ -92,7 +93,7 @@ module tnoc_axi_master_read_adapter
     else if (
       response_if.payload_valid &&
       response_if.payload_ready &&
-      request_if.payload_last
+      response_if.payload_last
     ) begin
       header_done <= '0;
     end
@@ -105,10 +106,13 @@ module tnoc_axi_master_read_adapter
   end
 
   if (READ_INTERLEAVING) begin : g_read_interleaving
-    assign  axi_if.rready = ((!rvalid) || rready) ? '1 : '0;
-    assign  payload_last  = (
-      axi_if.rlast || (axi_if.rvalid && rvalid && (axi_if.rid != rid))
-    ) ? '1 : '0;
+    logic rvalid;
+    logic rready;
+    assign  header_valid  = rvalid;
+    assign  payload_valid = (rvalid && (rlast || axi_if.rvalid)) ? '1 : '0;
+    assign  rready        = ((!rvalid) || (payload_valid && payload_ready)) ? '1 : '0;
+    assign  axi_if.rready = rready;
+    assign  payload_last  = (rlast || (axi_if.rid != rid)) ? '1 : '0;
     always_ff @(posedge clk, negedge rst_n) begin
       if (!rst_n) begin
         rvalid  <= '0;
@@ -117,7 +121,7 @@ module tnoc_axi_master_read_adapter
         rresp   <= TNOC_AXI_OKAY;
         rlast   <= '0;
       end
-      else if ((!rvalid) || rready) begin
+      else if (rready) begin
         rvalid  <= axi_if.rvalid;
         rid     <= axi_if.rid;
         rdata   <= axi_if.rdata;
@@ -127,8 +131,9 @@ module tnoc_axi_master_read_adapter
     end
   end
   else begin : g_no_read_interleaving
-    assign  rvalid  = axi_if.rvalid;
-    assign  axi_if.rready = rready;
+    assign  header_valid  = axi_if.rvalid;
+    assign  payload_valid = axi_if.rvalid;
+    assign  axi_if.rready = payload_ready;
     assign  rid           = axi_if.rid;
     assign  rdata         = axi_if.rdata;
     assign  rresp         = axi_if.rresp;

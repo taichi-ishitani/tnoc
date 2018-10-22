@@ -99,4 +99,13 @@ module tnoc_axi_write_read_mux
       );
     end
   end
+
+  tnoc_vc_mux #(
+    .CONFIG     (CONFIG           ),
+    .PORT_TYPE  (TNOC_LOCAL_PORT  )
+  ) u_vc_mux (
+    .i_vc_grant   ('0           ),
+    .flit_in_if   (flit_out     ),
+    .flit_out_if  (flit_out_if  )
+  );
 endmodule

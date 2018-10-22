@@ -12,7 +12,7 @@ FILE_LISTS		+= $(TNOC_HOME)/test/axi_adapter/compile.f
 
 SOURCE_FILES	+= $(TNOC_HOME)/env/axi_adapter/top.sv
 
-DEFINES	+= TNOC_AXI_ADAPTER_ENV_DATA_WIDTH=256
+DEFINES	+= TNOC_AXI_ADAPTER_ENV_DATA_WIDTH=64
 
 TOP_MODULE	+= top
 

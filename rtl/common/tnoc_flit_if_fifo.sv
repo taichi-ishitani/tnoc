@@ -36,9 +36,9 @@ module tnoc_flit_if_fifo
 
   if (is_local_port(PORT_TYPE)) begin : g_local_port
     for (genvar i = 0;i < FLITS;++i) begin : g_fifo
-      assign  flit_in_if.ready[i]     = ~full[i];
-      assign  flit_in_if.vc_available = ~almost_full[i];
-      assign  flit_out_if.valid[i]    = ~empty[i];
+      assign  flit_in_if.ready[i]         = ~full[i];
+      assign  flit_in_if.vc_available[i]  = ~almost_full[i];
+      assign  flit_out_if.valid[i]        = ~empty[i];
 
       tnoc_fifo #(
         .WIDTH        (TNOC_FLIT_WIDTH  ),
