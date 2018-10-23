@@ -16,6 +16,10 @@ This is a Network on Chip (NoC) Router/Fabric implementation written in SystemVe
     * Packet format
     * Mesh size
     * FIFO size
+    * etc.
+* Support standard bus protocol
+    * AMBA AXI4
+
 
 ## Details
 
