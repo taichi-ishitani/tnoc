@@ -1,7 +1,7 @@
 `ifndef TNOC_CONFIG_PKG_SV
 `define TNOC_CONFIG_PKG_SV
 package tnoc_config_pkg;
-  `include  "tnoc_defines.svh"
+  `include  "tnoc_config_defines.svh"
 
   typedef struct packed {
     int                             address_width;
