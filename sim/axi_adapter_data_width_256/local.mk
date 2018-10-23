@@ -1,3 +1,4 @@
+FILE_LISTS		+= $(TNOC_HOME)/rtl/config/compile.f
 FILE_LISTS		+= $(TNOC_HOME)/rtl/common/compile.f
 FILE_LISTS		+= $(TNOC_HOME)/rtl/axi_adapter/compile.f
 FILE_LISTS		+= $(TNOC_HOME)/rtl/router/compile.f
