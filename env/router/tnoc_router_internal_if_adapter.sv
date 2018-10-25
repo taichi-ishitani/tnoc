@@ -21,7 +21,7 @@ module tnoc_rounter_internal_if_adapter
 
     assign  request = flit_in_if.valid & flit_in_if.vc_available;
     assign  free    = flit_in_if.ready;
-    tnoc_round_robin_arbiter #(CHANNELS, 1) u_arbiter (
+    tbcm_round_robin_arbiter #(CHANNELS, 1) u_arbiter (
       .clk        (clk      ),
       .rst_n      (rst_n    ),
       .i_request  (request  ),
@@ -50,7 +50,7 @@ module tnoc_rounter_internal_if_adapter
 
     assign  request = flit_internal_in_if.valid & flit_internal_in_if.vc_available;
     assign  free    = flit_internal_in_if.ready;
-    tnoc_round_robin_arbiter #(CHANNELS, 1) u_arbiter (
+    tbcm_round_robin_arbiter #(CHANNELS, 1) u_arbiter (
       .clk        (clk      ),
       .rst_n      (rst_n    ),
       .i_request  (request  ),

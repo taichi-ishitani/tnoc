@@ -1,4 +1,5 @@
 -f ${TNOC_HOME}/rtl/config/compile.f
+-f ${TBCM_HOME}/compile.f
 -f ${TNOC_HOME}/rtl/common/compile.f
 -f ${TNOC_HOME}/rtl/router/compile.f
 -f ${TNOC_HOME}/rtl/fabric/compile.f

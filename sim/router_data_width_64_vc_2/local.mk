@@ -1,4 +1,5 @@
 FILE_LISTS		+= $(TNOC_HOME)/rtl/config/compile.f
+FILE_LISTS		+= $(TBCM_HOME)/compile.f
 FILE_LISTS		+= $(TNOC_HOME)/rtl/common/compile.f
 FILE_LISTS		+= $(TNOC_HOME)/rtl/router/compile.f
 FILE_LISTS		+= $(TUE_HOME)/compile.f

@@ -19,12 +19,10 @@ module tnoc_internal_port_controller
   logic [CHANNELS-1:0]  vc_grant;
   logic [CHANNELS-1:0]  vc_free;
   logic [CHANNELS-1:0]  vc_available;
-  logic                 fifo_empty;
   logic                 fifo_full;
   logic                 fifo_push;
   logic                 fifo_pop;
   logic [4:0]           output_grant;
-  logic [4:0]           output_grant_temp;
 
   for (genvar i = 0;i < CHANNELS;++i) begin
     for (genvar j = 0;j < 5;++j) begin
@@ -46,7 +44,7 @@ module tnoc_internal_port_controller
       assign  port_free[j]    = port_control_if[j].end_of_packet[i];
     end
 
-    tnoc_round_robin_arbiter #(
+    tbcm_round_robin_arbiter #(
       .REQUESTS     (5  ),
       .KEEP_RESULT  (1  )
     ) u_port_arbiter (
@@ -69,7 +67,7 @@ module tnoc_internal_port_controller
       assign  vc_free[i]    = |(free[i]    & port_grant[i]                       );
     end
 
-    tnoc_round_robin_arbiter #(
+    tbcm_round_robin_arbiter #(
       .REQUESTS     (CHANNELS ),
       .KEEP_RESULT  (1        )
     ) u_vc_arbiter (
@@ -94,37 +92,38 @@ module tnoc_internal_port_controller
   end
 
   if (CHANNELS >= 2) begin : g_grant_mux
-    tnoc_mux #(
+    tbcm_mux #(
       .WIDTH    (5        ),
-      .ENTRIES  (CHANNELS )
+      .ENTRIES  (CHANNELS ),
+      .ONE_HOT  (1        )
     ) u_grant_mux (
-      .i_select (vc_grant           ),
-      .i_value  (port_grant         ),
-      .o_value  (output_grant_temp  )
+      .i_select (vc_grant     ),
+      .i_data   (port_grant   ),
+      .o_data   (output_grant )
     );
   end
   else begin
-    assign  output_grant_temp = port_grant[0];
+    assign  output_grant  = port_grant[0];
   end
 
   assign  fifo_push = |vc_free;
   assign  fifo_pop  = i_output_free;
 
-  tnoc_fifo #(
-    .WIDTH  (5  ),
-    .DEPTH  (2  )
+  tbcm_fifo #(
+    .WIDTH        (5  ),
+    .DEPTH        (2  ),
+    .DATA_FF_OUT  (1  ),
+    .FLAG_FF_OUT  (1  )
   ) u_grant_fifo (
-    .clk            (clk                ),
-    .rst_n          (rst_n              ),
-    .i_clear        ('0                 ),
-    .o_empty        (fifo_empty         ),
-    .o_full         (fifo_full          ),
+    .clk            (clk            ),
+    .rst_n          (rst_n          ),
+    .i_clear        ('0             ),
+    .o_empty        (),
+    .o_full         (fifo_full      ),
     .o_almost_full  (),
-    .i_push         (fifo_push          ),
-    .i_data         (output_grant_temp  ),
-    .i_pop          (fifo_pop           ),
-    .o_data         (output_grant       )
+    .i_push         (fifo_push      ),
+    .i_data         (output_grant   ),
+    .i_pop          (fifo_pop       ),
+    .o_data         (o_output_grant )
   );
-
-  assign  o_output_grant  = (!fifo_empty) ? output_grant : '0;
 endmodule

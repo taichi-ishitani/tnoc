@@ -47,7 +47,7 @@ module tnoc_vc_selector
     assign  vc_free[i]    = (flit_fifo_out_if[i].flit[0].tail) ? flit_fifo_out_if[i].valid & flit_fifo_out_if[i].ready : '0;
   end
 
-  tnoc_round_robin_arbiter #(
+  tbcm_round_robin_arbiter #(
     .REQUESTS     (CHANNELS ),
     .KEEP_RESULT  (1        )
   ) u_vc_arbiter (
