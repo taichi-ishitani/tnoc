@@ -4,3 +4,6 @@
 [submodule "env/axi_vip"]
 	path = env/axi_vip
 	url = git@github.com:taichi-ishitani/tvip-axi.git
+[submodule "rtl/bcm"]
+	path = rtl/bcm
+	url = git@github.com:taichi-ishitani/tbcm.git

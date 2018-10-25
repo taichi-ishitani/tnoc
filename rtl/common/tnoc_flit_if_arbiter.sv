@@ -65,7 +65,7 @@ module tnoc_flit_if_arbiter
       ) ? '1 : '0;
     end
 
-    tnoc_round_robin_arbiter #(
+    tbcm_round_robin_arbiter #(
       .REQUESTS     (ENTRIES  ),
       .KEEP_RESULT  (1        )
     ) u_arbiter (

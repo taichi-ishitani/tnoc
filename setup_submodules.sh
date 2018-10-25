@@ -1,5 +1,6 @@
 #! /bin/bash -f
 submodules=(
+  rtl/bcm
   env/tue
   env/axi_vip
 )

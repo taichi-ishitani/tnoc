@@ -23,30 +23,33 @@ module tnoc_flit_if_demux
     assign  vc_available[i]       = flit_out_if[i].vc_available;
   end
 
-  tnoc_demux #(
+  tbcm_demux #(
     .WIDTH    (CHANNELS ),
-    .ENTRIES  (ENTRIES  )
+    .ENTRIES  (ENTRIES  ),
+    .ONE_HOT  (1        )
   ) u_valid_demux (
     .i_select (i_select         ),
-    .i_value  (flit_in_if.valid ),
-    .o_value  (valid            )
+    .i_data   (flit_in_if.valid ),
+    .o_data   (valid            )
   );
 
-  tnoc_mux #(
+  tbcm_mux #(
     .WIDTH    (CHANNELS ),
-    .ENTRIES  (ENTRIES  )
+    .ENTRIES  (ENTRIES  ),
+    .ONE_HOT  (1        )
   ) u_raedy_mux (
     .i_select (i_select         ),
-    .i_value  (ready            ),
-    .o_value  (flit_in_if.ready )
+    .i_data   (ready            ),
+    .o_data   (flit_in_if.ready )
   );
 
-  tnoc_mux #(
+  tbcm_mux #(
     .WIDTH    (CHANNELS ),
-    .ENTRIES  (ENTRIES  )
+    .ENTRIES  (ENTRIES  ),
+    .ONE_HOT  (1        )
   ) u_vc_available_mux (
     .i_select (i_select                 ),
-    .i_value  (vc_available             ),
-    .o_value  (flit_in_if.vc_available  )
+    .i_data   (vc_available             ),
+    .o_data   (flit_in_if.vc_available  )
   );
 endmodule

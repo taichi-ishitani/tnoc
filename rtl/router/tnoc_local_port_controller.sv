@@ -29,7 +29,7 @@ module tnoc_local_port_controller
       assign  port_free[j]    = port_control_if[j].end_of_packet[i];
     end
 
-    tnoc_round_robin_arbiter #(
+    tbcm_round_robin_arbiter #(
       .REQUESTS     (5  ),
       .KEEP_RESULT  (1  )
     ) u_port_arbiter (
@@ -55,7 +55,7 @@ module tnoc_local_port_controller
         assign  vc_free[i][j] = port_grant[j][i] & port_control_if[i].free[j];
       end
 
-      tnoc_round_robin_arbiter #(
+      tbcm_round_robin_arbiter #(
         .REQUESTS     (CHANNELS ),
         .KEEP_RESULT  (1        )
       ) u_vc_arbiter (
@@ -76,37 +76,35 @@ module tnoc_local_port_controller
 //  Grant
 //--------------------------------------------------------------
   for (genvar i = 0;i < CHANNELS;++i) begin : g_grant
-    logic [4:0] output_grant_temp;
     logic [4:0] output_grant;
     logic [4:0] fifo_push_temp;
     logic       fifo_push;
     logic       fifo_pop;
-    logic       fifo_empty;
 
     for (genvar j = 0;j < 5;++j) begin
       assign  port_control_if[j].grant[i] = vc_grant[j][i];
-      assign  output_grant_temp[j]        = vc_grant[j][i];
+      assign  output_grant[j]             = vc_grant[j][i];
       assign  fifo_push_temp[j]           = vc_free[j][i];
     end
 
     assign  fifo_push = |fifo_push_temp;
     assign  fifo_pop  = i_output_free[i];
-    tnoc_fifo #(
-      .WIDTH  (5  ),
-      .DEPTH  (2  )
+    tbcm_fifo #(
+      .WIDTH        (5  ),
+      .DEPTH        (2  ),
+      .DATA_FF_OUT  (1  ),
+      .FLAG_FF_OUT  (1  )
     ) u_grant_fifo (
       .clk            (clk                ),
       .rst_n          (rst_n              ),
       .i_clear        ('0                 ),
-      .o_empty        (fifo_empty         ),
+      .o_empty        (),
       .o_almost_full  (),
       .o_full         (fifo_full[i]       ),
       .i_push         (fifo_push          ),
-      .i_data         (output_grant_temp  ),
+      .i_data         (output_grant       ),
       .i_pop          (fifo_pop           ),
-      .o_data         (output_grant       )
+      .o_data         (o_output_grant[i]  )
     );
-
-    assign  o_output_grant[i] = (!fifo_empty) ? output_grant : '0;
   end
 endmodule

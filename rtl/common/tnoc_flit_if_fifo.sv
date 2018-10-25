@@ -40,11 +40,12 @@ module tnoc_flit_if_fifo
       assign  flit_in_if.vc_available[i]  = ~almost_full[i];
       assign  flit_out_if.valid[i]        = ~empty[i];
 
-      tnoc_fifo #(
-        .WIDTH        (TNOC_FLIT_WIDTH  ),
-        .DEPTH        (DEPTH            ),
-        .THRESHOLD    (THRESHOLD        ),
-        .DATA_FF_OUT  (DATA_FF_OUT      )
+      tbcm_fifo #(
+        .DATA_TYPE    (tnoc_flit    ),
+        .DEPTH        (DEPTH        ),
+        .THRESHOLD    (THRESHOLD    ),
+        .DATA_FF_OUT  (DATA_FF_OUT  ),
+        .FLAG_FF_OUT  (1            )
       ) u_fifo (
         .clk            (clk                  ),
         .rst_n          (rst_n                ),
@@ -64,11 +65,12 @@ module tnoc_flit_if_fifo
     assign  flit_in_if.vc_available = ~almost_full;
     assign  flit_out_if.valid       = ~empty;
 
-    tnoc_fifo #(
-      .WIDTH        (TNOC_FLIT_WIDTH  ),
-      .DEPTH        (DEPTH            ),
-      .THRESHOLD    (THRESHOLD        ),
-      .DATA_FF_OUT  (DATA_FF_OUT      )
+    tbcm_fifo #(
+      .DATA_TYPE    (tnoc_flit    ),
+      .DEPTH        (DEPTH        ),
+      .THRESHOLD    (THRESHOLD    ),
+      .DATA_FF_OUT  (DATA_FF_OUT  ),
+      .FLAG_FF_OUT  (1            )
     ) u_fifo (
       .clk            (clk                  ),
       .rst_n          (rst_n                ),
@@ -98,11 +100,12 @@ module tnoc_flit_if_fifo
     assign  push_data.flit  = flit_in_if.flit[0];
     assign  pop             = |(flit_out_if.valid & flit_out_if.ready);
 
-    tnoc_fifo #(
-      .WIDTH        ($bits(s_fifo_data) ),
-      .DEPTH        (DEPTH              ),
-      .THRESHOLD    (THRESHOLD          ),
-      .DATA_FF_OUT  (DATA_FF_OUT        )
+    tbcm_fifo #(
+      .DATA_TYPE    (s_fifo_data  ),
+      .DEPTH        (DEPTH        ),
+      .THRESHOLD    (THRESHOLD    ),
+      .DATA_FF_OUT  (DATA_FF_OUT  ),
+      .FLAG_FF_OUT  (1            )
     ) u_fifo (
       .clk            (clk          ),
       .rst_n          (rst_n        ),

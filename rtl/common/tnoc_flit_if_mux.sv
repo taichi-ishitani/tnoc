@@ -16,9 +16,9 @@ module tnoc_flit_if_mux
 //--------------------------------------------------------------
 //  Control signals
 //--------------------------------------------------------------
-  logic [CHANNELS-1:0]    valid[ENTRIES];
-  logic [CHANNELS-1:0]    ready[ENTRIES];
-  logic [CHANNELS-1:0]    vc_available[ENTRIES];
+  logic [CHANNELS-1:0]  valid[ENTRIES];
+  logic [CHANNELS-1:0]  ready[ENTRIES];
+  logic [CHANNELS-1:0]  vc_available[ENTRIES];
 
 
   for (genvar i = 0;i < ENTRIES;++i) begin
@@ -27,31 +27,34 @@ module tnoc_flit_if_mux
     assign  flit_in_if[i].vc_available  = vc_available[i];
   end
 
-  tnoc_mux #(
+  tbcm_mux #(
     .WIDTH    (CHANNELS ),
-    .ENTRIES  (ENTRIES  )
+    .ENTRIES  (ENTRIES  ),
+    .ONE_HOT  (1        )
   ) u_valid_mux (
     .i_select (i_select           ),
-    .i_value  (valid              ),
-    .o_value  (flit_out_if.valid  )
+    .i_data   (valid              ),
+    .o_data   (flit_out_if.valid  )
   );
 
-  tnoc_demux #(
+  tbcm_demux #(
     .WIDTH    (CHANNELS ),
-    .ENTRIES  (ENTRIES  )
+    .ENTRIES  (ENTRIES  ),
+    .ONE_HOT  (1        )
   ) u_ready_demux (
     .i_select (i_select           ),
-    .i_value  (flit_out_if.ready  ),
-    .o_value  (ready              )
+    .i_data   (flit_out_if.ready  ),
+    .o_data   (ready              )
   );
 
-  tnoc_demux #(
+  tbcm_demux #(
     .WIDTH    (CHANNELS ),
-    .ENTRIES  (ENTRIES  )
+    .ENTRIES  (ENTRIES  ),
+    .ONE_HOT  (1        )
   ) u_vc_available_demux (
     .i_select (i_select                 ),
-    .i_value  (flit_out_if.vc_available ),
-    .o_value  (vc_available             )
+    .i_data   (flit_out_if.vc_available ),
+    .o_data   (vc_available             )
   );
 
 //--------------------------------------------------------------
@@ -59,22 +62,21 @@ module tnoc_flit_if_mux
 //--------------------------------------------------------------
   localparam  int FLITS = (is_local_port(PORT_TYPE)) ? CHANNELS : 1;
 
-  logic [FLITS*TNOC_FLIT_WIDTH-1:0] flit_in[ENTRIES];
-  logic [FLITS*TNOC_FLIT_WIDTH-1:0] flit_out;
+  for (genvar i = 0;i < FLITS;++i) begin : g_flit_mux
+    tnoc_flit flit_in[ENTRIES];
 
-  for (genvar i = 0;i < FLITS;++i) begin
     for (genvar j = 0;j < ENTRIES;++j) begin
-      assign  flit_in[j][i*TNOC_FLIT_WIDTH+:TNOC_FLIT_WIDTH]  = flit_in_if[j].flit[i];
+      assign  flit_in[j]  = flit_in_if[j].flit[i];
     end
-    assign  flit_out_if.flit[i] = flit_out[i*TNOC_FLIT_WIDTH+:TNOC_FLIT_WIDTH];
-  end
 
-  tnoc_mux #(
-    .WIDTH    (FLITS*TNOC_FLIT_WIDTH  ),
-    .ENTRIES  (ENTRIES                )
-  ) u_flit_mux (
-    .i_select (i_select ),
-    .i_value  (flit_in  ),
-    .o_value  (flit_out )
-  );
+    tbcm_mux #(
+      .DATA_TYPE  (tnoc_flit  ),
+      .ENTRIES    (ENTRIES    ),
+      .ONE_HOT    (1          )
+    ) u_flit_mux (
+      .i_select (i_select             ),
+      .i_data   (flit_in              ),
+      .o_data   (flit_out_if.flit[i]  )
+    );
+  end
 endmodule
