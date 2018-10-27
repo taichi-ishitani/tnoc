@@ -113,12 +113,8 @@ module tnoc_error_checker
   logic start_of_error_request;
   logic end_of_error_request;
 
-  assign  start_of_error_request  = (
-    start_of_packet && invalid_destination
-  ) ? '1 : '0;
-  assign  end_of_error_request    = (
-    flit_demux_out_if[1].valid && flit_demux_out_if[1].ready && is_tail_flit(flit_demux_out_if[1].flit[0])
-  ) ? '1 : '0;
+  assign  start_of_error_request  = (start_of_packet && invalid_destination) ? '1 : '0;
+  assign  end_of_error_request    = (flit_demux_out_if[1].acknowledgement && is_tail_flit(flit_demux_out_if[1].flit[0])) ? '1 : '0;
   always_ff @(posedge clk, negedge rst_n) begin
     if (!rst_n) begin
       error_route_busy[0] <= '0;
@@ -138,7 +134,7 @@ module tnoc_error_checker
     start_of_packet && invalid_destination && is_non_posted_request_packet_type(common_header.packet_type)
   ) ? '1 : '0;
   assign  end_of_error_response   = (
-    flit_mux_in_if[1].valid && flit_mux_in_if[1].ready && is_tail_flit(flit_mux_in_if[1].flit[0])
+    flit_mux_in_if[1].acknowledgement && is_tail_flit(flit_mux_in_if[1].flit[0])
   ) ? '1 : '0;
   always_ff @(posedge clk, negedge rst_n) begin
     if (!rst_n) begin

@@ -26,7 +26,7 @@ class tnoc_bfm_packet_vc_driver extends tnoc_bfm_component_base #(
         do_reset();
       end
       else begin
-        if (vif.monitor_cb.valid && vif.monitor_cb.ready) begin
+        if (vif.monitor_cb.acknowledgement) begin
           finish_flit();
         end
 

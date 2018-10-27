@@ -84,12 +84,8 @@ module tnoc_route_selector
     e_route route_next;
     e_route route_latched;
 
-    assign  start_of_packet = (
-      flit_in_if[i].valid && is_head_flit(flit_in_if[i].flit[0])
-    ) ? '1 : '0;
-    assign  end_of_packet   = (
-      flit_in_if[i].valid && flit_in_if[i].ready && is_tail_flit(flit_in_if[i].flit[0])
-    ) ? '1 : '0;
+    assign  start_of_packet = (flit_in_if[i].valid           && is_head_flit(flit_in_if[i].flit[0])) ? '1 : '0;
+    assign  end_of_packet   = (flit_in_if[i].acknowledgement && is_tail_flit(flit_in_if[i].flit[0])) ? '1 : '0;
 
     assign  route       = (start_of_packet) ? route_next : route_latched;
     assign  route_next  = select_route(flit_in_if[i].flit[0], i_id_x, i_id_y);

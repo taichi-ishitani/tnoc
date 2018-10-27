@@ -11,6 +11,10 @@ module tnoc_vc_selector
   tnoc_flit_if.target     flit_in_if,
   tnoc_flit_if.initiator  flit_out_if
 );
+  `include  "tnoc_packet.svh"
+  `include  "tnoc_flit.svh"
+  `include  "tnoc_flit_utils.svh"
+
   localparam  int CHANNELS  = CONFIG.virtual_channels;
 
   tnoc_flit_if #(CONFIG, 1) flit_fifo_in_if[CHANNELS]();
@@ -43,8 +47,8 @@ module tnoc_vc_selector
   logic [CHANNELS-1:0]  vc_free;
 
   for (genvar i = 0;i < CHANNELS;++i) begin
-    assign  vc_request[i] = flit_fifo_out_if[i].valid;
-    assign  vc_free[i]    = (flit_fifo_out_if[i].flit[0].tail) ? flit_fifo_out_if[i].valid & flit_fifo_out_if[i].ready : '0;
+    assign  vc_request[i] = (flit_fifo_out_if[i].valid           && is_head_flit(flit_fifo_out_if[i].flit[0])) ? '1 : '0;
+    assign  vc_free[i]    = (flit_fifo_out_if[i].acknowledgement && is_tail_flit(flit_fifo_out_if[i].flit[0])) ? '1 : '0;
   end
 
   tbcm_round_robin_arbiter #(

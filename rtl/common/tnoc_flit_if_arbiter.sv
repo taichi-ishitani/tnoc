@@ -57,12 +57,8 @@ module tnoc_flit_if_arbiter
 
     for (genvar j = 0;j < ENTRIES;++j) begin : g
       localparam  int IF_INDEX  = ENTRIES*i+j;
-      assign  request[j]  = (
-        (flit_in[IF_INDEX].valid != '0) && is_header_flit(flit_in[IF_INDEX].flit[0])
-      ) ? '1 : '0;
-      assign  free[j] = (
-        (flit_in[IF_INDEX].acknowledgement != '0) && is_tail_flit(flit_in[IF_INDEX].flit[0])
-      ) ? '1 : '0;
+      assign  request[j]  = ((flit_in[IF_INDEX].valid           != '0) && is_head_flit(flit_in[IF_INDEX].flit[0])) ? '1 : '0;
+      assign  free[j]     = ((flit_in[IF_INDEX].acknowledgement != '0) && is_tail_flit(flit_in[IF_INDEX].flit[0])) ? '1 : '0;
     end
 
     tbcm_round_robin_arbiter #(

@@ -10,12 +10,16 @@ interface tnoc_bfm_flit_if (
   bit           ready;
   tnoc_bfm_flit flit;
   bit           vc_available;
+  bit           acknowledgement;
+
+  assign  acknowledgement = (valid && ready) ? '1 : '0;
 
   clocking master_cb @(posedge clk);
     output  valid;
     input   ready;
     output  flit;
     input   vc_available;
+    input   acknowledgement;
   endclocking
 
   clocking slave_cb @(posedge clk);
@@ -23,6 +27,7 @@ interface tnoc_bfm_flit_if (
     output  ready;
     input   flit;
     output  vc_available;
+    input   acknowledgement;
   endclocking
 
   clocking monitor_cb @(posedge clk);
@@ -30,20 +35,23 @@ interface tnoc_bfm_flit_if (
     input ready;
     input flit;
     input vc_available;
+    input acknowledgement;
   endclocking
 
   modport initiator(
     output  valid,
     input   ready,
     output  flit,
-    input   vc_available
+    input   vc_available,
+    input   acknowledgement
   );
 
   modport target(
     input   valid,
     output  ready,
     input   flit,
-    output  vc_available
+    output  vc_available,
+    input   acknowledgement
   );
 endinterface
 `endif

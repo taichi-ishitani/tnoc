@@ -98,7 +98,7 @@ module tnoc_flit_if_fifo
     assign  push            = |flit_in_if.valid;
     assign  push_data.valid = flit_in_if.valid;
     assign  push_data.flit  = flit_in_if.flit[0];
-    assign  pop             = |(flit_out_if.valid & flit_out_if.ready);
+    assign  pop             = |flit_out_if.acknowledgement;
 
     tbcm_fifo #(
       .DATA_TYPE    (s_fifo_data  ),

@@ -50,7 +50,7 @@ interface tnoc_flit_if
     localparam  int FLIT_INDEX  = (is_local_port(PORT_TYPE)) ? i : 0;
     tnoc_common_header  header  = '0;
     always @* begin
-      if (valid[i] && ready[i] && is_header_flit(flit[FLIT_INDEX])) begin
+      if (acknowledgement[i] && is_header_flit(flit[FLIT_INDEX])) begin
         header  = get_common_header(flit[FLIT_INDEX]);
       end
     end
