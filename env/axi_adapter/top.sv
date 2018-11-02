@@ -27,6 +27,7 @@ module top();
     size_y:           2,
     error_data:       TNOC_DEFAULT_CONFIG.error_data
   };
+  localparam  int DATA_WIDTH  = CONFIG.data_width;
 
   bit clk = 0;
   initial begin
@@ -67,30 +68,14 @@ module top();
 //--------------------------------------------------------------
 //  Flit IF Connections
 //--------------------------------------------------------------
-  localparam  int BFM_IFS = 6 * CONFIG.virtual_channels;
-
-  tnoc_bfm_flit_if  flit_tx_if[BFM_IFS](clk, rst_n);
   tnoc_bfm_flit_vif flit_tx_vif[int][int];
-
-  tnoc_bfm_flit_if  flit_rx_if[BFM_IFS](clk, rst_n);
   tnoc_bfm_flit_vif flit_rx_vif[int][int];
-
-  tnoc_flit_array_if_connector #(
-    .CONFIG       (CONFIG ),
-    .IFS          (6      ),
-    .ACTIVE_MODE  (0      )
-  ) u_flit_if_connector (
-    .flit_in_if       (u_dut_wrapper.adapter_to_fabric_if ),
-    .flit_out_if      (u_dut_wrapper.fabric_to_adapter_if ),
-    .flit_bfm_in_if   (flit_tx_if                         ),
-    .flit_bfm_out_if  (flit_rx_if                         )
-  );
 
   for (genvar i = 0;i < 6;++i) begin
     for (genvar j = 0;j < CONFIG.virtual_channels;++j) begin
       initial begin
-        flit_tx_vif[i][j] = flit_tx_if[CONFIG.virtual_channels*i+j];
-        flit_rx_vif[i][j] = flit_rx_if[CONFIG.virtual_channels*i+j];
+        flit_tx_vif[i][j] = u_dut_wrapper.flit_tx_if[CONFIG.virtual_channels*i+j];
+        flit_rx_vif[i][j] = u_dut_wrapper.flit_rx_if[CONFIG.virtual_channels*i+j];
       end
     end
   end
@@ -187,7 +172,7 @@ module top();
         fabric_env_cfg.bfm_cfg[i].tags             == CONFIG.tags;
         fabric_env_cfg.bfm_cfg[i].max_burst_length == CONFIG.max_burst_length;
       }
-      fabric_env_cfg.error_data == CONFIG.error_data[CONFIG.data_width-1:0];
+      fabric_env_cfg.error_data == CONFIG.error_data[DATA_WIDTH-1:0];
     });
     return cfg;
   endfunction

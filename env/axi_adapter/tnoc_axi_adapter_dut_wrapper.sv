@@ -17,8 +17,23 @@ module tnoc_axi_adapter_dut_wrapper
 
   `include  "tnoc_packet.svh"
 
+  localparam  int BFM_IFS = 6 * CONFIG.virtual_channels;
+  tnoc_bfm_flit_if  flit_tx_if[BFM_IFS](clk, rst_n);
+  tnoc_bfm_flit_if  flit_rx_if[BFM_IFS](clk, rst_n);
+  
   tnoc_flit_if #(CONFIG)  adapter_to_fabric_if[6]();
   tnoc_flit_if #(CONFIG)  fabric_to_adapter_if[6]();
+
+  tnoc_flit_array_if_connector #(
+    .CONFIG       (CONFIG ),
+    .IFS          (6      ),
+    .ACTIVE_MODE  (0      )
+  ) u_flit_if_connector (
+    .flit_in_if       (adapter_to_fabric_if ),
+    .flit_out_if      (fabric_to_adapter_if ),
+    .flit_bfm_in_if   (flit_tx_if           ),
+    .flit_bfm_out_if  (flit_rx_if           )
+  );
 
   logic [TNOC_VC_WIDTH-1:0] write_vc[6];
   tnoc_routing_mode         write_routing_mode[6];
