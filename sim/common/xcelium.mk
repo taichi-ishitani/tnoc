@@ -37,6 +37,15 @@ XMSIM_ARGS	+= +UVM_TIMEOUT=$(TIMEOUT),NO
 XMSIM_ARGS	+= +UVM_MAX_QUIT_COUNT=$(MAX_ERROR_COUNT),NO
 XMSIM_ARGS	+= -l xmsim.log
 
+ifeq ($(GUI), indago)
+	XMVLOG_ARGS	+= -classlinedebug
+	XMELAB_ARGS	+= -xmdebug
+	XMELAB_ARGS	+= -lwdgen
+	XMSIM_ARGS	+= -mcdump
+	XMSIM_ARGS	+= -gui -indago
+	XMSIM_ARGS	+= -input @"ida_probe -log"
+	XMSIM_ARGS	+= -input @"ida_probe -wave -wave_probe_args=\"-all -depth to_cells\""
+endif
 ifeq ($(GUI), simvision)
 	XMVLOG_ARGS	+= -classlinedebug
 	XMELAB_ARGS	+= -xmdebug
@@ -81,24 +90,15 @@ XMVLOG_ARGS	+= $(addprefix +define+, $(DEFINES))
 XMVLOG_ARGS	+= $(addprefix -f , $(FILE_LISTS))
 XMVLOG_ARGS	+= $(SOURCE_FILES)
 
-.PHONY:	run_xmvlog run_xmelab run_xmsim generate_simulation_snapshot run_xcelium_simulation
+.PHONY: compile_xcelium_sim run_xcelium_simulation
 
-run_xmvlog:
+compile_xcelium_simulation:
 	xrun $(XRUN_COMMON_ARGS) $(XMVLOG_ARGS)
-
-run_xmelab:
 	xrun $(XRUN_COMMON_ARGS) $(XMELAB_ARGS)
 
-run_xmsim:
-	xrun $(XRUN_COMMON_ARGS) $(XMSIM_ARGS)
-
-generate_simulation_snapshot:
-	make run_xmvlog
-	make run_xmelab
-
 run_xcelium_simulation:
-	xmls -64bit -nolog -snapshot | grep SSS || make generate_simulation_snapshot
+	xmls -64bit -nolog -snapshot | grep SSS || make compile_xcelium_simulation
 	if [ ! -d $(TEST_NAME) ] ; then \
 		mkdir $(TEST_NAME); \
 	fi
-	cd $(TEST_NAME); make -f ../makefile run_xmsim
+	cd $(TEST_NAME); xrun $(XRUN_COMMON_ARGS) $(XMSIM_ARGS)
