@@ -13,7 +13,7 @@ SIMV_ARGS	+= +UVM_TIMEOUT=$(TIMEOUT),NO
 SIMV_ARGS	+= +UVM_MAX_QUIT_COUNT=$(MAX_ERROR_COUNT),NO
 
 ifeq ($(GUI), verdi)
-	VCS_ARGS	+= -lca -debug_access+all -kdb +vcs+fsdbon
+	VCS_ARGS	+= -debug_access+all -kdb +vcs+fsdbon
 	SIMV_ARGS	+= -gui=verdi +fsdb+struct=on
 	ifeq ($(TR_DEBUG), on)
 		SIMV_ARGS	+= +UVM_VERDI_TRACE +UVM_TR_RECORD
@@ -25,7 +25,7 @@ ifeq ($(GUI), dve)
 endif
 
 ifeq ($(DUMP), fsdb)
-	VCS_ARGS	+= -lca -debug_access -kdb +vcs+fsdbon
+	VCS_ARGS	+= -debug_access -kdb +vcs+fsdbon
 	SIMV_ARGS	+= +fsdb+struct=on +fsdbfile+dump.fsdb
 endif
 ifeq ($(DUMP), vpd)
