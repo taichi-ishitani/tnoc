@@ -16,13 +16,10 @@ class tnoc_axi_adapter_sample_test_sequence extends tnoc_axi_adapter_test_sequen
     tvip_axi_master_sequencer sequencer;
     sequencer = p_sequencer.axi_master_sequencer[y][x];
     for (int i = 0;i < 30;++i) begin
-      tvip_axi_master_access_sequence write_sequence;
-      tvip_axi_master_access_sequence read_sequence;
-      `uvm_do_on_with(write_sequence, sequencer, {
-        access_type == TVIP_AXI_WRITE_ACCESS;
-      })
+      tvip_axi_master_write_sequence  write_sequence;
+      tvip_axi_master_read_sequence   read_sequence;
+      `uvm_do_on(write_sequence, sequencer)
       `uvm_do_on_with(read_sequence, sequencer, {
-        access_type  == TVIP_AXI_READ_ACCESS;
         address      == write_sequence.address;
         burst_size   == write_sequence.burst_size;
         burst_length == write_sequence.burst_length;

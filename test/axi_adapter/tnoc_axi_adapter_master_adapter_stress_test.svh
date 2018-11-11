@@ -21,14 +21,12 @@ class tnoc_axi_adapter_master_adapter_stress_test_sequence extends tnoc_axi_adap
     sequencer = p_sequencer.axi_master_sequencer[y][x];
     axi_cfg   = sequencer.get_configuration();
     for (int i = 0;i < 20;++i) begin
-      tvip_axi_master_access_sequence write_sequence;
-      tvip_axi_master_access_sequence read_sequence;
+      tvip_axi_master_write_sequence  write_sequence;
+      tvip_axi_master_read_sequence   read_sequence;
       `uvm_do_on_with(write_sequence, sequencer, {
-        access_type                         == TVIP_AXI_WRITE_ACCESS;
         address[axi_cfg.address_width-2+:2] == master_index;
       })
       `uvm_do_on_with(read_sequence, sequencer, {
-        access_type  == TVIP_AXI_READ_ACCESS;
         address      == write_sequence.address;
         burst_size   == write_sequence.burst_size;
         burst_length == write_sequence.burst_length;
