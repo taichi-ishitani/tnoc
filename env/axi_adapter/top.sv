@@ -103,23 +103,23 @@ module top();
         axi_master_cfg[i].max_burst_length == CONFIG.max_burst_length;
         axi_master_cfg[i].data_width       == CONFIG.data_width;
 
-        axi_master_cfg[i].min_write_data_delay                          == 0;
-        axi_master_cfg[i].max_write_data_delay                          == 10;
-        axi_master_cfg[i].write_data_delay_weight[TVIP_AXI_ZERO_DELAY ] == 17;
-        axi_master_cfg[i].write_data_delay_weight[TVIP_AXI_SHORT_DELAY] == 2;
-        axi_master_cfg[i].write_data_delay_weight[TVIP_AXI_LONG_DELAY ] == 1;
+        axi_master_cfg[i].write_data_delay.min_delay          == 0;
+        axi_master_cfg[i].write_data_delay.max_delay          == 10;
+        axi_master_cfg[i].write_data_delay.weight_zero_delay  == 17;
+        axi_master_cfg[i].write_data_delay.weight_short_delay == 2;
+        axi_master_cfg[i].write_data_delay.weight_long_delay  == 1;
 
-        axi_master_cfg[i].min_bready_delay                          == 0;
-        axi_master_cfg[i].max_bready_delay                          == 10;
-        axi_master_cfg[i].bready_delay_weight[TVIP_AXI_ZERO_DELAY ] == 7;
-        axi_master_cfg[i].bready_delay_weight[TVIP_AXI_SHORT_DELAY] == 2;
-        axi_master_cfg[i].bready_delay_weight[TVIP_AXI_LONG_DELAY ] == 1;
+        axi_master_cfg[i].bready_delay.min_delay          == 0;
+        axi_master_cfg[i].bready_delay.max_delay          == 10;
+        axi_master_cfg[i].bready_delay.weight_zero_delay  == 7;
+        axi_master_cfg[i].bready_delay.weight_short_delay == 2;
+        axi_master_cfg[i].bready_delay.weight_long_delay  == 1;
 
-        axi_master_cfg[i].min_rready_delay                          == 0;
-        axi_master_cfg[i].max_rready_delay                          == 10;
-        axi_master_cfg[i].rready_delay_weight[TVIP_AXI_ZERO_DELAY ] == 7;
-        axi_master_cfg[i].rready_delay_weight[TVIP_AXI_SHORT_DELAY] == 2;
-        axi_master_cfg[i].rready_delay_weight[TVIP_AXI_LONG_DELAY ] == 1;
+        axi_master_cfg[i].rready_delay.min_delay          == 0;
+        axi_master_cfg[i].rready_delay.max_delay          == 10;
+        axi_master_cfg[i].rready_delay.weight_zero_delay  == 7;
+        axi_master_cfg[i].rready_delay.weight_short_delay == 2;
+        axi_master_cfg[i].rready_delay.weight_long_delay  == 1;
       }
       foreach (axi_slave_cfg[i]) {
         axi_slave_cfg[i].id_width         == (CONFIG.id_x_width + CONFIG.id_y_width + $clog2(CONFIG.tags));
@@ -127,35 +127,35 @@ module top();
         axi_slave_cfg[i].max_burst_length == CONFIG.max_burst_length;
         axi_slave_cfg[i].data_width       == CONFIG.data_width;
 
-        axi_slave_cfg[i].min_response_start_delay                          == 0;
-        axi_slave_cfg[i].max_response_start_delay                          == 10;
-        axi_slave_cfg[i].response_start_delay_weight[TVIP_AXI_ZERO_DELAY ] == 7;
-        axi_slave_cfg[i].response_start_delay_weight[TVIP_AXI_SHORT_DELAY] == 2;
-        axi_slave_cfg[i].response_start_delay_weight[TVIP_AXI_LONG_DELAY ] == 1;
+        axi_slave_cfg[i].response_start_delay.min_delay          == 0;
+        axi_slave_cfg[i].response_start_delay.max_delay          == 10;
+        axi_slave_cfg[i].response_start_delay.weight_zero_delay  == 7;
+        axi_slave_cfg[i].response_start_delay.weight_short_delay == 2;
+        axi_slave_cfg[i].response_start_delay.weight_long_delay  == 1;
 
-        axi_slave_cfg[i].min_response_delay                          == 0;
-        axi_slave_cfg[i].max_response_delay                          == 10;
-        axi_slave_cfg[i].response_delay_weight[TVIP_AXI_ZERO_DELAY ] == 17;
-        axi_slave_cfg[i].response_delay_weight[TVIP_AXI_SHORT_DELAY] == 2;
-        axi_slave_cfg[i].response_delay_weight[TVIP_AXI_LONG_DELAY ] == 1;
+        axi_slave_cfg[i].response_delay.min_delay          == 0;
+        axi_slave_cfg[i].response_delay.max_delay          == 10;
+        axi_slave_cfg[i].response_delay.weight_zero_delay  == 17;
+        axi_slave_cfg[i].response_delay.weight_short_delay == 2;
+        axi_slave_cfg[i].response_delay.weight_long_delay  == 1;
 
-        axi_slave_cfg[i].min_awready_delay                          == 0;
-        axi_slave_cfg[i].max_awready_delay                          == 10;
-        axi_slave_cfg[i].awready_delay_weight[TVIP_AXI_ZERO_DELAY ] == 7;
-        axi_slave_cfg[i].awready_delay_weight[TVIP_AXI_SHORT_DELAY] == 2;
-        axi_slave_cfg[i].awready_delay_weight[TVIP_AXI_LONG_DELAY ] == 1;
+        axi_slave_cfg[i].awready_delay.min_delay          == 0;
+        axi_slave_cfg[i].awready_delay.max_delay          == 10;
+        axi_slave_cfg[i].awready_delay.weight_zero_delay  == 7;
+        axi_slave_cfg[i].awready_delay.weight_short_delay == 2;
+        axi_slave_cfg[i].awready_delay.weight_long_delay  == 1;
 
-        axi_slave_cfg[i].min_wready_delay                          == 0;
-        axi_slave_cfg[i].max_wready_delay                          == 10;
-        axi_slave_cfg[i].wready_delay_weight[TVIP_AXI_ZERO_DELAY ] == 7;
-        axi_slave_cfg[i].wready_delay_weight[TVIP_AXI_SHORT_DELAY] == 2;
-        axi_slave_cfg[i].wready_delay_weight[TVIP_AXI_LONG_DELAY ] == 1;
+        axi_slave_cfg[i].wready_delay.min_delay          == 0;
+        axi_slave_cfg[i].wready_delay.max_delay          == 10;
+        axi_slave_cfg[i].wready_delay.weight_zero_delay  == 7;
+        axi_slave_cfg[i].wready_delay.weight_short_delay == 2;
+        axi_slave_cfg[i].wready_delay.weight_long_delay  == 1;
 
-        axi_slave_cfg[i].min_arready_delay                          == 0;
-        axi_slave_cfg[i].max_arready_delay                          == 10;
-        axi_slave_cfg[i].arready_delay_weight[TVIP_AXI_ZERO_DELAY ] == 7;
-        axi_slave_cfg[i].arready_delay_weight[TVIP_AXI_SHORT_DELAY] == 2;
-        axi_slave_cfg[i].arready_delay_weight[TVIP_AXI_LONG_DELAY ] == 1;
+        axi_slave_cfg[i].arready_delay.min_delay          == 0;
+        axi_slave_cfg[i].arready_delay.max_delay          == 10;
+        axi_slave_cfg[i].arready_delay.weight_zero_delay  == 7;
+        axi_slave_cfg[i].arready_delay.weight_short_delay == 2;
+        axi_slave_cfg[i].arready_delay.weight_long_delay  == 1;
 
         if (i == 5) {
           axi_slave_cfg[i].response_ordering == TVIP_AXI_OUT_OF_ORDER;
