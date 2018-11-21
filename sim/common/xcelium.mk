@@ -21,6 +21,7 @@ XMELAB_ARGS	+= -uvmhome CDNS-$(UVM_VERSION)
 XMELAB_ARGS	+= -uvmnoautocompile
 XMELAB_ARGS	+= -nxmbind
 XMELAB_ARGS	+= -newperf
+XMELAB_ARGS	+= -plusperf
 XMELAB_ARGS	+= -mccodegen
 XMELAB_ARGS	+= -timescale '1ns/1ps'
 XMELAB_ARGS	+= -top worklib.$(TOP_MODULE)
