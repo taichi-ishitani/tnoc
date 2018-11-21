@@ -20,7 +20,7 @@ module tnoc_axi_adapter_dut_wrapper
   localparam  int BFM_IFS = 6 * CONFIG.virtual_channels;
   tnoc_bfm_flit_if  flit_tx_if[BFM_IFS](clk, rst_n);
   tnoc_bfm_flit_if  flit_rx_if[BFM_IFS](clk, rst_n);
-  
+
   tnoc_flit_if #(CONFIG)  adapter_to_fabric_if[6]();
   tnoc_flit_if #(CONFIG)  fabric_to_adapter_if[6]();
 
