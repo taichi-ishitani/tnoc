@@ -3,6 +3,8 @@
 
 `define tnoc_array_slicer(ARRAY, INDEX, ELEMENTS) ARRAY[INDEX*ELEMENTS:(INDEX+1)*ELEMENTS-1]
 
+`define tnoc_flit_ack(FLIT_IF)  (FLIT_IF.valid & FLIT_IF.ready)
+
 `define tnoc_internal_flit_if(channel) \
 tnoc_flit_if #(CONFIG, channel, TNOC_INTERNAL_PORT)
 

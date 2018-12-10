@@ -16,32 +16,26 @@ interface tnoc_flit_if
   logic [CHANNELS-1:0]  ready;
   tnoc_flit             flit[FLITS];
   logic [CHANNELS-1:0]  vc_available;
-  logic [CHANNELS-1:0]  acknowledgement;
-
-  assign  acknowledgement = valid & ready;
 
   modport initiator (
     output  valid,
     input   ready,
     output  flit,
-    input   vc_available,
-    input   acknowledgement
+    input   vc_available
   );
 
   modport target (
     input   valid,
     output  ready,
     input   flit,
-    output  vc_available,
-    input   acknowledgement
+    output  vc_available
   );
 
   modport monitor (
     input valid,
     input ready,
     input flit,
-    input vc_available,
-    input acknowledgement
+    input vc_available
   );
 
 `ifndef SYNTHESIS
@@ -50,7 +44,7 @@ interface tnoc_flit_if
     localparam  int FLIT_INDEX  = (is_local_port(PORT_TYPE)) ? i : 0;
     tnoc_common_header  header  = '0;
     always @* begin
-      if (acknowledgement[i] && is_header_flit(flit[FLIT_INDEX])) begin
+      if (valid[i] && ready[i] && is_header_flit(flit[FLIT_INDEX])) begin
         header  = get_common_header(flit[FLIT_INDEX]);
       end
     end

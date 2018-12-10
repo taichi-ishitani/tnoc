@@ -11,6 +11,7 @@ module tnoc_vc_selector
   tnoc_flit_if.target     flit_in_if,
   tnoc_flit_if.initiator  flit_out_if
 );
+  `include  "tnoc_macros.svh"
   `include  "tnoc_packet.svh"
   `include  "tnoc_flit.svh"
   `include  "tnoc_flit_utils.svh"
@@ -48,7 +49,7 @@ module tnoc_vc_selector
 
   for (genvar i = 0;i < CHANNELS;++i) begin
     assign  vc_request[i] = (flit_fifo_out_if[i].valid           && is_head_flit(flit_fifo_out_if[i].flit[0])) ? '1 : '0;
-    assign  vc_free[i]    = (flit_fifo_out_if[i].acknowledgement && is_tail_flit(flit_fifo_out_if[i].flit[0])) ? '1 : '0;
+    assign  vc_free[i]    = (`tnoc_flit_ack(flit_fifo_out_if[i]) && is_tail_flit(flit_fifo_out_if[i].flit[0])) ? '1 : '0;
   end
 
   tbcm_round_robin_arbiter #(
