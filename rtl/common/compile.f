@@ -14,3 +14,4 @@ ${TNOC_HOME}/rtl/common/tnoc_vc_selector.sv
 ${TNOC_HOME}/rtl/common/tnoc_packet_if.sv
 ${TNOC_HOME}/rtl/common/tnoc_packet_packer.sv
 ${TNOC_HOME}/rtl/common/tnoc_packet_unpacker.sv
+${TNOC_HOME}/rtl/common/tnoc_address_decoder_if.sv
