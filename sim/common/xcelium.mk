@@ -20,8 +20,8 @@ XMELAB_ARGS	+= -elaborate
 XMELAB_ARGS	+= -uvmhome CDNS-$(UVM_VERSION)
 XMELAB_ARGS	+= -uvmnoautocompile
 XMELAB_ARGS	+= -nxmbind
-XMELAB_ARGS	+= -newperf
 XMELAB_ARGS	+= -plusperf
+XMELAB_ARGS	+= -newperf
 XMELAB_ARGS	+= -mccodegen
 XMELAB_ARGS	+= -timescale '1ns/1ps'
 XMELAB_ARGS	+= -top worklib.$(TOP_MODULE)
@@ -66,7 +66,8 @@ ifeq ($(DUMP), ida)
 	XMSIM_ARGS	+= -input @"ida_probe -wave -wave_probe_args=\"-all -depth to_cells\""
 	ifeq ($(SV_DEBUG), on)
 		XMVLOG_ARGS	+= -classlinedebug
-		XMSIM_ARGS	+= -input @"ida_probe -sv_flow -ignore_sv_functions \"new is_* has_* get_* set_*\" -ignore_sv_files \"tnoc_*_item tue_* *_agent *_monitor *_driver cdns_*\""
+		XMSIM_ARGS	+= -input @"ida_probe -sv_flow -ignore_sv_files \"tnoc_*_item tvip_*_item tvip_axi_slave_default_sequence tvip_axi_memory tvip_axi_payload_store tue_* *_configuration *_agent *_monitor *_driver *_component_base *_agent_base *_driver_base *_monitor_base cdns_*\""
+		XMSIM_ARGS	+= -nowarn LMTMSG
 	endif
 	ifeq ($(TR_DEBUG), on)
 		XMSIM_ARGS	+= -input @"uvm_set -config * recording_detail UVM_FULL"
