@@ -16,7 +16,7 @@ module tnoc_vc_mux
     for (genvar i = 0;i < CHANNELS;++i) begin
       assign  flit_out_if.valid[i]        = flit_in_if[i].valid;
       assign  flit_in_if[i].ready         = flit_out_if.ready[i];
-      assign  flit_out_if.flit[i]         = flit_in_if[i].flit[0];
+      assign  flit_out_if.flit[i]         = flit_in_if[i].flit;
       assign  flit_in_if[i].vc_available  = flit_out_if.vc_available[i];
     end
   end
@@ -26,7 +26,7 @@ module tnoc_vc_mux
     for (genvar i = 0;i < CHANNELS;++i) begin
       assign  flit_out_if.valid[i]        = i_vc_grant[i] & flit_in_if[i].valid;
       assign  flit_in_if[i].ready         = i_vc_grant[i] & flit_out_if.ready[i];
-      assign  flit_in[i]                  = flit_in_if[i].flit[0];
+      assign  flit_in[i]                  = flit_in_if[i].flit;
       assign  flit_in_if[i].vc_available  = flit_out_if.vc_available[i];
     end
 
@@ -35,9 +35,9 @@ module tnoc_vc_mux
       .ENTRIES    (CHANNELS   ),
       .ONE_HOT    (1          )
     ) ttnoc_mux (
-      .i_select (i_vc_grant          ),
-      .i_data   (flit_in             ),
-      .o_data   (flit_out_if.flit[0] )
+      .i_select (i_vc_grant       ),
+      .i_data   (flit_in          ),
+      .o_data   (flit_out_if.flit )
     );
   end
 endmodule

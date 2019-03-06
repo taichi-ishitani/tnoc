@@ -48,8 +48,8 @@ module tnoc_vc_selector
   logic [CHANNELS-1:0]  vc_free;
 
   for (genvar i = 0;i < CHANNELS;++i) begin
-    assign  vc_request[i] = (flit_fifo_out_if[i].valid           && is_head_flit(flit_fifo_out_if[i].flit[0])) ? '1 : '0;
-    assign  vc_free[i]    = (`tnoc_flit_ack(flit_fifo_out_if[i]) && is_tail_flit(flit_fifo_out_if[i].flit[0])) ? '1 : '0;
+    assign  vc_request[i] = (flit_fifo_out_if[i].valid           && is_head_flit(flit_fifo_out_if[i].flit)) ? '1 : '0;
+    assign  vc_free[i]    = (`tnoc_flit_ack(flit_fifo_out_if[i]) && is_tail_flit(flit_fifo_out_if[i].flit)) ? '1 : '0;
   end
 
   tbcm_round_robin_arbiter #(

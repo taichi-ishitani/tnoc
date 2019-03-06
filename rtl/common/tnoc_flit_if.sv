@@ -12,10 +12,10 @@ interface tnoc_flit_if
 
   localparam  int FLITS = (is_local_port(PORT_TYPE)) ? CHANNELS : 1;
 
-  logic [CHANNELS-1:0]  valid;
-  logic [CHANNELS-1:0]  ready;
-  tnoc_flit             flit[FLITS];
-  logic [CHANNELS-1:0]  vc_available;
+  logic     [CHANNELS-1:0]  valid;
+  logic     [CHANNELS-1:0]  ready;
+  tnoc_flit [FLITS-1:0]     flit;
+  logic     [CHANNELS-1:0]  vc_available;
 
   modport initiator (
     output  valid,

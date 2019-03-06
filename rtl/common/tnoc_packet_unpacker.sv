@@ -48,7 +48,7 @@ module tnoc_packet_unpacker
 
   assign  flit_valid            = flit_if.valid;
   assign  flit_if.ready         = flit_ready;
-  assign  flit                  = flit_if.flit[0];
+  assign  flit                  = flit_if.flit;
   assign  flit_if.vc_available  = '1;
   assign  header_flit_valid     = (is_header_flit(flit) ) ? flit_valid        : '0;
   assign  payload_flit_valid    = (is_payload_flit(flit)) ? flit_valid        : '0;

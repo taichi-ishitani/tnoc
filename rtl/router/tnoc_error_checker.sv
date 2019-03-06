@@ -17,7 +17,7 @@ module tnoc_error_checker
   tnoc_flit           flit;
   tnoc_common_header  common_header;
 
-  assign  flit          = flit_in_if.flit[0];
+  assign  flit          = flit_in_if.flit;
   assign  common_header = get_common_header(flit);
 
 //--------------------------------------------------------------
@@ -114,7 +114,7 @@ module tnoc_error_checker
   logic end_of_error_request;
 
   assign  start_of_error_request  = (start_of_packet && invalid_destination) ? '1 : '0;
-  assign  end_of_error_request    = (`tnoc_flit_ack(flit_demux_out_if[1]) && is_tail_flit(flit_demux_out_if[1].flit[0])) ? '1 : '0;
+  assign  end_of_error_request    = (`tnoc_flit_ack(flit_demux_out_if[1]) && is_tail_flit(flit_demux_out_if[1].flit)) ? '1 : '0;
   always_ff @(posedge clk, negedge rst_n) begin
     if (!rst_n) begin
       error_route_busy[0] <= '0;
@@ -134,7 +134,7 @@ module tnoc_error_checker
     start_of_packet && invalid_destination && is_non_posted_request_packet_type(common_header.packet_type)
   ) ? '1 : '0;
   assign  end_of_error_response   = (
-    `tnoc_flit_ack(flit_mux_in_if[1]) && is_tail_flit(flit_mux_in_if[1].flit[0])
+    `tnoc_flit_ack(flit_mux_in_if[1]) && is_tail_flit(flit_mux_in_if[1].flit)
   ) ? '1 : '0;
   always_ff @(posedge clk, negedge rst_n) begin
     if (!rst_n) begin

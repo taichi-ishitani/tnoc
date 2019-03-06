@@ -73,16 +73,16 @@ module tnoc_flit_if_fifo
       .DATA_FF_OUT  (DATA_FF_OUT  ),
       .FLAG_FF_OUT  (1            )
     ) u_fifo (
-      .clk            (clk                  ),
-      .rst_n          (rst_n                ),
-      .i_clear        (i_clear              ),
-      .o_empty        (empty                ),
-      .o_almost_full  (almost_full          ),
-      .o_full         (full                 ),
-      .i_push         (flit_in_if.valid     ),
-      .i_data         (flit_in_if.flit[0]   ),
-      .i_pop          (flit_out_if.ready    ),
-      .o_data         (flit_out_if.flit[0]  )
+      .clk            (clk                ),
+      .rst_n          (rst_n              ),
+      .i_clear        (i_clear            ),
+      .o_empty        (empty              ),
+      .o_almost_full  (almost_full        ),
+      .o_full         (full               ),
+      .i_push         (flit_in_if.valid   ),
+      .i_data         (flit_in_if.flit    ),
+      .i_pop          (flit_out_if.ready  ),
+      .o_data         (flit_out_if.flit   )
     );
   end
   else begin : g_internal_port_vc_gt_1
@@ -94,11 +94,11 @@ module tnoc_flit_if_fifo
     assign  flit_in_if.ready        = {CHANNELS{~full       }};
     assign  flit_in_if.vc_available = {CHANNELS{~almost_full}};
     assign  flit_out_if.valid       = (!empty) ? pop_data.valid : '0;
-    assign  flit_out_if.flit[0]     = pop_data.flit;
+    assign  flit_out_if.flit        = pop_data.flit;
 
     assign  push            = |flit_in_if.valid;
     assign  push_data.valid = flit_in_if.valid;
-    assign  push_data.flit  = flit_in_if.flit[0];
+    assign  push_data.flit  = flit_in_if.flit;
     assign  pop             = |`tnoc_flit_ack(flit_out_if);
 
     tbcm_fifo #(

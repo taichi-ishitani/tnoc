@@ -32,35 +32,35 @@ module tnoc_axi_write_read_mux
   assign  read_flit_if.vc_available   = '1;
   for (genvar i = 0;i < CHANNELS;++i) begin
     if (WRITE_VC < 0) begin
-      assign  write_read_if[2*i+0].valid    = (i_write_vc == i) ? write_flit_if.valid        : '0;
-      assign  write_ready[i]                = (i_write_vc == i) ? write_read_if[2*i+0].ready : '0;
-      assign  write_read_if[2*i+0].flit[0]  = (i_write_vc == i) ? write_flit_if.flit[0]      : '0;
+      assign  write_read_if[2*i+0].valid  = (i_write_vc == i) ? write_flit_if.valid        : '0;
+      assign  write_ready[i]              = (i_write_vc == i) ? write_read_if[2*i+0].ready : '0;
+      assign  write_read_if[2*i+0].flit   = (i_write_vc == i) ? write_flit_if.flit         : '0;
     end
     else if (WRITE_VC == i) begin
-      assign  write_read_if[2*i+0].valid    = write_flit_if.valid;
-      assign  write_ready[i]                = write_read_if[2*i+0].ready;
-      assign  write_read_if[2*i+0].flit[0]  = write_flit_if.flit[0];
+      assign  write_read_if[2*i+0].valid  = write_flit_if.valid;
+      assign  write_ready[i]              = write_read_if[2*i+0].ready;
+      assign  write_read_if[2*i+0].flit   = write_flit_if.flit;
     end
     else begin
-      assign  write_read_if[2*i+0].valid    = '0;
-      assign  write_ready[i]                = '0;
-      assign  write_read_if[2*i+0].flit[0]  = '0;
+      assign  write_read_if[2*i+0].valid  = '0;
+      assign  write_ready[i]              = '0;
+      assign  write_read_if[2*i+0].flit   = '0;
     end
 
     if (READ_VC < 0) begin
-      assign  write_read_if[2*i+1].valid    = (i_read_vc == i) ? read_flit_if.valid         : '0;
-      assign  read_ready[i]                 = (i_read_vc == i) ? write_read_if[2*i+1].ready : '0;
-      assign  write_read_if[2*i+1].flit[0]  = (i_read_vc == i) ? read_flit_if.flit[0]       : '0;
+      assign  write_read_if[2*i+1].valid  = (i_read_vc == i) ? read_flit_if.valid         : '0;
+      assign  read_ready[i]               = (i_read_vc == i) ? write_read_if[2*i+1].ready : '0;
+      assign  write_read_if[2*i+1].flit   = (i_read_vc == i) ? read_flit_if.flit          : '0;
     end
     else if (READ_VC == i) begin
-      assign  write_read_if[2*i+1].valid    = read_flit_if.valid;
-      assign  read_ready[i]                 = write_read_if[2*i+1].ready;
-      assign  write_read_if[2*i+1].flit[0]  = read_flit_if.flit[0];
+      assign  write_read_if[2*i+1].valid  = read_flit_if.valid;
+      assign  read_ready[i]               = write_read_if[2*i+1].ready;
+      assign  write_read_if[2*i+1].flit   = read_flit_if.flit;
     end
     else begin
-      assign  write_read_if[2*i+1].valid    = '0;
-      assign  read_ready[i]                 = '0;
-      assign  write_read_if[2*i+1].flit[0]  = '0;
+      assign  write_read_if[2*i+1].valid  = '0;
+      assign  read_ready[i]               = '0;
+      assign  write_read_if[2*i+1].flit   = '0;
     end
   end
 

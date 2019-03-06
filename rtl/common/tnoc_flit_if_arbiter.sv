@@ -32,13 +32,13 @@ module tnoc_flit_if_arbiter
       for (genvar j = 0;j < ENTRIES;++j) begin : g
         assign  flit_in[ENTRIES*i+j].valid    = flit_in_if[j].valid[i];
         assign  flit_in_if[j].ready[i]        = flit_in[ENTRIES*i+j].ready;
-        assign  flit_in[ENTRIES*i+j].flit[0]  = flit_in_if[j].flit[i];
+        assign  flit_in[ENTRIES*i+j].flit     = flit_in_if[j].flit[i];
         assign  flit_in_if[j].vc_available[i] = flit_in[ENTRIES*i+j].vc_available;
       end
 
       assign  flit_out_if.valid[i]      = flit_out[i].valid;
       assign  flit_out[i].ready         = flit_out_if.ready[i];
-      assign  flit_out_if.flit[i]       = flit_out[i].flit[0];
+      assign  flit_out_if.flit[i]       = flit_out[i].flit;
       assign  flit_out[i].vc_available  = flit_out_if.vc_available[i];
     end
   end
@@ -57,8 +57,8 @@ module tnoc_flit_if_arbiter
 
     for (genvar j = 0;j < ENTRIES;++j) begin : g
       localparam  int IF_INDEX  = ENTRIES*i+j;
-      assign  request[j]  = ((flit_in[IF_INDEX].valid           != '0) && is_head_flit(flit_in[IF_INDEX].flit[0])) ? '1 : '0;
-      assign  free[j]     = ((`tnoc_flit_ack(flit_in[IF_INDEX]) != '0) && is_tail_flit(flit_in[IF_INDEX].flit[0])) ? '1 : '0;
+      assign  request[j]  = ((flit_in[IF_INDEX].valid           != '0) && is_head_flit(flit_in[IF_INDEX].flit)) ? '1 : '0;
+      assign  free[j]     = ((`tnoc_flit_ack(flit_in[IF_INDEX]) != '0) && is_tail_flit(flit_in[IF_INDEX].flit)) ? '1 : '0;
     end
 
     tbcm_round_robin_arbiter #(

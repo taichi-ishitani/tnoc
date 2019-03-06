@@ -63,10 +63,10 @@ module tnoc_axi_write_read_demux
       end
     end
 
-    assign  write_read_if[0*CHANNELS+i].valid   = (route[0]) ? fifo_out_if.valid[i] : '0;
-    assign  write_read_if[0*CHANNELS+i].flit[0] = (route[0]) ? fifo_out_if.flit[i]  : '0;
-    assign  write_read_if[1*CHANNELS+i].valid   = (route[1]) ? fifo_out_if.valid[i] : '0;
-    assign  write_read_if[1*CHANNELS+i].flit[0] = (route[1]) ? fifo_out_if.flit[i]  : '0;
+    assign  write_read_if[0*CHANNELS+i].valid = (route[0]) ? fifo_out_if.valid[i] : '0;
+    assign  write_read_if[0*CHANNELS+i].flit  = (route[0]) ? fifo_out_if.flit[i]  : '0;
+    assign  write_read_if[1*CHANNELS+i].valid = (route[1]) ? fifo_out_if.valid[i] : '0;
+    assign  write_read_if[1*CHANNELS+i].flit  = (route[1]) ? fifo_out_if.flit[i]  : '0;
 
     assign  fifo_out_if.ready[i]        = (route[0]) ? write_read_if[0*CHANNELS+i].ready
                                         : (route[1]) ? write_read_if[1*CHANNELS+i].ready : '1;

@@ -24,10 +24,10 @@ module tnoc_output_block
   if (is_local_port(PORT_TYPE)) begin
     for (genvar i = 0;i < CHANNELS;++i) begin
       for (genvar j = 0;j < 5;++j) begin
-        assign  flit_switch_in_if[5*i+j].valid    = flit_in_if[j].valid[i];
-        assign  flit_in_if[j].ready[i]            = flit_switch_in_if[5*i+j].ready;
-        assign  flit_switch_in_if[5*i+j].flit[0]  = flit_in_if[j].flit[0];
-        assign  flit_in_if[j].vc_available[i]     = flit_switch_in_if[5*i+j].vc_available;
+        assign  flit_switch_in_if[5*i+j].valid  = flit_in_if[j].valid[i];
+        assign  flit_in_if[j].ready[i]          = flit_switch_in_if[5*i+j].ready;
+        assign  flit_switch_in_if[5*i+j].flit   = flit_in_if[j].flit;
+        assign  flit_in_if[j].vc_available[i]   = flit_switch_in_if[5*i+j].vc_available;
       end
     end
   end
