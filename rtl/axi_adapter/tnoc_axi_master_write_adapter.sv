@@ -17,9 +17,10 @@ module tnoc_axi_master_write_adapter
   tnoc_flit_if.target           flit_in_if
 );
   import  tnoc_axi_types_pkg::*;
-  `include  "tnoc_packet.svh"
+  `include  "tnoc_packet_flit_macros.svh"
   `include  "tnoc_axi_macros.svh"
 
+  `tnoc_define_packet_and_flit(CONFIG)
   `tnoc_axi_define_types(CONFIG)
 
 //--------------------------------------------------------------

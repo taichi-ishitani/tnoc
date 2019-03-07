@@ -1,11 +1,13 @@
 module tnoc_input_block
   `include  "tnoc_default_imports.svh"
 #(
-  parameter   tnoc_config     CONFIG          = TNOC_DEFAULT_CONFIG,
-  parameter   tnoc_port_type  PORT_TYPE       = TNOC_LOCAL_PORT,
-  parameter   bit [4:0]       AVAILABLE_PORTS = 5'b11111,
-  localparam  int             ID_X_WIDTH      = CONFIG.id_x_width,
-  localparam  int             ID_Y_WIDTH      = CONFIG.id_y_width
+  parameter
+    tnoc_config     CONFIG          = TNOC_DEFAULT_CONFIG,
+    tnoc_port_type  PORT_TYPE       = TNOC_LOCAL_PORT,
+    bit [4:0]       AVAILABLE_PORTS = 5'b11111,
+  localparam
+    int             ID_X_WIDTH      = CONFIG.id_x_width,
+    int             ID_Y_WIDTH      = CONFIG.id_y_width
 )(
   input logic                     clk,
   input logic                     rst_n,

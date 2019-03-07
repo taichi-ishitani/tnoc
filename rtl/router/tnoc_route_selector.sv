@@ -1,11 +1,13 @@
 module tnoc_route_selector
   `include  "tnoc_default_imports.svh"
 #(
-  parameter   tnoc_config CONFIG          = TNOC_DEFAULT_CONFIG,
-  parameter   bit [4:0]   AVAILABLE_PORTS = 5'b11111,
-  localparam  int         CHANNELS        = CONFIG.virtual_channels,
-  localparam  int         ID_X_WIDTH      = CONFIG.id_x_width,
-  localparam  int         ID_Y_WIDTH      = CONFIG.id_y_width
+  parameter
+    tnoc_config CONFIG          = TNOC_DEFAULT_CONFIG,
+    bit [4:0]   AVAILABLE_PORTS = 5'b11111,
+  localparam
+    int         CHANNELS        = CONFIG.virtual_channels,
+    int         ID_X_WIDTH      = CONFIG.id_x_width,
+    int         ID_Y_WIDTH      = CONFIG.id_y_width
 )(
   input logic                     clk,
   input logic                     rst_n,
@@ -16,9 +18,8 @@ module tnoc_route_selector
   tnoc_port_control_if.requester  port_control_if[5]
 );
   `include  "tnoc_macros.svh"
-  `include  "tnoc_packet.svh"
-  `include  "tnoc_flit.svh"
-  `include  "tnoc_flit_utils.svh"
+  `include  "tnoc_packet_flit_macros.svh"
+  `tnoc_define_packet_and_flit(CONFIG)
 
   typedef enum logic [4:0] {
     ROUTE_X_PLUS  = 5'b00001,

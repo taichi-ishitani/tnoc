@@ -18,9 +18,10 @@ module tnoc_axi_slave_write_adapter
   tnoc_flit_if.target               flit_in_if
 );
   import  tnoc_axi_types_pkg::*;
-  `include  "tnoc_packet.svh"
+  `include  "tnoc_packet_flit_macros.svh"
   `include  "tnoc_axi_macros.svh"
 
+  `tnoc_define_packet_and_flit(CONFIG)
   `tnoc_axi_define_types(CONFIG)
 
 //--------------------------------------------------------------
@@ -50,7 +51,7 @@ module tnoc_axi_slave_write_adapter
   assign  request_if.invalid_destination  = invalid_destination;
   assign  request_if.burst_type           = tnoc_burst_type'(axi_if.awburst);
   assign  request_if.burst_length         = unpack_burst_length(axi_if.awlen);
-  assign  request_if.burst_size           = axi_if.awsize[TNOC_BURST_SIZE_WIDTH-1:0];
+  assign  request_if.burst_size           = axi_if.awsize[$bits(tnoc_burst_size)-1:0];
   assign  request_if.address              = axi_if.awaddr;
   assign  request_if.packet_status        = TNOC_OKAY;
   assign  request_if.payload_valid        = axi_if.wvalid;

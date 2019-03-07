@@ -3,12 +3,13 @@
 interface tnoc_flit_if
   `include  "tnoc_default_imports.svh"
 #(
-  parameter tnoc_config     CONFIG    = TNOC_DEFAULT_CONFIG,
-  parameter int             CHANNELS  = CONFIG.virtual_channels,
-  parameter tnoc_port_type  PORT_TYPE = TNOC_LOCAL_PORT
+  parameter
+    tnoc_config     CONFIG    = TNOC_DEFAULT_CONFIG,
+    int             CHANNELS  = CONFIG.virtual_channels,
+    tnoc_port_type  PORT_TYPE = TNOC_LOCAL_PORT
 )();
-  `include  "tnoc_packet.svh"
-  `include  "tnoc_flit.svh"
+  `include  "tnoc_packet_flit_macros.svh"
+  `tnoc_define_packet_and_flit(CONFIG)
 
   localparam  int FLITS = (is_local_port(PORT_TYPE)) ? CHANNELS : 1;
 
@@ -39,7 +40,6 @@ interface tnoc_flit_if
   );
 
 `ifndef SYNTHESIS
-  `include  "tnoc_flit_utils.svh"
   for (genvar i = 0;i < CHANNELS;++i) begin : g_debug
     localparam  int FLIT_INDEX  = (is_local_port(PORT_TYPE)) ? i : 0;
     tnoc_common_header  header  = '0;

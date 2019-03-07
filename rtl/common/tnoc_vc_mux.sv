@@ -1,16 +1,18 @@
 module tnoc_vc_mux
   `include  "tnoc_default_imports.svh"
 #(
-  parameter   tnoc_config     CONFIG    = TNOC_DEFAULT_CONFIG,
-  parameter   tnoc_port_type  PORT_TYPE = TNOC_LOCAL_PORT,
-  localparam  int             CHANNELS  = CONFIG.virtual_channels
+  parameter
+    tnoc_config     CONFIG    = TNOC_DEFAULT_CONFIG,
+    tnoc_port_type  PORT_TYPE = TNOC_LOCAL_PORT,
+  localparam
+    int             CHANNELS  = CONFIG.virtual_channels
 )(
   input logic [CHANNELS-1:0]  i_vc_grant,
   tnoc_flit_if.target         flit_in_if[CHANNELS],
   tnoc_flit_if.initiator      flit_out_if
 );
-  `include  "tnoc_packet.svh"
-  `include  "tnoc_flit.svh"
+  `include  "tnoc_packet_flit_macros.svh"
+  `tnoc_define_packet_and_flit(CONFIG)
 
   if (is_local_port(PORT_TYPE)) begin : g_vc_mux_local_port
     for (genvar i = 0;i < CHANNELS;++i) begin

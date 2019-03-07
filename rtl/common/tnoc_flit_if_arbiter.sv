@@ -1,10 +1,11 @@
 module tnoc_flit_if_arbiter
   `include  "tnoc_default_imports.svh"
 #(
-  parameter tnoc_config     CONFIG    = TNOC_DEFAULT_CONFIG,
-  parameter int             ENTRIES   = 2,
-  parameter int             CHANNELS  = CONFIG.virtual_channels,
-  parameter tnoc_port_type  PORT_TYPE = TNOC_LOCAL_PORT
+  parameter
+    tnoc_config     CONFIG    = TNOC_DEFAULT_CONFIG,
+    int             ENTRIES   = 2,
+    int             CHANNELS  = CONFIG.virtual_channels,
+    tnoc_port_type  PORT_TYPE = TNOC_LOCAL_PORT
 )(
   input logic             clk,
   input logic             rst_n,
@@ -12,9 +13,8 @@ module tnoc_flit_if_arbiter
   tnoc_flit_if.initiator  flit_out_if
 );
   `include  "tnoc_macros.svh"
-  `include  "tnoc_packet.svh"
-  `include  "tnoc_flit.svh"
-  `include  "tnoc_flit_utils.svh"
+  `include  "tnoc_packet_flit_macros.svh"
+  `tnoc_define_packet_and_flit(CONFIG)
 
   localparam  int IF_CHANNELS   =
     (is_local_port(PORT_TYPE)) ? 1        : CHANNELS;

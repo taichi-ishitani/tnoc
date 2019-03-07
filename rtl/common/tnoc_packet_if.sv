@@ -3,9 +3,11 @@
 interface tnoc_packet_if
   `include  "tnoc_default_imports.svh"
 #(
-  parameter tnoc_config CONFIG  = TNOC_DEFAULT_CONFIG
+  parameter
+    tnoc_config CONFIG  = TNOC_DEFAULT_CONFIG
 )();
-  `include  "tnoc_packet.svh"
+  `include  "tnoc_packet_flit_macros.svh"
+  `tnoc_define_packet(CONFIG)
 
   //  Header
   logic                       header_valid;

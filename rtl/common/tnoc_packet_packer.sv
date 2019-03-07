@@ -1,19 +1,18 @@
 module tnoc_packet_packer
   `include  "tnoc_default_imports.svh"
 #(
-  parameter tnoc_config     CONFIG    = TNOC_DEFAULT_CONFIG,
-  parameter int             CHANNELS  = CONFIG.virtual_channels,
-  parameter tnoc_port_type  PORT_TYPE = TNOC_LOCAL_PORT
+  parameter
+    tnoc_config     CONFIG    = TNOC_DEFAULT_CONFIG,
+    int             CHANNELS  = CONFIG.virtual_channels,
+    tnoc_port_type  PORT_TYPE = TNOC_LOCAL_PORT
 )(
   input logic             clk,
   input logic             rst_n,
   tnoc_packet_if.target   packet_in_if,
   tnoc_flit_if.initiator  flit_out_if
 );
-  `include  "tnoc_packet.svh"
-  `include  "tnoc_flit.svh"
-  `include  "tnoc_packet_utils.svh"
-  `include  "tnoc_flit_utils.svh"
+  `include  "tnoc_packet_flit_macros.svh"
+  `tnoc_define_packet_and_flit(CONFIG)
 
 //--------------------------------------------------------------
 //  Flit IF
@@ -97,53 +96,45 @@ module tnoc_packet_packer
   localparam  int HEADER_FLITS          = calc_header_flits();
   localparam  int HEADER_DATA_WIDTH     = HEADER_FLITS * TNOC_FLIT_DATA_WIDTH;
 
-  //  renaming
-  tnoc_common_header_fields     common_header_fields;
-  tnoc_request_header_fields    request_header_fields;
-  tnoc_response_header_fields   response_header_fields;
+  //  Pack Header
+  logic [HEADER_DATA_WIDTH-1:0] packed_header;
+  tnoc_request_header           request_header;
+  tnoc_response_header          response_header;
 
-  assign  common_header_fields.packet_type          = packet_in_if.packet_type;
-  assign  common_header_fields.destination_id       = packet_in_if.destination_id;
-  assign  common_header_fields.source_id            = packet_in_if.source_id;
-  assign  common_header_fields.vc                   = packet_in_if.vc;
-  assign  common_header_fields.tag                  = packet_in_if.tag;
-  assign  common_header_fields.routing_mode         = packet_in_if.routing_mode;
-  assign  common_header_fields.invalid_destination  = packet_in_if.invalid_destination;
-  assign  request_header_fields.burst_type          = packet_in_if.burst_type;
-  assign  request_header_fields.burst_length        = pack_burst_length(packet_in_if.burst_length);
-  assign  request_header_fields.burst_size          = packet_in_if.burst_size;
-  assign  request_header_fields.address             = packet_in_if.address;
-  assign  response_header_fields.status             = packet_in_if.packet_status;
-
-  //  packing
-  logic [HEADER_DATA_WIDTH-1:0] header_data;
-
-  assign  header_data = pack_header(common_header_fields, request_header_fields, response_header_fields);
-
-  function automatic logic [HEADER_DATA_WIDTH-1:0] pack_header(
-    input tnoc_common_header_fields   common_header_fields,
-    input tnoc_request_header_fields  request_header_fields,
-    input tnoc_response_header_fields response_header_fields
-  );
-    logic [HEADER_DATA_WIDTH-1:0] header  = '0;
-    header[TNOC_COMMON_HEADER_WIDTH-1:0]  = common_header_fields;
-    if (is_request_packet_type(common_header_fields.packet_type)) begin
-      header[TNOC_REQUEST_HEADER_WIDTH-1:TNOC_COMMON_HEADER_WIDTH]  = request_header_fields;
-    end
-    else begin
-      header[TNOC_RESPONSE_HEADER_WIDTH-1:TNOC_COMMON_HEADER_WIDTH] = response_header_fields;
-    end
-    return header;
-  endfunction
+  assign  packed_header   =
+    (is_request_packet_type(packet_in_if.packet_type)) ? request_header : response_header;
+  assign  request_header  = '{
+    packet_type:          packet_in_if.packet_type,
+    destination_id:       packet_in_if.destination_id,
+    source_id:            packet_in_if.source_id,
+    vc:                   packet_in_if.vc,
+    tag:                  packet_in_if.tag,
+    routing_mode:         packet_in_if.routing_mode,
+    invalid_destination:  packet_in_if.invalid_destination,
+    burst_type:           packet_in_if.burst_type,
+    burst_length:         pack_burst_length(packet_in_if.burst_length),
+    burst_size:           packet_in_if.burst_size,
+    address:              packet_in_if.address
+  };
+  assign  response_header = '{
+    packet_type:          packet_in_if.packet_type,
+    destination_id:       packet_in_if.destination_id,
+    source_id:            packet_in_if.source_id,
+    vc:                   packet_in_if.vc,
+    tag:                  packet_in_if.tag,
+    routing_mode:         packet_in_if.routing_mode,
+    invalid_destination:  packet_in_if.invalid_destination,
+    status:               packet_in_if.packet_status
+  };
 
   assign  header_flit_valid     = packet_in_if.header_valid;
   assign  header_flit.flit_type = TNOC_HEADER_FLIT;
-  assign  no_payload            = is_no_payload_packet_type(common_header_fields.packet_type);
+  assign  no_payload            = is_no_payload_packet_type(packet_in_if.packet_type);
   if (HEADER_FLITS == 1) begin : g_single_header_flit
     assign  packet_in_if.header_ready = header_flit_ready;
     assign  header_flit.head          = '1;
     assign  header_flit.tail          = no_payload;
-    assign  header_flit.data          = header_data;
+    assign  header_flit.data          = packed_header;
     assign  header_flit_last          = '1;
   end
   else begin : g_multi_header_flit
@@ -154,7 +145,7 @@ module tnoc_packet_packer
     assign  packet_in_if.header_ready = header_flit_ready & header_flit_last;
     assign  header_flit.head          = (flit_count == 0) ? '1 : '0;
     assign  header_flit.tail          = no_payload & header_flit_last;
-    assign  header_flit.data          = header_data[flit_count*TNOC_FLIT_DATA_WIDTH+:TNOC_FLIT_DATA_WIDTH];
+    assign  header_flit.data          = packed_header[flit_count*TNOC_FLIT_DATA_WIDTH+:TNOC_FLIT_DATA_WIDTH];
     assign  header_flit_last          = (flit_count == get_last_count(packet_in_if.packet_type)) ? '1 : '0;
 
     always_ff @(posedge clk, negedge rst_n) begin

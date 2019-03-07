@@ -1,9 +1,11 @@
 module tnoc_vc_demux
   `include  "tnoc_default_imports.svh"
 #(
-  parameter   tnoc_config     CONFIG    = TNOC_DEFAULT_CONFIG,
-  parameter   tnoc_port_type  PORT_TYPE = TNOC_LOCAL_PORT,
-  localparam  int             CHANNELS  = CONFIG.virtual_channels
+  parameter
+    tnoc_config     CONFIG    = TNOC_DEFAULT_CONFIG,
+    tnoc_port_type  PORT_TYPE = TNOC_LOCAL_PORT,
+  localparam
+    int             CHANNELS  = CONFIG.virtual_channels
 )(
   tnoc_flit_if.target     flit_in_if,
   tnoc_flit_if.initiator  flit_out_if[CHANNELS]

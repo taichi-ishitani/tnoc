@@ -1,9 +1,10 @@
 module tnoc_output_switch
   `include  "tnoc_default_imports.svh"
 #(
-  parameter tnoc_config     CONFIG    = TNOC_DEFAULT_CONFIG,
-  parameter tnoc_port_type  PORT_TYPE = TNOC_LOCAL_PORT,
-  parameter int             CHANNELS  = CONFIG.virtual_channels
+  parameter
+    tnoc_config     CONFIG    = TNOC_DEFAULT_CONFIG,
+    tnoc_port_type  PORT_TYPE = TNOC_LOCAL_PORT,
+    int             CHANNELS  = CONFIG.virtual_channels
 )(
   input   logic           clk,
   input   logic           rst_n,
@@ -13,9 +14,8 @@ module tnoc_output_switch
   output  logic           o_output_free
 );
   `include  "tnoc_macros.svh"
-  `include  "tnoc_packet.svh"
-  `include  "tnoc_flit.svh"
-  `include  "tnoc_flit_utils.svh"
+  `include  "tnoc_packet_flit_macros.svh"
+  `tnoc_define_packet_and_flit(CONFIG)
 
   logic [4:0]                       port_free;
   `tnoc_internal_flit_if(CHANNELS)  flit_mux_if();

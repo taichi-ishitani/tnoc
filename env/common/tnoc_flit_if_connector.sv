@@ -12,10 +12,10 @@ module tnoc_flit_if_connector
 );
   import  tnoc_bfm_types_pkg::*;
 
-  `include  "tnoc_packet.svh"
-  `include  "tnoc_flit.svh"
+  `include  "tnoc_packet_flit_macros.svh"
+  `tnoc_define_packet_and_flit(CONFIG)
 
-  function automatic tnoc_flit convert_to_dut_flit(input tnoc_bfm_flit bfm_flit);
+  function automatic tnoc_flit convert_to_dut_flit(tnoc_bfm_flit bfm_flit);
     tnoc_flit dut_flit;
     dut_flit.flit_type  = tnoc_flit_type'(bfm_flit.flit_type);
     dut_flit.head       = bfm_flit.head;
@@ -24,7 +24,7 @@ module tnoc_flit_if_connector
     return dut_flit;
   endfunction
 
-  function automatic tnoc_bfm_flit convert_to_bfm_flit(input tnoc_flit dut_flit);
+  function automatic tnoc_bfm_flit convert_to_bfm_flit(tnoc_flit dut_flit);
     tnoc_bfm_flit bfm_flit;
     bfm_flit.flit_type  = tnoc_bfm_flit_type'(dut_flit.flit_type);
     bfm_flit.head       = dut_flit.head;

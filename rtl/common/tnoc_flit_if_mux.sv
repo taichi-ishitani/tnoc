@@ -1,17 +1,18 @@
 module tnoc_flit_if_mux
   `include  "tnoc_default_imports.svh"
 #(
-  parameter tnoc_config     CONFIG    = TNOC_DEFAULT_CONFIG,
-  parameter int             CHANNELS  = CONFIG.virtual_channels,
-  parameter int             ENTRIES   = 2,
-  parameter tnoc_port_type  PORT_TYPE = TNOC_LOCAL_PORT
+  parameter
+    tnoc_config     CONFIG    = TNOC_DEFAULT_CONFIG,
+    int             CHANNELS  = CONFIG.virtual_channels,
+    int             ENTRIES   = 2,
+    tnoc_port_type  PORT_TYPE = TNOC_LOCAL_PORT
 )(
   input logic [ENTRIES-1:0] i_select,
   tnoc_flit_if.target       flit_in_if[ENTRIES],
   tnoc_flit_if.initiator    flit_out_if
 );
-  `include  "tnoc_packet.svh"
-  `include  "tnoc_flit.svh"
+  `include  "tnoc_packet_flit_macros.svh"
+  `tnoc_define_packet_and_flit(CONFIG)
 
 //--------------------------------------------------------------
 //  Control signals

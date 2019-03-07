@@ -1,20 +1,19 @@
 module tnoc_vc_selector
   `include  "tnoc_default_imports.svh"
 #(
-  parameter tnoc_config     CONFIG          = TNOC_DEFAULT_CONFIG,
-  parameter tnoc_port_type  PORT_TYPE       = TNOC_LOCAL_PORT,
-  parameter int             FIFO_DEPTH      = CONFIG.input_fifo_depth,
-  parameter int             FIFO_THRESHOLD  = FIFO_DEPTH - 2
+  parameter
+    tnoc_config     CONFIG          = TNOC_DEFAULT_CONFIG,
+    tnoc_port_type  PORT_TYPE       = TNOC_LOCAL_PORT,
+    int             FIFO_DEPTH      = CONFIG.input_fifo_depth,
+    int             FIFO_THRESHOLD  = FIFO_DEPTH - 2
 )(
   input logic             clk,
   input logic             rst_n,
   tnoc_flit_if.target     flit_in_if,
   tnoc_flit_if.initiator  flit_out_if
 );
-  `include  "tnoc_macros.svh"
-  `include  "tnoc_packet.svh"
-  `include  "tnoc_flit.svh"
-  `include  "tnoc_flit_utils.svh"
+  `include  "tnoc_packet_flit_macros.svh"
+  `tnoc_define_packet_and_flit(CONFIG)
 
   localparam  int CHANNELS  = CONFIG.virtual_channels;
 

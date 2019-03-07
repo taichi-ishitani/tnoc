@@ -15,7 +15,8 @@ module tnoc_axi_adapter_dut_wrapper
   import  tnoc_axi_types_pkg::*;
   import  tvip_axi_types_pkg::*;
 
-  `include  "tnoc_packet.svh"
+  `include  "tnoc_packet_flit_macros.svh"
+  `tnoc_define_packet_and_flit(CONFIG)
 
   localparam  int BFM_IFS = 6 * CONFIG.virtual_channels;
   tnoc_bfm_flit_if  flit_tx_if[BFM_IFS](clk, rst_n);
@@ -35,10 +36,10 @@ module tnoc_axi_adapter_dut_wrapper
     .flit_bfm_out_if  (flit_rx_if           )
   );
 
-  logic [TNOC_VC_WIDTH-1:0] write_vc[6];
-  tnoc_routing_mode         write_routing_mode[6];
-  logic [TNOC_VC_WIDTH-1:0] read_vc[6];
-  tnoc_routing_mode         read_routing_mode[6];
+  tnoc_vc           write_vc[6];
+  tnoc_routing_mode write_routing_mode[6];
+  tnoc_vc           read_vc[6];
+  tnoc_routing_mode read_routing_mode[6];
 
   always_ff @(negedge rst_n) begin
     for (int i = 0;i < 6;++i) begin
@@ -49,8 +50,8 @@ module tnoc_axi_adapter_dut_wrapper
     end
   end
 
-  function automatic logic [TNOC_VC_WIDTH-1:0] randomize_vc();
-    logic [TNOC_VC_WIDTH-1:0] vc;
+  function automatic tnoc_vc randomize_vc();
+    tnoc_vc vc;
     void'(std::randomize(vc) with {
       vc inside {[0:CONFIG.virtual_channels-1]};
     });

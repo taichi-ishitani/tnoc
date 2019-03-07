@@ -13,10 +13,8 @@ module tnoc_axi_write_read_demux
   tnoc_flit_if.initiator  write_flit_if,
   tnoc_flit_if.initiator  read_flit_if
 );
-  `include  "tnoc_macros.svh"
-  `include  "tnoc_packet.svh"
-  `include  "tnoc_flit.svh"
-  `include  "tnoc_flit_utils.svh"
+  `include  "tnoc_packet_flit_macros.svh"
+  `tnoc_define_packet_and_flit(CONFIG)
 
   localparam  int CHANNELS  = CONFIG.virtual_channels;
 

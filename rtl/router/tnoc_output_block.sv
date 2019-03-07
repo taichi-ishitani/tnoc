@@ -1,8 +1,9 @@
 module tnoc_output_block
   `include  "tnoc_default_imports.svh"
 #(
-  parameter tnoc_config     CONFIG    = TNOC_DEFAULT_CONFIG,
-  parameter tnoc_port_type  PORT_TYPE = TNOC_LOCAL_PORT
+  parameter
+    tnoc_config     CONFIG    = TNOC_DEFAULT_CONFIG,
+    tnoc_port_type  PORT_TYPE = TNOC_LOCAL_PORT
 )(
   input logic                     clk,
   input logic                     rst_n,

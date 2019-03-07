@@ -1,13 +1,15 @@
 module tnoc_flit_if_fifo
   `include  "tnoc_default_imports.svh"
 #(
-  parameter   tnoc_config     CONFIG      = TNOC_DEFAULT_CONFIG,
-  parameter   int             CHANNELS    = CONFIG.virtual_channels,
-  parameter   int             DEPTH       = 8,
-  parameter   int             THRESHOLD   = DEPTH,
-  parameter   bit             DATA_FF_OUT = 0,
-  parameter   tnoc_port_type  PORT_TYPE   = TNOC_LOCAL_PORT,
-  localparam  int             FLITS       = (is_local_port(PORT_TYPE)) ? CHANNELS : 1
+  parameter
+    tnoc_config     CONFIG      = TNOC_DEFAULT_CONFIG,
+    int             CHANNELS    = CONFIG.virtual_channels,
+    int             DEPTH       = 8,
+    int             THRESHOLD   = DEPTH,
+    bit             DATA_FF_OUT = 0,
+    tnoc_port_type  PORT_TYPE   = TNOC_LOCAL_PORT,
+  localparam
+    int             FLITS       = (is_local_port(PORT_TYPE)) ? CHANNELS : 1
 )(
   input   logic             clk,
   input   logic             rst_n,
@@ -19,12 +21,12 @@ module tnoc_flit_if_fifo
   tnoc_flit_if.initiator    flit_out_if
 );
   `include  "tnoc_macros.svh"
-  `include  "tnoc_packet.svh"
-  `include  "tnoc_flit.svh"
+  `include  "tnoc_packet_flit_macros.svh"
+  `tnoc_define_packet_and_flit(CONFIG)
 
   typedef struct packed {
-    logic [CHANNELS-1:0]        valid;
-    logic [TNOC_FLIT_WIDTH-1:0] flit;
+    tnoc_flit             flit;
+    logic [CHANNELS-1:0]  valid;
   } s_fifo_data;
 
   logic [FLITS-1:0] empty;

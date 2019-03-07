@@ -1,7 +1,8 @@
 module tnoc_error_checker
   `include  "tnoc_default_imports.svh"
 #(
-  parameter tnoc_config CONFIG  = TNOC_DEFAULT_CONFIG
+  parameter
+    tnoc_config CONFIG  = TNOC_DEFAULT_CONFIG
 )(
   input logic             clk,
   input logic             rst_n,
@@ -9,10 +10,8 @@ module tnoc_error_checker
   tnoc_flit_if.initiator  flit_out_if
 );
   `include  "tnoc_macros.svh"
-  `include  "tnoc_packet.svh"
-  `include  "tnoc_packet_utils.svh"
-  `include  "tnoc_flit.svh"
-  `include  "tnoc_flit_utils.svh"
+  `include  "tnoc_packet_flit_macros.svh"
+  `tnoc_define_packet_and_flit(CONFIG)
 
   tnoc_flit           flit;
   tnoc_common_header  common_header;
