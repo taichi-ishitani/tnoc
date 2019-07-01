@@ -42,12 +42,6 @@ class tnoc_fabric_stress_access_test_sequence extends tnoc_fabric_test_sequence_
           ((i % 2) == 0) -> packet_type inside {TNOC_BFM_RESPONSE, TNOC_BFM_RESPONSE_WITH_DATA};
           ((i % 2) == 1) -> packet_type inside {TNOC_BFM_READ, TNOC_BFM_POSTED_WRITE, TNOC_BFM_NON_POSTED_WRITE};
         }
-        if ((test_mode % 3) == 0) {
-          routing_mode == TNOC_BFM_X_Y_ROUTING;
-        }
-        else if ((test_mode % 3) == 1) {
-          routing_mode == TNOC_BFM_Y_X_ROUTING;
-        }
       })
     end
   endtask

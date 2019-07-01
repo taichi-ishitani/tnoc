@@ -75,7 +75,6 @@ module tnoc_packet_unpacker
   assign  packet_out_if.source_id           = common_header.source_id;
   assign  packet_out_if.vc                  = common_header.vc;
   assign  packet_out_if.tag                 = common_header.tag;
-  assign  packet_out_if.routing_mode        = common_header.routing_mode;
   assign  packet_out_if.invalid_destination = common_header.invalid_destination;
   assign  packet_out_if.burst_type          = request_header.burst_type;
   assign  packet_out_if.burst_length        = unpack_burst_length(request_header.burst_length);

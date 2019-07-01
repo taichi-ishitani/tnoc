@@ -180,7 +180,6 @@ module tnoc_error_checker
   assign  error_response_if.source_id           = error_request_header.destination_id;
   assign  error_response_if.vc                  = error_request_header.vc;
   assign  error_response_if.tag                 = error_request_header.tag;
-  assign  error_response_if.routing_mode        = error_request_header.routing_mode;
   assign  error_response_if.invalid_destination = '0;
   assign  error_response_if.burst_type          = TNOC_INCREMENTING_BURST;
   assign  error_response_if.burst_length        = 0;
@@ -219,7 +218,6 @@ module tnoc_error_checker
         source_id:            error_request_if.source_id,
         vc:                   error_request_if.vc,
         tag:                  error_request_if.tag,
-        routing_mode:         error_request_if.routing_mode,
         invalid_destination:  error_request_if.invalid_destination
       };
     end

@@ -36,17 +36,13 @@ module tnoc_axi_adapter_dut_wrapper
     .flit_bfm_out_if  (flit_rx_if           )
   );
 
-  tnoc_vc           write_vc[6];
-  tnoc_routing_mode write_routing_mode[6];
-  tnoc_vc           read_vc[6];
-  tnoc_routing_mode read_routing_mode[6];
+  tnoc_vc write_vc[6];
+  tnoc_vc read_vc[6];
 
   always_ff @(negedge rst_n) begin
     for (int i = 0;i < 6;++i) begin
-      write_vc[i]           <= randomize_vc();
-      write_routing_mode[i] <= randomize_routing_mode();
-      read_vc[i]            <= randomize_vc();
-      read_routing_mode[i]  <= randomize_routing_mode();
+      write_vc[i] <= randomize_vc();
+      read_vc[i]  <= randomize_vc();
     end
   end
 
@@ -56,12 +52,6 @@ module tnoc_axi_adapter_dut_wrapper
       vc inside {[0:CONFIG.virtual_channels-1]};
     });
     return vc;
-  endfunction
-
-  function automatic tnoc_routing_mode randomize_routing_mode();
-    tnoc_routing_mode routing_mode;
-    void'(std::randomize(routing_mode));
-    return routing_mode;
   endfunction
 
   typedef struct {
@@ -171,19 +161,17 @@ module tnoc_axi_adapter_dut_wrapper
       .WRITE_VC (WRITE_VC ),
       .READ_VC  (READ_VC  )
     ) u_adapter (
-      .clk                  (clk                            ),
-      .rst_n                (rst_n                          ),
-      .i_id_x               (ID_X[ID_X_WIDTH-1:0]           ),
-      .i_id_y               (ID_Y[ID_Y_WIDTH-1:0]           ),
-      .i_write_vc           (write_vc[3*0+i]                ),
-      .i_write_routing_mode (write_routing_mode[3*0+i]      ),
-      .write_decoder_if     (write_decoder_if               ),
-      .i_read_vc            (read_vc[3*0+i]                 ),
-      .i_read_routing_mode  (read_routing_mode[3*0+i]       ),
-      .read_decoder_if      (read_decoder_if                ),
-      .axi_if               (axi_if                         ),
-      .flit_out_if          (adapter_to_fabric_if[IF_INDEX] ),
-      .flit_in_if           (fabric_to_adapter_if[IF_INDEX] )
+      .clk              (clk                            ),
+      .rst_n            (rst_n                          ),
+      .i_id_x           (ID_X[ID_X_WIDTH-1:0]           ),
+      .i_id_y           (ID_Y[ID_Y_WIDTH-1:0]           ),
+      .i_write_vc       (write_vc[3*0+i]                ),
+      .write_decoder_if (write_decoder_if               ),
+      .i_read_vc        (read_vc[3*0+i]                 ),
+      .read_decoder_if  (read_decoder_if                ),
+      .axi_if           (axi_if                         ),
+      .flit_out_if      (adapter_to_fabric_if[IF_INDEX] ),
+      .flit_in_if       (fabric_to_adapter_if[IF_INDEX] )
     );
   end
 
@@ -236,17 +224,15 @@ module tnoc_axi_adapter_dut_wrapper
       .READ_VC            (READ_VC            ),
       .READ_INTERLEAVING  (READ_INTERLEAVING  )
     ) u_adapter (
-      .clk                  (clk                            ),
-      .rst_n                (rst_n                          ),
-      .i_id_x               (ID_X[ID_X_WIDTH-1:0]           ),
-      .i_id_y               (ID_Y[ID_Y_WIDTH-1:0]           ),
-      .i_write_vc           (write_vc[3*1+i]                ),
-      .i_write_routing_mode (write_routing_mode[3*1+i]      ),
-      .i_read_vc            (read_vc[3*1+i]                 ),
-      .i_read_routing_mode  (read_routing_mode[3*1+i]       ),
-      .axi_if               (axi_if                         ),
-      .flit_out_if          (adapter_to_fabric_if[IF_INDEX] ),
-      .flit_in_if           (fabric_to_adapter_if[IF_INDEX] )
+      .clk          (clk                            ),
+      .rst_n        (rst_n                          ),
+      .i_id_x       (ID_X[ID_X_WIDTH-1:0]           ),
+      .i_id_y       (ID_Y[ID_Y_WIDTH-1:0]           ),
+      .i_write_vc   (write_vc[3*1+i]                ),
+      .i_read_vc    (read_vc[3*1+i]                 ),
+      .axi_if       (axi_if                         ),
+      .flit_out_if  (adapter_to_fabric_if[IF_INDEX] ),
+      .flit_in_if   (fabric_to_adapter_if[IF_INDEX] )
     );
   end
 

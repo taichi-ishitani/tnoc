@@ -29,12 +29,6 @@ class tnoc_fabric_sample_test_sequence extends tnoc_fabric_test_sequence_base;
         else {
           packet_type inside {TNOC_BFM_READ, TNOC_BFM_POSTED_WRITE, TNOC_BFM_NON_POSTED_WRITE};
         }
-        if (i < 10) {
-          routing_mode == TNOC_BFM_X_Y_ROUTING;
-        }
-        else {
-          routing_mode == TNOC_BFM_Y_X_ROUTING;
-        }
       })
     end
   endtask

@@ -11,7 +11,6 @@ module tnoc_axi_slave_read_adapter
   input logic [ID_X_WIDTH-1:0]      i_id_x,
   input logic [ID_Y_WIDTH-1:0]      i_id_y,
   input logic [VC_WIDTH-1:0]        i_vc,
-  input tnoc_routing_mode           i_routing_mode,
   tnoc_address_decoer_if.requester  decoder_if,
   tnoc_axi_read_if.slave            axi_if,
   tnoc_flit_if.initiator            flit_out_if,
@@ -47,7 +46,6 @@ module tnoc_axi_slave_read_adapter
   assign  request_if.source_id.y          = i_id_y;
   assign  request_if.vc                   = i_vc;
   assign  request_if.tag                  = arid.tag;
-  assign  request_if.routing_mode         = i_routing_mode;
   assign  request_if.invalid_destination  = invalid_destination;
   assign  request_if.burst_type           = tnoc_burst_type'(axi_if.arburst);
   assign  request_if.burst_length         = unpack_burst_length(axi_if.arlen);

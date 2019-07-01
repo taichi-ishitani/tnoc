@@ -128,13 +128,12 @@ class tnoc_bfm_configuration extends tue_configuration;
   function int get_common_header_width();
     if (common_header_width <= 0) begin
       common_header_width = (
-        8                            +  //  Packet Type
-        (id_y_width + id_x_width)    +  //  Destination ID
-        (id_y_width + id_x_width)    +  //  Source ID
-        vc_width                     +  //  Virtual Channel
-        tag_width                    +  //  Packet Tag
-        $bits(tnoc_bfm_routing_mode) +  //  Routing Mode
-        1                               //  Invalid Destination Flag
+        8                         +  //  Packet Type
+        (id_y_width + id_x_width) +  //  Destination ID
+        (id_y_width + id_x_width) +  //  Source ID
+        vc_width                  +  //  Virtual Channel
+        tag_width                 +  //  Packet Tag
+        1                            //  Invalid Destination Flag
       );
     end
     return common_header_width;

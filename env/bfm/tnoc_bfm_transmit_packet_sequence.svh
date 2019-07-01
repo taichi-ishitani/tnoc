@@ -6,7 +6,6 @@ class tnoc_bfm_transmit_packet_sequence extends tnoc_bfm_sequence_base;
   rand  tnoc_bfm_location_id      source_id;
   rand  tnoc_bfm_vc               virtual_channel;
   rand  tnoc_bfm_tag              tag;
-  rand  tnoc_bfm_routing_mode     routing_mode;
   rand  bit                       invalid_destination;
   rand  tnoc_bfm_burst_type       burst_type;
   rand  int                       burst_length;
@@ -148,7 +147,6 @@ class tnoc_bfm_transmit_packet_sequence extends tnoc_bfm_sequence_base;
     packet_item.source_id           = source_id;
     packet_item.virtual_channel     = virtual_channel;
     packet_item.tag                 = tag;
-    packet_item.routing_mode        = routing_mode;
     packet_item.invalid_destination = invalid_destination;
     case (packet_type)
       TNOC_BFM_READ,
@@ -185,7 +183,6 @@ class tnoc_bfm_transmit_packet_sequence extends tnoc_bfm_sequence_base;
     `uvm_field_int(source_id          , UVM_DEFAULT | UVM_HEX)
     `uvm_field_int(virtual_channel    , UVM_DEFAULT | UVM_DEC)
     `uvm_field_int(tag                , UVM_DEFAULT | UVM_HEX)
-    `uvm_field_enum(tnoc_bfm_routing_mode   , routing_mode , UVM_DEFAULT)
     `uvm_field_int(invalid_destination, UVM_DEFAULT | UVM_BIN)
     `uvm_field_enum(tnoc_bfm_burst_type     , burst_type   , UVM_DEFAULT)
     `uvm_field_int(burst_length       , UVM_DEFAULT | UVM_DEC)
