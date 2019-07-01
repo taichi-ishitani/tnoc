@@ -20,24 +20,13 @@ class tnoc_router_env_model extends tnoc_model_base #(tnoc_router_env_configurat
     result[2] = (item.destination_id.y > configuration.id_y) ? '1 : '0;
     result[3] = (item.destination_id.y < configuration.id_y) ? '1 : '0;
 
-    if (item.routing_mode == TNOC_BFM_X_Y_ROUTING) begin
-      case (1)
-        result[0]:  return  packet_port[0];
-        result[1]:  return  packet_port[1];
-        result[2]:  return  packet_port[2];
-        result[3]:  return  packet_port[3];
-        default:    return  packet_port[4];
-      endcase
-    end
-    else begin
-      case (1)
-        result[2]:  return  packet_port[2];
-        result[3]:  return  packet_port[3];
-        result[0]:  return  packet_port[0];
-        result[1]:  return  packet_port[1];
-        default:    return  packet_port[4];
-      endcase
-    end
+    case (1)
+      result[0]:  return  packet_port[0];
+      result[1]:  return  packet_port[1];
+      result[2]:  return  packet_port[2];
+      result[3]:  return  packet_port[3];
+      default:    return  packet_port[4];
+    endcase
   endfunction
 
   `tue_component_default_constructor(tnoc_router_env_model)

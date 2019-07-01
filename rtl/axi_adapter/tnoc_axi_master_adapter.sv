@@ -14,9 +14,7 @@ module tnoc_axi_master_adapter
   input logic [ID_X_WIDTH-1:0]      i_id_x,
   input logic [ID_Y_WIDTH-1:0]      i_id_y,
   input logic [VC_WIDTH-1:0]        i_write_vc,
-  input tnoc_routing_mode           i_write_routing_mode,
   input logic [VC_WIDTH-1:0]        i_read_vc,
-  input tnoc_routing_mode           i_read_routing_mode,
   tnoc_axi_if.master                axi_if,
   tnoc_flit_if.initiator            flit_out_if,
   tnoc_flit_if.target               flit_in_if
@@ -44,15 +42,14 @@ module tnoc_axi_master_adapter
   tnoc_axi_master_write_adapter #(
     .CONFIG (CONFIG )
   ) u_write_adapter (
-    .clk            (clk                  ),
-    .rst_n          (rst_n                ),
-    .i_id_x         (i_id_x               ),
-    .i_id_y         (i_id_y               ),
-    .i_vc           (write_vc             ),
-    .i_routing_mode (i_write_routing_mode ),
-    .axi_if         (axi_write_if         ),
-    .flit_out_if    (flit_out[0]          ),
-    .flit_in_if     (flit_in[0]           )
+    .clk            (clk          ),
+    .rst_n          (rst_n        ),
+    .i_id_x         (i_id_x       ),
+    .i_id_y         (i_id_y       ),
+    .i_vc           (write_vc     ),
+    .axi_if         (axi_write_if ),
+    .flit_out_if    (flit_out[0]  ),
+    .flit_in_if     (flit_in[0]   )
   );
 
 //--------------------------------------------------------------
@@ -74,15 +71,14 @@ module tnoc_axi_master_adapter
     .CONFIG             (CONFIG             ),
     .READ_INTERLEAVING  (READ_INTERLEAVING  )
   ) u_read_adapter (
-    .clk            (clk                  ),
-    .rst_n          (rst_n                ),
-    .i_id_x         (i_id_x               ),
-    .i_id_y         (i_id_y               ),
-    .i_vc           (read_vc              ),
-    .i_routing_mode (i_read_routing_mode  ),
-    .axi_if         (axi_read_if          ),
-    .flit_out_if    (flit_out[1]          ),
-    .flit_in_if     (flit_in[1]           )
+    .clk            (clk          ),
+    .rst_n          (rst_n        ),
+    .i_id_x         (i_id_x       ),
+    .i_id_y         (i_id_y       ),
+    .i_vc           (read_vc      ),
+    .axi_if         (axi_read_if  ),
+    .flit_out_if    (flit_out[1]  ),
+    .flit_in_if     (flit_in[1]   )
   );
 
 //--------------------------------------------------------------

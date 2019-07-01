@@ -22,7 +22,7 @@ module top();
     virtual_channels: 2,
     tags:             32,
     max_burst_length: 256,
-    input_fifo_depth: 5,
+    input_fifo_depth: 3,
     size_x:           3,
     size_y:           2,
     error_data:       TNOC_DEFAULT_CONFIG.error_data

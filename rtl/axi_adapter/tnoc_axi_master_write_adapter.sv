@@ -11,7 +11,6 @@ module tnoc_axi_master_write_adapter
   input logic [ID_X_WIDTH-1:0]  i_id_x,
   input logic [ID_Y_WIDTH-1:0]  i_id_y,
   input logic [VC_WIDTH-1:0]    i_vc,
-  input tnoc_routing_mode       i_routing_mode,
   tnoc_axi_write_if.master      axi_if,
   tnoc_flit_if.initiator        flit_out_if,
   tnoc_flit_if.target           flit_in_if
@@ -65,7 +64,6 @@ module tnoc_axi_master_write_adapter
   assign  response_if.source_id.y         = i_id_y;
   assign  response_if.vc                  = i_vc;
   assign  response_if.tag                 = bid.tag;
-  assign  response_if.routing_mode        = i_routing_mode;
   assign  response_if.invalid_destination = '0;
   assign  response_if.burst_type          = TNOC_FIXED_BURST;
   assign  response_if.burst_length        = '0;

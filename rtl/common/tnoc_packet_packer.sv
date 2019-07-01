@@ -109,7 +109,6 @@ module tnoc_packet_packer
     source_id:            packet_in_if.source_id,
     vc:                   packet_in_if.vc,
     tag:                  packet_in_if.tag,
-    routing_mode:         packet_in_if.routing_mode,
     invalid_destination:  packet_in_if.invalid_destination,
     burst_type:           packet_in_if.burst_type,
     burst_length:         pack_burst_length(packet_in_if.burst_length),
@@ -122,7 +121,6 @@ module tnoc_packet_packer
     source_id:            packet_in_if.source_id,
     vc:                   packet_in_if.vc,
     tag:                  packet_in_if.tag,
-    routing_mode:         packet_in_if.routing_mode,
     invalid_destination:  packet_in_if.invalid_destination,
     status:               packet_in_if.packet_status
   };

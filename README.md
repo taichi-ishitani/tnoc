@@ -5,9 +5,7 @@
 This is a Network on Chip (NoC) Router/Fabric implementation written in SystemVerilog. It has following features.
 
 * 2-D mesh network
-* Dimension order routing
-    * X-Y routing
-    * Y-X routing
+* Dimension order routing (X-Y routing)
 * Flow control
     * Wormhole (FLIT based) flow control
     * Virtual channel flow control

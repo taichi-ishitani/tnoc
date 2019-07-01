@@ -16,7 +16,6 @@ package tnoc_router_tests_pkg;
   `include  "tnoc_router_different_route_test.svh"
   `include  "tnoc_router_output_arbitration_test.svh"
   `include  "tnoc_router_virtual_channel_test.svh"
-  `include  "tnoc_router_routing_mode_test.svh"
   `include  "tnoc_router_invalid_destination_test.svh"
   `include  "tnoc_router_stress_access_test.svh"
   `include  "tnoc_router_random_test.svh"

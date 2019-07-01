@@ -35,9 +35,8 @@ module tnoc_route_selector
     input logic [ID_X_WIDTH-1:0]  id_x,
     input logic [ID_Y_WIDTH-1:0]  id_y
   );
-    tnoc_common_header  header        = get_common_header(flit);
-    tnoc_location_id    id            = header.destination_id;
-    tnoc_routing_mode   routing_mode  = header.routing_mode;
+    tnoc_common_header  header  = get_common_header(flit);
+    tnoc_location_id    id      = header.destination_id;
     logic [3:0]         result;
 
     result[0] = ((id.x > id_x) && AVAILABLE_PORTS[0]) ? '1 : '0;
@@ -45,31 +44,12 @@ module tnoc_route_selector
     result[2] = ((id.y > id_y) && AVAILABLE_PORTS[2]) ? '1 : '0;
     result[3] = ((id.y < id_y) && AVAILABLE_PORTS[3]) ? '1 : '0;
 
-    if (header.routing_mode == TNOC_X_Y_ROUTING) begin
-      return x_y_routing(result);
-    end
-    else begin
-      return y_x_routing(result);
-    end
-  endfunction
-
-  function automatic e_route x_y_routing(input logic [3:0] comparison_result);
     case (1'b1)
-      comparison_result[0]: return ROUTE_X_PLUS;
-      comparison_result[1]: return ROUTE_X_MINUS;
-      comparison_result[2]: return ROUTE_Y_PLUS;
-      comparison_result[3]: return ROUTE_Y_MINUS;
-      default:              return ROUTE_LOCAL;
-    endcase
-  endfunction
-
-  function automatic e_route y_x_routing(input logic [3:0] comparison_result);
-    case (1'b1)
-      comparison_result[2]: return ROUTE_Y_PLUS;
-      comparison_result[3]: return ROUTE_Y_MINUS;
-      comparison_result[0]: return ROUTE_X_PLUS;
-      comparison_result[1]: return ROUTE_X_MINUS;
-      default:              return ROUTE_LOCAL;
+      result[0]:  return ROUTE_X_PLUS;
+      result[1]:  return ROUTE_X_MINUS;
+      result[2]:  return ROUTE_Y_PLUS;
+      result[3]:  return ROUTE_Y_MINUS;
+      default:    return ROUTE_LOCAL;
     endcase
   endfunction
 

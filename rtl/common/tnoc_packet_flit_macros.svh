@@ -32,7 +32,6 @@ tnoc_byte_enable;
 
 `define tnoc_packet_header_common_fields \
   logic                             invalid_destination; \
-  tnoc_enums_pkg::tnoc_routing_mode routing_mode; \
   tnoc_tag                          tag; \
   tnoc_vc                           vc; \
   tnoc_location_id                  source_id; \

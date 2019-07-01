@@ -38,11 +38,6 @@ package tnoc_enums_pkg;
     return (is_valid_packet_type(packet_type) && packet_type[6]) ? '1 : '0;
   endfunction
 
-  typedef enum logic {
-    TNOC_X_Y_ROUTING = 'b0,
-    TNOC_Y_X_ROUTING = 'b1
-  } tnoc_routing_mode;
-
   typedef enum logic [1:0] {
     TNOC_FIXED_BURST        = 'b00,
     TNOC_INCREMENTING_BURST = 'b01,

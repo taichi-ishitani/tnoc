@@ -17,7 +17,6 @@ interface tnoc_packet_if
   tnoc_location_id            source_id;
   tnoc_vc                     vc;
   tnoc_tag                    tag;
-  tnoc_routing_mode           routing_mode;
   logic                       invalid_destination;
   tnoc_burst_type             burst_type;
   tnoc_unpacked_burst_length  burst_length;
@@ -42,7 +41,6 @@ interface tnoc_packet_if
     output  source_id,
     output  vc,
     output  tag,
-    output  routing_mode,
     output  invalid_destination,
     output  burst_type,
     output  burst_length,
@@ -67,7 +65,6 @@ interface tnoc_packet_if
     input   source_id,
     input   vc,
     input   tag,
-    input   routing_mode,
     input   invalid_destination,
     input   burst_type,
     input   burst_length,
@@ -92,7 +89,6 @@ interface tnoc_packet_if
     input source_id,
     input vc,
     input tag,
-    input routing_mode,
     input invalid_destination,
     input burst_type,
     input burst_length,

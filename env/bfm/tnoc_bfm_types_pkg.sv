@@ -24,11 +24,6 @@ package tnoc_bfm_types_pkg;
   localparam  int TNOC_BFM_TAG_WIDTH  = (`TNOC_BFM_MAX_TAGS == 1) ? 1 : $clog2(`TNOC_BFM_MAX_TAGS);
   typedef bit [TNOC_BFM_TAG_WIDTH-1:0]  tnoc_bfm_tag;
 
-  typedef enum bit {
-    TNOC_BFM_X_Y_ROUTING  = 0,
-    TNOC_BFM_Y_X_ROUTING  = 1
-  } tnoc_bfm_routing_mode;
-
   typedef enum bit [1:0] {
     TNOC_BFM_FIXED_BURST        = 'b00,
     TNOC_BFM_INCREMENTING_BURST = 'b01,
@@ -58,7 +53,6 @@ package tnoc_bfm_types_pkg;
     $bits(tnoc_bfm_location_id ) +
     $bits(tnoc_bfm_vc          ) +
     $bits(tnoc_bfm_tag         ) +
-    $bits(tnoc_bfm_routing_mode) +
     1;                              //  invalid destination flag
   localparam  int TNOC_BFM_REQUEST_HEADER_WIDTH =
     TNOC_BFM_COMMON_HEADER_WIDTH +

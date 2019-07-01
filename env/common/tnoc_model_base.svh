@@ -77,7 +77,6 @@ virtual class tnoc_model_base #(
     response_item.source_id           = item.destination_id;
     response_item.virtual_channel     = item.virtual_channel;
     response_item.tag                 = item.tag;
-    response_item.routing_mode        = item.routing_mode;
     response_item.invalid_destination = 0;
     response_item.packet_status       = TNOC_BFM_DECODE_ERROR;
     response_item.response_last       = (!item.has_payload()) ? 1 : 0;

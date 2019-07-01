@@ -10,7 +10,6 @@ class tnoc_bfm_packet_item extends tnoc_bfm_packet_item_base;
   rand  tnoc_bfm_location_id      source_id;
   rand  tnoc_bfm_vc               virtual_channel;
   rand  tnoc_bfm_tag              tag;
-  rand  tnoc_bfm_routing_mode     routing_mode;
   rand  bit                       invalid_destination;
   rand  tnoc_bfm_burst_type       burst_type;
   rand  int                       burst_length;
@@ -190,7 +189,6 @@ class tnoc_bfm_packet_item extends tnoc_bfm_packet_item_base;
     packer.pack_field_int(source_id.x        , configuration.id_x_width    );
     packer.pack_field_int(virtual_channel    , configuration.vc_width      );
     packer.pack_field_int(tag                , configuration.tag_width     );
-    packer.pack_field_int(routing_mode       , $bits(tnoc_bfm_routing_mode));
     packer.pack_field_int(invalid_destination, 1                           );
     if (is_request()) begin
       packer.pack_field_int(burst_type               , $bits(tnoc_bfm_burst_type)      );
@@ -248,7 +246,6 @@ class tnoc_bfm_packet_item extends tnoc_bfm_packet_item_base;
     source_id.x         = packer.unpack_field_int(configuration.id_x_width);
     virtual_channel     = packer.unpack_field_int(configuration.vc_width);
     tag                 = packer.unpack_field_int(configuration.tag_width);
-    routing_mode        = tnoc_bfm_routing_mode'(packer.unpack_field_int($bits(tnoc_bfm_routing_mode)));
     invalid_destination = packer.unpack_field_int(1);
     if (is_request()) begin
       burst_type    = tnoc_bfm_burst_type'(packer.unpack_field_int($bits(tnoc_bfm_burst_type)));
@@ -356,7 +353,6 @@ class tnoc_bfm_packet_item extends tnoc_bfm_packet_item_base;
     `uvm_field_int(source_id          , UVM_DEFAULT | UVM_HEX)
     `uvm_field_int(virtual_channel    , UVM_DEFAULT | UVM_DEC)
     `uvm_field_int(tag                , UVM_DEFAULT | UVM_HEX)
-    `uvm_field_enum(tnoc_bfm_routing_mode   , routing_mode , UVM_DEFAULT)
     `uvm_field_int(invalid_destination, UVM_DEFAULT | UVM_BIN)
     `uvm_field_enum(tnoc_bfm_burst_type     , burst_type   , UVM_DEFAULT)
     `uvm_field_int(burst_length       , UVM_DEFAULT | UVM_DEC)
