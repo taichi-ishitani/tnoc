@@ -1,54 +1,55 @@
 module tnoc_output_switch
-  `include  "tnoc_default_imports.svh"
+  import  tnoc_pkg::*;
 #(
-  parameter
-    tnoc_config     CONFIG    = TNOC_DEFAULT_CONFIG,
-    tnoc_port_type  PORT_TYPE = TNOC_LOCAL_PORT,
-    int             CHANNELS  = CONFIG.virtual_channels
+  parameter tnoc_packet_config  PACKET_CONFIG = TNOC_DEFAULT_PACKET_CONFIG,
+  parameter tnoc_port_type      PORT_TYPE     = TNOC_LOCAL_PORT,
+  parameter int                 CHANNELS      = PACKET_CONFIG.virtual_channels
 )(
-  input   logic           clk,
-  input   logic           rst_n,
-  tnoc_flit_if.target     flit_in_if[5],
-  tnoc_flit_if.initiator  flit_out_if,
-  input   logic [4:0]     i_output_grant,
-  output  logic           o_output_free
+  tnoc_types              types,
+  input   var logic       i_clk,
+  input   var logic       i_rst_n,
+  tnoc_flit_if.receiver   receiver_if[5],
+  tnoc_flit_if.sender     sender_if,
+  input   var logic [4:0] i_output_grant,
+  output  var             o_output_free
 );
-  `include  "tnoc_macros.svh"
-  `include  "tnoc_packet_flit_macros.svh"
-  `tnoc_define_packet_and_flit(CONFIG)
+  logic [4:0] port_ack;
 
-  logic [4:0]                       port_free;
-  `tnoc_internal_flit_if(CHANNELS)  flit_mux_if();
+  always_comb begin
+    o_output_free = |port_ack;
+  end
 
-  assign  o_output_free = |port_free;
-  for (genvar i = 0;i < 5;++i) begin
-    if (CHANNELS >= 2) begin
-      assign  port_free[i]  = |(flit_in_if[i].valid & flit_in_if[i].ready);
-    end
-    else begin
-      assign  port_free[i]  = flit_in_if[i].valid & flit_in_if[i].ready;
+  for (genvar i = 0;i < 5;++i) begin : g
+    always_comb begin
+      port_ack[i] = (receiver_if[i].get_ack() != '0) ? '1 : '0;
     end
   end
 
+  tnoc_flit_if #(
+    PACKET_CONFIG, CHANNELS, PORT_TYPE
+  ) flit_if(types);
+
   tnoc_flit_if_mux #(
-    .CONFIG     (CONFIG     ),
-    .CHANNELS   (CHANNELS   ),
-    .ENTRIES    (5          ),
-    .PORT_TYPE  (PORT_TYPE  )
-  ) u_output_mux (
+    .PACKET_CONFIG  (PACKET_CONFIG  ),
+    .CHANNELS       (CHANNELS       ),
+    .ENTRIES        (5              ),
+    .PORT_TYPE      (PORT_TYPE      )
+  ) u_mux (
+    .types        (types          ),
     .i_select     (i_output_grant ),
-    .flit_in_if   (flit_in_if     ),
-    .flit_out_if  (flit_mux_if    )
+    .receiver_if  (receiver_if    ),
+    .sender_if    (flit_if        )
   );
 
   tnoc_flit_if_slicer #(
-    .CONFIG     (CONFIG     ),
-    .CHANNELS   (CHANNELS   ),
-    .PORT_TYPE  (PORT_TYPE  )
-  ) u_output_slicer (
-    .clk          (clk          ),
-    .rst_n        (rst_n        ),
-    .flit_in_if   (flit_mux_if  ),
-    .flit_out_if  (flit_out_if  )
+    .PACKET_CONFIG  (PACKET_CONFIG  ),
+    .CHANNELS       (CHANNELS       ),
+    .PORT_TYPE      (PORT_TYPE      )
+  ) u_slicer (
+    .types        (types      ),
+    .i_clk        (i_clk      ),
+    .i_rst_n      (i_rst_n    ),
+    .receiver_if  (flit_if    ),
+    .sender_if    (sender_if  )
   );
 endmodule

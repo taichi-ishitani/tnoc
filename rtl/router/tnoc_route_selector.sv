@@ -1,26 +1,21 @@
 module tnoc_route_selector
-  `include  "tnoc_default_imports.svh"
+  import  tnoc_pkg::*;
 #(
-  parameter
-    tnoc_config CONFIG          = TNOC_DEFAULT_CONFIG,
-    bit [4:0]   AVAILABLE_PORTS = 5'b11111,
-  localparam
-    int         CHANNELS        = CONFIG.virtual_channels,
-    int         ID_X_WIDTH      = CONFIG.id_x_width,
-    int         ID_Y_WIDTH      = CONFIG.id_y_width
+  parameter   tnoc_packet_config  PACKET_CONFIG = TNOC_DEFAULT_PACKET_CONFIG,
+  parameter   bit [4:0]           ACTIVE_PORTS  = 5'b11111,
+  localparam  int                 CHANNELS      = PACKET_CONFIG.virtual_channels,
+  localparam  int                 ID_X_WIDTH    = get_id_x_width(PACKET_CONFIG),
+  localparam  int                 ID_Y_WIDTH    = get_id_y_width(PACKET_CONFIG)
 )(
-  input logic                     clk,
-  input logic                     rst_n,
-  input logic [ID_X_WIDTH-1:0]    i_id_x,
-  input logic [ID_Y_WIDTH-1:0]    i_id_y,
-  tnoc_flit_if.target             flit_in_if[CHANNELS],
-  tnoc_flit_if.initiator          flit_out_if[5],
-  tnoc_port_control_if.requester  port_control_if[5]
+  tnoc_types                        types,
+  input var logic                   i_clk,
+  input var logic                   i_rst_n,
+  input var logic [ID_X_WIDTH-1:0]  i_id_x,
+  input var logic [ID_Y_WIDTH-1:0]  i_id_y,
+  tnoc_port_control_if.requester    port_control_if[5],
+  tnoc_flit_if.receiver             receiver_if[CHANNELS],
+  tnoc_flit_if.sender               sender_if[5]
 );
-  `include  "tnoc_macros.svh"
-  `include  "tnoc_packet_flit_macros.svh"
-  `tnoc_define_packet_and_flit(CONFIG)
-
   typedef enum logic [4:0] {
     ROUTE_X_PLUS  = 5'b00001,
     ROUTE_X_MINUS = 5'b00010,
@@ -30,19 +25,72 @@ module tnoc_route_selector
     ROUTE_NA      = 5'b00000
   } e_route;
 
-  function automatic e_route select_route(
-    input tnoc_flit               flit,
-    input logic [ID_X_WIDTH-1:0]  id_x,
-    input logic [ID_Y_WIDTH-1:0]  id_y
-  );
-    tnoc_common_header  header  = get_common_header(flit);
-    tnoc_location_id    id      = header.destination_id;
+  typedef types.tnoc_flit           tnoc_flit;
+  typedef types.tnoc_location_id    tnoc_location_id;
+  typedef types.tnoc_common_header  tnoc_common_header;
+
+//--------------------------------------------------------------
+//  Routing
+//--------------------------------------------------------------
+  tnoc_flit_if #(PACKET_CONFIG, 1)  routed_if[5*CHANNELS](types);
+
+  for (genvar i = 0;i < CHANNELS;++i) begin : g_routing
+    e_route route;
+    e_route route_latched;
+
+    always_comb begin
+      route = (
+        receiver_if[i].flit[0].head
+      ) ? select_route(receiver_if[i].flit[0]) : route_latched;
+    end
+
+    always_ff @(posedge i_clk) begin
+      if (receiver_if[i].flit[0].head) begin
+        route_latched <= route;
+      end
+    end
+
+    for (genvar j = 0;j < 5;++j) begin : g
+      always_comb begin
+        if (route[j] && ACTIVE_PORTS[j]) begin
+          port_control_if[j].request[i]         = receiver_if[i].valid;
+          port_control_if[j].free[i]            = receiver_if[i].ready;
+          port_control_if[j].start_of_packet[i] = receiver_if[i].get_head_flit_valid(0);
+          port_control_if[j].end_of_packet[i]   = receiver_if[i].get_tail_flit_ack(0);
+        end
+        else begin
+          port_control_if[j].request[i]         = '0;
+          port_control_if[j].free[i]            = '0;
+          port_control_if[j].start_of_packet[i] = '0;
+          port_control_if[j].end_of_packet[i]   = '0;
+        end
+      end
+    end
+
+    tnoc_flit_if_demux #(
+      .PACKET_CONFIG  (PACKET_CONFIG  ),
+      .CHANNELS       (1              ),
+      .ENTRIES        (5              )
+    ) u_demux (
+      .types        (types                    ),
+      .i_select     (route                    ),
+      .receiver_if  (receiver_if[i]           ),
+      .sender_if    (routed_if[5*i:5*(i+1)-1] )
+    );
+  end
+
+  function automatic e_route select_route(tnoc_flit flit);
+    tnoc_common_header  header;
+    tnoc_location_id    destination_id;
     logic [3:0]         result;
 
-    result[0] = ((id.x > id_x) && AVAILABLE_PORTS[0]) ? '1 : '0;
-    result[1] = ((id.x < id_x) && AVAILABLE_PORTS[1]) ? '1 : '0;
-    result[2] = ((id.y > id_y) && AVAILABLE_PORTS[2]) ? '1 : '0;
-    result[3] = ((id.y < id_y) && AVAILABLE_PORTS[3]) ? '1 : '0;
+    header          = tnoc_common_header'(flit.data);
+    destination_id  = header.destination_id;
+
+    result[0] = (destination_id.x > i_id_x) ? ACTIVE_PORTS[0] : '0;
+    result[1] = (destination_id.x < i_id_x) ? ACTIVE_PORTS[1] : '0;
+    result[2] = (destination_id.y > i_id_y) ? ACTIVE_PORTS[2] : '0;
+    result[3] = (destination_id.y < i_id_y) ? ACTIVE_PORTS[3] : '0;
 
     case (1'b1)
       result[0]:  return ROUTE_X_PLUS;
@@ -54,95 +102,36 @@ module tnoc_route_selector
   endfunction
 
 //--------------------------------------------------------------
-//  Routing
-//--------------------------------------------------------------
-  `tnoc_internal_flit_if(1) flit_routed_if[5*CHANNELS]();
-
-  for (genvar i = 0;i < CHANNELS;++i) begin : g_routing
-    logic   start_of_packet;
-    logic   end_of_packet;
-    e_route route;
-    e_route route_next;
-    e_route route_latched;
-
-    assign  start_of_packet = (flit_in_if[i].valid           && is_head_flit(flit_in_if[i].flit)) ? '1 : '0;
-    assign  end_of_packet   = (`tnoc_flit_ack(flit_in_if[i]) && is_tail_flit(flit_in_if[i].flit)) ? '1 : '0;
-
-    assign  route       = (start_of_packet) ? route_next : route_latched;
-    assign  route_next  = select_route(flit_in_if[i].flit, i_id_x, i_id_y);
-    always_ff @(posedge clk, negedge rst_n) begin
-      if (!rst_n) begin
-        route_latched <= ROUTE_NA;
-      end
-      else if (end_of_packet) begin
-        route_latched <= ROUTE_NA;
-      end
-      else if (start_of_packet) begin
-        route_latched <= route_next;
-      end
-    end
-
-    for (genvar j = 0;j < 5;++j) begin
-      if (AVAILABLE_PORTS[j]) begin
-        assign  port_control_if[j].request[i]         = (route[j]) ? flit_in_if[i].valid : '0;
-        assign  port_control_if[j].free[i]            = (route[j]) ? flit_in_if[i].ready : '0;
-        assign  port_control_if[j].start_of_packet[i] = (route[j]) ? start_of_packet     : '0;
-        assign  port_control_if[j].end_of_packet[i]   = (route[j]) ? end_of_packet       : '0;
-      end
-      else begin
-        assign  port_control_if[j].request[i]         = '0;
-        assign  port_control_if[j].free[i]            = '0;
-        assign  port_control_if[j].start_of_packet[i] = '0;
-        assign  port_control_if[j].end_of_packet[i]   = '0;
-      end
-    end
-
-    tnoc_flit_if_demux #(
-      .CONFIG   (CONFIG ),
-      .CHANNELS (1      ),
-      .ENTRIES  (5      )
-    ) u_demux (
-      .i_select     (route                                    ),
-      .flit_in_if   (flit_in_if[i]                            ),
-      .flit_out_if  (`tnoc_array_slicer(flit_routed_if, i, 5) )
-    );
-  end
-
-//--------------------------------------------------------------
 //  VC Merging
 //--------------------------------------------------------------
-  `tnoc_internal_flit_if(1) flit_vc_if[5*CHANNELS]();
+  tnoc_flit_if #(PACKET_CONFIG, 1)  vc_if[5*CHANNELS](types);
 
   for (genvar i = 0;i < 5;++i) begin : g_vc_merging
-    for (genvar j = 0;j < CHANNELS;++j) begin
-      `tnoc_flit_if_renamer(flit_routed_if[5*j+i], flit_vc_if[CHANNELS*i+j])
+    for (genvar j = 0;j < CHANNELS;++j) begin : g_connector
+      tnoc_flit_if_connector u_connector (routed_if[5*j+i], vc_if[CHANNELS*i+j]);
     end
 
-    if (AVAILABLE_PORTS[i]) begin : g
-      tnoc_vc_merger #(CONFIG) u_vc_merger (
-        .clk          (clk                                          ),
-        .rst_n        (rst_n                                        ),
-        .i_vc_grant   (port_control_if[i].grant                     ),
-        .flit_in_if   (`tnoc_array_slicer(flit_vc_if, i, CHANNELS)  ),
-        .flit_out_if  (flit_out_if[i]                               )
+    if (ACTIVE_PORTS[i]) begin : g
+      tnoc_vc_merger #(
+        .PACKET_CONFIG  (PACKET_CONFIG  )
+      ) u_merger (
+        .types        (types                              ),
+        .i_clk        (i_clk                              ),
+        .i_rst_n      (i_rst_n                            ),
+        .i_vc_grant   (port_control_if[i].grant           ),
+        .receiver_if  (vc_if[CHANNELS*i:CHANNELS*(i+1)-1] ),
+        .sender_if    (sender_if[i]                       )
       );
     end
     else begin : g_dummy
-      tnoc_flit_if_dummy_initiator #(
-        .CONFIG     (CONFIG             ),
-        .PORT_TYPE  (TNOC_INTERNAL_PORT )
-      ) u_dummy_initiator (
-        flit_out_if[i]
+      tnoc_flit_if_dummy_sender u_dummy_sender (sender_if[i]);
+
+      tnoc_flit_if_dummy_receiver_array #(
+        .PACKET_CONFIG  (PACKET_CONFIG  ),
+        .CHANNELS       (1              )
+      ) u_dummy_receiver (
+        vc_if[CHANNELS*i:CHANNELS*(i+1)-1]
       );
-      for (genvar j = 0;j < CHANNELS;++j) begin : g
-        tnoc_flit_if_dummy_target #(
-          .CONFIG     (CONFIG             ),
-          .CHANNELS   (1                  ),
-          .PORT_TYPE  (TNOC_INTERNAL_PORT )
-        ) u_dummy_target(
-          flit_vc_if[CHANNELS*i+j]
-        );
-      end
     end
   end
 endmodule

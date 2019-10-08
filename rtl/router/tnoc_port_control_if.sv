@@ -1,11 +1,11 @@
 `ifndef TNOC_PORT_CONTROL_IF_SV
 `define TNOC_PORT_CONTROL_IF_SV
 interface tnoc_port_control_if
-  import  tnoc_config_pkg::*;
+  import  tnoc_pkg::*;
 #(
-  parameter tnoc_config CONFIG  = TNOC_DEFAULT_CONFIG
-)();
-  localparam  int CHANNELS  = CONFIG.virtual_channels;
+  parameter tnoc_packet_config  PACKET_CONFIG  = TNOC_DEFAULT_PACKET_CONFIG
+);
+  localparam  int CHANNELS  = PACKET_CONFIG.virtual_channels;
 
   logic [CHANNELS-1:0]  request;
   logic [CHANNELS-1:0]  grant;
@@ -21,7 +21,7 @@ interface tnoc_port_control_if
     output  end_of_packet
   );
 
-  modport arbitrator (
+  modport controller (
     input   request,
     output  grant,
     input   free,

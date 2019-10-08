@@ -1,35 +1,40 @@
 module tnoc_vc_merger
-  `include  "tnoc_default_imports.svh"
+  import  tnoc_pkg::*;
 #(
-  parameter   tnoc_config CONFIG    = TNOC_DEFAULT_CONFIG,
-  localparam  int         CHANNELS  = CONFIG.virtual_channels
+  parameter   tnoc_packet_config  PACKET_CONFIG = TNOC_DEFAULT_PACKET_CONFIG,
+  localparam  int                 CHANNELS      = PACKET_CONFIG.virtual_channels
 )(
-  input logic                 clk,
-  input logic                 rst_n,
-  input logic [CHANNELS-1:0]  i_vc_grant,
-  tnoc_flit_if.target         flit_in_if[CHANNELS],
-  tnoc_flit_if.initiator      flit_out_if
+  tnoc_types                      types,
+  input var logic                 i_clk,
+  input var logic                 i_rst_n,
+  input var logic [CHANNELS-1:0]  i_vc_grant,
+  tnoc_flit_if.receiver           receiver_if[CHANNELS],
+  tnoc_flit_if.sender             sender_if
 );
-  localparam  tnoc_port_type  PORT_TYPE = TNOC_INTERNAL_PORT;
-
-  `tnoc_internal_flit_if(CHANNELS)  flit_fifo_if();
+  tnoc_flit_if #(
+    .PACKET_CONFIG  (PACKET_CONFIG      ),
+    .PORT_TYPE      (TNOC_INTERNAL_PORT )
+  ) flit_if(types);
 
   tnoc_vc_mux #(
-    .CONFIG     (CONFIG     ),
-    .PORT_TYPE  (PORT_TYPE  )
+    .PACKET_CONFIG  (PACKET_CONFIG      ),
+    .PORT_TYPE      (TNOC_INTERNAL_PORT )
   ) u_vc_mux (
+    .types        (types        ),
     .i_vc_grant   (i_vc_grant   ),
-    .flit_in_if   (flit_in_if   ),
-    .flit_out_if  (flit_fifo_if )
+    .receiver_if  (receiver_if  ),
+    .sender_if    (flit_if      )
   );
 
   tnoc_flit_if_slicer #(
-    .CONFIG     (CONFIG     ),
-    .PORT_TYPE  (PORT_TYPE  )
-  ) u_output_fifo (
-    .clk          (clk          ),
-    .rst_n        (rst_n        ),
-    .flit_in_if   (flit_fifo_if ),
-    .flit_out_if  (flit_out_if  )
+    .PACKET_CONFIG  (PACKET_CONFIG      ),
+    .PORT_TYPE      (TNOC_INTERNAL_PORT ),
+    .INTER_ROUTER   (0                  )
+  ) u_slicer (
+    .types        (types      ),
+    .i_clk        (i_clk      ),
+    .i_rst_n      (i_rst_n    ),
+    .receiver_if  (flit_if    ),
+    .sender_if    (sender_if  )
   );
 endmodule

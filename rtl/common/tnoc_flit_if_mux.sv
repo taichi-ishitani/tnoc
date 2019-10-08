@@ -1,83 +1,59 @@
 module tnoc_flit_if_mux
-  `include  "tnoc_default_imports.svh"
+  import  tnoc_pkg::*;
 #(
-  parameter
-    tnoc_config     CONFIG    = TNOC_DEFAULT_CONFIG,
-    int             CHANNELS  = CONFIG.virtual_channels,
-    int             ENTRIES   = 2,
-    tnoc_port_type  PORT_TYPE = TNOC_LOCAL_PORT
+  parameter tnoc_packet_config  PACKET_CONFIG = TNOC_DEFAULT_PACKET_CONFIG,
+  parameter int                 CHANNELS      = PACKET_CONFIG.virtual_channels,
+  parameter int                 ENTRIES       = 2,
+  parameter tnoc_port_type      PORT_TYPE     = TNOC_LOCAL_PORT
 )(
-  input logic [ENTRIES-1:0] i_select,
-  tnoc_flit_if.target       flit_in_if[ENTRIES],
-  tnoc_flit_if.initiator    flit_out_if
+  tnoc_types                    types,
+  input var logic [ENTRIES-1:0] i_select,
+  tnoc_flit_if.receiver         receiver_if[ENTRIES],
+  tnoc_flit_if.sender           sender_if
 );
-  `include  "tnoc_packet_flit_macros.svh"
-  `tnoc_define_packet_and_flit(CONFIG)
-
 //--------------------------------------------------------------
 //  Control signals
 //--------------------------------------------------------------
-  logic [CHANNELS-1:0]  valid[ENTRIES];
-  logic [CHANNELS-1:0]  ready[ENTRIES];
-  logic [CHANNELS-1:0]  vc_available[ENTRIES];
+  if (1) begin : g_control_signals
+    logic [ENTRIES-1:0][CHANNELS-1:0] valid;
+    logic [ENTRIES-1:0][CHANNELS-1:0] ready;
+    logic [ENTRIES-1:0][CHANNELS-1:0] vc_ready;
 
+    for (genvar i = 0;i < ENTRIES;++i) begin : g
+      assign  valid[i]                = receiver_if[i].valid;
+      assign  receiver_if[i].ready    = ready[i];
+      assign  receiver_if[i].vc_ready = vc_ready[i];
+    end
 
-  for (genvar i = 0;i < ENTRIES;++i) begin
-    assign  valid[i]                    = flit_in_if[i].valid;
-    assign  flit_in_if[i].ready         = ready[i];
-    assign  flit_in_if[i].vc_available  = vc_available[i];
+    tbcm_selector #(
+      .WIDTH    (CHANNELS ),
+      .ENTRIES  (ENTRIES  ),
+      .ONE_HOT  (1        )
+    ) u_selector();
+
+    assign  sender_if.valid = u_selector.mux(i_select, valid);
+    assign  ready           = u_selector.demux(i_select, sender_if.ready);
+    assign  vc_ready        = u_selector.demux(i_select, sender_if.vc_ready);
   end
-
-  tbcm_mux #(
-    .WIDTH    (CHANNELS ),
-    .ENTRIES  (ENTRIES  ),
-    .ONE_HOT  (1        )
-  ) u_valid_mux (
-    .i_select (i_select           ),
-    .i_data   (valid              ),
-    .o_data   (flit_out_if.valid  )
-  );
-
-  tbcm_demux #(
-    .WIDTH    (CHANNELS ),
-    .ENTRIES  (ENTRIES  ),
-    .ONE_HOT  (1        )
-  ) u_ready_demux (
-    .i_select (i_select           ),
-    .i_data   (flit_out_if.ready  ),
-    .o_data   (ready              )
-  );
-
-  tbcm_demux #(
-    .WIDTH    (CHANNELS ),
-    .ENTRIES  (ENTRIES  ),
-    .ONE_HOT  (1        )
-  ) u_vc_available_demux (
-    .i_select (i_select                 ),
-    .i_data   (flit_out_if.vc_available ),
-    .o_data   (vc_available             )
-  );
 
 //--------------------------------------------------------------
 //  Flit
 //--------------------------------------------------------------
-  localparam  int FLITS = (is_local_port(PORT_TYPE)) ? CHANNELS : 1;
+  typedef types.tnoc_flit tnoc_flit;
 
-  for (genvar i = 0;i < FLITS;++i) begin : g_flit_mux
-    tnoc_flit flit_in[ENTRIES];
+  if (1) begin : g_flit
+    tnoc_flit [ENTRIES-1:0] flit;
 
-    for (genvar j = 0;j < ENTRIES;++j) begin
-      assign  flit_in[j]  = flit_in_if[j].flit[i];
+    for (genvar i = 0;i < ENTRIES;++i) begin : g
+      assign  flit[i] = receiver_if[i].flit;
     end
 
-    tbcm_mux #(
+    tbcm_selector #(
       .DATA_TYPE  (tnoc_flit  ),
       .ENTRIES    (ENTRIES    ),
       .ONE_HOT    (1          )
-    ) u_flit_mux (
-      .i_select (i_select             ),
-      .i_data   (flit_in              ),
-      .o_data   (flit_out_if.flit[i]  )
-    );
+    ) u_selector();
+
+    assign  sender_if.flit  = u_selector.mux(i_select, flit);
   end
 endmodule

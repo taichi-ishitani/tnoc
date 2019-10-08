@@ -1,109 +1,161 @@
 module tnoc_router
-  `include  "tnoc_default_imports.svh"
+  import  tnoc_pkg::*;
 #(
-  parameter   tnoc_config CONFIG          = TNOC_DEFAULT_CONFIG,
-  parameter   bit [4:0]   AVAILABLE_PORTS = 5'b11111,
-  localparam  int         LOCAL_PORTS     = CONFIG.virtual_channels,
-  localparam  int         ID_X_WIDTH      = CONFIG.id_x_width,
-  localparam  int         ID_Y_WIDTH      = CONFIG.id_y_width
+  parameter   tnoc_packet_config                  PACKET_CONFIG = TNOC_DEFAULT_PACKET_CONFIG,
+  parameter   bit [4:0]                           ACTIVE_PORTS  = 5'b11111,
+  parameter   int                                 DEPTH         = 4,
+  parameter   bit                                 ERROR_CHECK   = 1,
+  parameter   bit [PACKET_CONFIG.data_width-1:0]  ERROR_DATA    = '1,
+  localparam  int                                 ID_X_WIDTH    = get_id_x_width(PACKET_CONFIG),
+  localparam  int                                 ID_Y_WIDTH    = get_id_y_width(PACKET_CONFIG)
 )(
-  input logic                   clk,
-  input logic                   rst_n,
-  input logic [ID_X_WIDTH-1:0]  i_id_x,
-  input logic [ID_Y_WIDTH-1:0]  i_id_y,
-  tnoc_flit_if.target           flit_in_if_x_plus,
-  tnoc_flit_if.initiator        flit_out_if_x_plus,
-  tnoc_flit_if.target           flit_in_if_x_minus,
-  tnoc_flit_if.initiator        flit_out_if_x_minus,
-  tnoc_flit_if.target           flit_in_if_y_plus,
-  tnoc_flit_if.initiator        flit_out_if_y_plus,
-  tnoc_flit_if.target           flit_in_if_y_minus,
-  tnoc_flit_if.initiator        flit_out_if_y_minus,
-  tnoc_flit_if.target           flit_in_if_local,
-  tnoc_flit_if.initiator        flit_out_if_local
+  tnoc_types                        types,
+  input var logic                   i_clk,
+  input var logic                   i_rst_n,
+  input var logic [ID_X_WIDTH-1:0]  i_id_x,
+  input var logic [ID_Y_WIDTH-1:0]  i_id_y,
+  tnoc_flit_if.receiver             receiver_if_xp,
+  tnoc_flit_if.sender               sender_if_xp,
+  tnoc_flit_if.receiver             receiver_if_xm,
+  tnoc_flit_if.sender               sender_if_xm,
+  tnoc_flit_if.receiver             receiver_if_yp,
+  tnoc_flit_if.sender               sender_if_yp,
+  tnoc_flit_if.receiver             receiver_if_ym,
+  tnoc_flit_if.sender               sender_if_ym,
+  tnoc_flit_if.receiver             receiver_if_local,
+  tnoc_flit_if.sender               sender_if_local
 );
-  `include  "tnoc_macros.svh"
-
-  localparam  int CHANNELS  = CONFIG.virtual_channels;
-
-  `tnoc_internal_flit_if(CHANNELS)  flit_input_block_if[25]();
-  tnoc_port_control_if #(CONFIG)    port_input_blck_control_if[25]();
-  `tnoc_internal_flit_if(CHANNELS)  flit_output_block_if[25]();
-  tnoc_port_control_if #(CONFIG)    port_output_blck_control_if[25]();
-
-  function automatic tnoc_port_type get_port_type(int index);
-    return (index == 4) ? TNOC_LOCAL_PORT : TNOC_INTERNAL_PORT;
+  function automatic tnoc_port_type get_port_type(int port_index);
+    if (port_index == 4) begin
+      return TNOC_LOCAL_PORT;
+    end
+    else begin
+      return TNOC_INTERNAL_PORT;
+    end
   endfunction
 
-  `define tnoc_instance_input_block(index, port_suffix) \
-  if (AVAILABLE_PORTS[index]) begin : g_input_block``port_suffix \
-    tnoc_input_block #( \
-      .CONFIG           (CONFIG               ), \
-      .PORT_TYPE        (get_port_type(index) ), \
-      .AVAILABLE_PORTS  (AVAILABLE_PORTS      ) \
-    ) u_input_block ( \
-      .clk              (clk                                                      ), \
-      .rst_n            (rst_n                                                    ), \
-      .i_id_x           (i_id_x                                                   ), \
-      .i_id_y           (i_id_y                                                   ), \
-      .flit_in_if       (flit_in_if``port_suffix                                  ), \
-      .flit_out_if      (`tnoc_array_slicer(flit_input_block_if       , index, 5) ), \
-      .port_control_if  (`tnoc_array_slicer(port_input_blck_control_if, index, 5) ) \
-    ); \
-  end \
-  else begin : g_dummy_input_block``port_suffix \
-    tnoc_input_block_dummy #( \
-    .CONFIG (CONFIG ) \
-    ) u_dummy ( \
-      .flit_in_if       (flit_in_if``port_suffix                                  ), \
-      .flit_out_if      (`tnoc_array_slicer(flit_input_block_if       , index, 5) ), \
-      .port_control_if  (`tnoc_array_slicer(port_input_blck_control_if, index, 5) ) \
-    ); \
-  end
+  tnoc_flit_if #(
+    .PACKET_CONFIG  (PACKET_CONFIG      ),
+    .PORT_TYPE      (TNOC_INTERNAL_PORT )
+  ) input_block_flit_if[25](types);
+  tnoc_flit_if #(
+    .PACKET_CONFIG  (PACKET_CONFIG      ),
+    .PORT_TYPE      (TNOC_INTERNAL_PORT )
+  ) output_block_flit_if[25](types);
 
-  `tnoc_instance_input_block(0, _x_plus )
-  `tnoc_instance_input_block(1, _x_minus)
-  `tnoc_instance_input_block(2, _y_plus )
-  `tnoc_instance_input_block(3, _y_minus)
-  `tnoc_instance_input_block(4, _local  )
+  tnoc_port_control_if #(
+    .PACKET_CONFIG  (PACKET_CONFIG  )
+  ) input_block_port_control_if[25]();
+  tnoc_port_control_if #(
+    .PACKET_CONFIG  (PACKET_CONFIG  )
+  ) output_block_port_control_if[25]();
 
-  `undef  tnoc_instance_input_block
+  for (genvar i = 0;i < 5;++i) begin : g_input_block
+    localparam  tnoc_port_type  PORT_TYPE = get_port_type(i);
 
-  for (genvar i = 0;i < 5;++i) begin
-    for (genvar j = 0;j < 5;++j) begin
-      `tnoc_flit_if_renamer(flit_input_block_if[5*i+j], flit_output_block_if[5*j+i])
-      `tnoc_port_control_if_renamer(port_input_blck_control_if[5*i+j], port_output_blck_control_if[5*j+i])
+    tnoc_flit_if #(
+      .PACKET_CONFIG  (PACKET_CONFIG  ),
+      .PORT_TYPE      (PORT_TYPE      )
+    ) receiver_if(types);
+
+    if (i == 0) begin : g_xp
+      tnoc_flit_if_connector u_connector (receiver_if_xp, receiver_if);
+    end
+    else if (i == 1) begin : g_xm
+      tnoc_flit_if_connector u_connector (receiver_if_xm, receiver_if);
+    end
+    else if (i == 2) begin : g_yp
+      tnoc_flit_if_connector u_connector (receiver_if_yp, receiver_if);
+    end
+    else if (i == 3) begin : g_ym
+      tnoc_flit_if_connector u_connector (receiver_if_ym, receiver_if);
+    end
+    else begin : g_local
+      tnoc_flit_if_connector u_connector (receiver_if_local, receiver_if);
+    end
+
+    if (ACTIVE_PORTS[i]) begin : g
+      tnoc_input_block #(
+        .PACKET_CONFIG  (PACKET_CONFIG  ),
+        .PORT_TYPE      (PORT_TYPE      ),
+        .ACTIVE_PORTS   (ACTIVE_PORTS   ),
+        .DEPTH          (DEPTH          ),
+        .ERROR_CHECK    (ERROR_CHECK    ),
+        .ERROR_DATA     (ERROR_DATA     )
+      ) u_input_block (
+        .types            (types                                      ),
+        .i_clk            (i_clk                                      ),
+        .i_rst_n          (i_rst_n                                    ),
+        .i_id_x           (i_id_x                                     ),
+        .i_id_y           (i_id_y                                     ),
+        .receiver_if      (receiver_if                                ),
+        .sender_if        (input_block_flit_if[5*i:5*(i+1)-1]         ),
+        .port_control_if  (input_block_port_control_if[5*i:5*(i+1)-1] )
+      );
+    end
+    else begin : g_dummy
+      tnoc_input_block_dummy #(
+        .PACKET_CONFIG  (PACKET_CONFIG  )
+      ) u_dummy (
+        .receiver_if      (receiver_if                                ),
+        .sender_if        (input_block_flit_if[5*i:5*(i+1)-1]         ),
+        .port_control_if  (input_block_port_control_if[5*i:5*(i+1)-1] )
+      );
     end
   end
 
-  `define tnoc_instance_output_block(index, port_suffix) \
-  if (AVAILABLE_PORTS[index]) begin : g_output_block``port_suffix \
-    tnoc_output_block #( \
-      .CONFIG     (CONFIG               ), \
-      .PORT_TYPE  (get_port_type(index) ) \
-    ) u_output_block ( \
-      .clk              (clk                                                        ), \
-      .rst_n            (rst_n                                                      ), \
-      .flit_in_if       (`tnoc_array_slicer(flit_output_block_if, index, 5)         ), \
-      .flit_out_if      (flit_out_if``port_suffix                                   ), \
-      .port_control_if  (`tnoc_array_slicer(port_output_blck_control_if, index, 5)  ) \
-    ); \
-  end \
-  else begin : g_dummy_output_block``port_suffix \
-    tnoc_output_block_dummy #( \
-      .CONFIG (CONFIG ) \
-    ) u_dummy ( \
-      .flit_in_if       (`tnoc_array_slicer(flit_output_block_if, index, 5)         ), \
-      .flit_out_if      (flit_out_if``port_suffix                                   ), \
-      .port_control_if  (`tnoc_array_slicer(port_output_blck_control_if, index, 5)  ) \
-    ); \
+  tnoc_if_transposer u_if_transposer (
+    .receiver_if    (input_block_flit_if          ),
+    .controller_if  (input_block_port_control_if  ),
+    .sender_if      (output_block_flit_if         ),
+    .requester_if   (output_block_port_control_if )
+  );
+
+  for (genvar i = 0;i < 5;++i) begin : g_output_block
+    localparam  tnoc_port_type  PORT_TYPE = get_port_type(i);
+
+    tnoc_flit_if #(
+      .PACKET_CONFIG  (PACKET_CONFIG  ),
+      .PORT_TYPE      (PORT_TYPE      )
+    ) sender_if(types);
+
+    if (i == 0) begin : g_xp
+      tnoc_flit_if_connector u_connector (sender_if, sender_if_xp);
+    end
+    else if (i == 1) begin : g_xm
+      tnoc_flit_if_connector u_connector (sender_if, sender_if_xm);
+    end
+    else if (i == 2) begin : g_xp
+      tnoc_flit_if_connector u_connector (sender_if, sender_if_yp);
+    end
+    else if (i == 3) begin : g_xm
+      tnoc_flit_if_connector u_connector (sender_if, sender_if_ym);
+    end
+    else begin : g_local
+      tnoc_flit_if_connector u_connector (sender_if, sender_if_local);
+    end
+
+    if (ACTIVE_PORTS[i]) begin : g
+      tnoc_output_block #(
+        .PACKET_CONFIG  (PACKET_CONFIG  ),
+        .PORT_TYPE      (PORT_TYPE      )
+      ) u_output_block (
+        .types            (types                                        ),
+        .i_clk            (i_clk                                        ),
+        .i_rst_n          (i_rst_n                                      ),
+        .receiver_if      (output_block_flit_if[5*i:5*(i+1)-1]          ),
+        .sender_if        (sender_if                                    ),
+        .port_control_if  (output_block_port_control_if[5*i:5*(i+1)-1]  )
+      );
+    end
+    else begin : g_dummy
+      tnoc_output_block_dummy #(
+        .PACKET_CONFIG  (PACKET_CONFIG  )
+      ) u_dummy (
+        .receiver_if      (output_block_flit_if[5*i:5*(i+1)-1]          ),
+        .sender_if        (sender_if                                    ),
+        .port_control_if  (output_block_port_control_if[5*i:5*(i+1)-1]  )
+      );
+    end
   end
-
-  `tnoc_instance_output_block(0, _x_plus )
-  `tnoc_instance_output_block(1, _x_minus)
-  `tnoc_instance_output_block(2, _y_plus )
-  `tnoc_instance_output_block(3, _y_minus)
-  `tnoc_instance_output_block(4, _local  )
-
-  `undef  tnoc_instance_output_block
 endmodule

@@ -1,51 +1,47 @@
 module tnoc_input_fifo
-  `include  "tnoc_default_imports.svh"
+  import  tnoc_pkg::*;
 #(
-  parameter   tnoc_config     CONFIG    = TNOC_DEFAULT_CONFIG,
-  parameter   tnoc_port_type  PORT_TYPE = TNOC_LOCAL_PORT,
-  localparam  int             CHANNELS  = CONFIG.virtual_channels
+  parameter   tnoc_packet_config  PACKET_CONFIG = TNOC_DEFAULT_PACKET_CONFIG,
+  parameter   tnoc_port_type      PORT_TYPE     = TNOC_LOCAL_PORT,
+  parameter   int                 DEPTH         = 4,
+  localparam  int                 CHANNELS      = PACKET_CONFIG.virtual_channels
 )(
-  input   logic                 clk,
-  input   logic                 rst_n,
-  input   logic                 i_clear,
-  output  logic [CHANNELS-1:0]  o_empty,
-  output  logic [CHANNELS-1:0]  o_almost_full,
-  output  logic [CHANNELS-1:0]  o_full,
-  tnoc_flit_if.target           flit_in_if,
-  tnoc_flit_if.initiator        flit_out_if[CHANNELS]
+  tnoc_types            types,
+  input var logic       i_clk,
+  input var logic       i_rst_n,
+  tnoc_flit_if.receiver receiver_if,
+  tnoc_flit_if.sender   sender_if[CHANNELS]
 );
-  `include  "tnoc_macros.svh"
+  tnoc_types #(PACKET_CONFIG) types_temp(); //  Workaround for VCS's bug
+  tnoc_flit_if #(PACKET_CONFIG, 1)  flit_vc_if[CHANNELS](types_temp);
 
-  localparam  int DEPTH     = CONFIG.input_fifo_depth;
-  localparam  int THRESHOLD = DEPTH - 2;
-
-  `tnoc_internal_flit_if(1) flit_if[CHANNELS]();
-
-  tnoc_vc_demux #(
-    .CONFIG     (CONFIG     ),
-    .PORT_TYPE  (PORT_TYPE  )
-  ) u_vc_demux (
-    .flit_in_if   (flit_in_if ),
-    .flit_out_if  (flit_if    )
+  tnoc_vc_splitter #(
+    .PACKET_CONFIG  (PACKET_CONFIG  ),
+    .PORT_TYPE      (PORT_TYPE      )
+  ) u_vc_splitter (
+    .types        (types        ),
+    .receiver_if  (receiver_if  ),
+    .sender_if    (flit_vc_if   )
   );
 
-  for (genvar i = 0;i < CHANNELS;++i) begin : g_fifo
+  for (genvar i = 0;i < CHANNELS;++i) begin : g
     tnoc_flit_if_fifo #(
-      .CONFIG       (CONFIG     ),
-      .CHANNELS     (1          ),
-      .DEPTH        (DEPTH      ),
-      .THRESHOLD    (THRESHOLD  ),
-      .DATA_FF_OUT  (0          ),
-      .PORT_TYPE    (PORT_TYPE  )
+      .PACKET_CONFIG  (PACKET_CONFIG  ),
+      .CHANNELS       (1              ),
+      .DEPTH          (DEPTH          ),
+      .THRESHOLD      (DEPTH -2       ),
+      .DATA_FF_OUT    (0              ),
+      .PORT_TYPE      (PORT_TYPE      )
     ) u_fifo (
-      .clk            (clk              ),
-      .rst_n          (rst_n            ),
-      .i_clear        (i_clear          ),
-      .o_empty        (o_empty[i]       ),
-      .o_almost_full  (o_almost_full[i] ),
-      .o_full         (o_full[i]        ),
-      .flit_in_if     (flit_if[i]       ),
-      .flit_out_if    (flit_out_if[i]   )
+      .types          (types          ),
+      .i_clk          (i_clk          ),
+      .i_rst_n        (i_rst_n        ),
+      .i_clear        ('0             ),
+      .o_empty        (),
+      .o_almost_full  (),
+      .o_full         (),
+      .receiver_if    (flit_vc_if[i]  ),
+      .sender_if      (sender_if[i]   )
     );
   end
 endmodule

@@ -1,87 +1,108 @@
 module tnoc_output_block
-  `include  "tnoc_default_imports.svh"
+  import  tnoc_pkg::*;
 #(
-  parameter
-    tnoc_config     CONFIG    = TNOC_DEFAULT_CONFIG,
-    tnoc_port_type  PORT_TYPE = TNOC_LOCAL_PORT
+  parameter tnoc_packet_config  PACKET_CONFIG = TNOC_DEFAULT_PACKET_CONFIG,
+  parameter tnoc_port_type      PORT_TYPE     = TNOC_LOCAL_PORT
 )(
-  input logic                     clk,
-  input logic                     rst_n,
-  tnoc_flit_if.target             flit_in_if[5],
-  tnoc_flit_if.initiator          flit_out_if,
-  tnoc_port_control_if.arbitrator port_control_if[5]
+  tnoc_types                      types,
+  input var logic                 i_clk,
+  input var logic                 i_rst_n,
+  tnoc_flit_if.receiver           receiver_if[5],
+  tnoc_flit_if.sender             sender_if,
+  tnoc_port_control_if.controller port_control_if[5]
 );
-  `include  "tnoc_macros.svh"
-
-  localparam  int CHANNELS      = CONFIG.virtual_channels;
-  localparam  int PORT_CHANNELS = (is_local_port(PORT_TYPE)) ? 1        : CHANNELS;
+  localparam  int CHANNELS      = PACKET_CONFIG.virtual_channels;
+  localparam  int PORT_CHANNELS = (is_local_port(PORT_TYPE)) ? 1 : CHANNELS;
   localparam  int SWITCHES      = (is_local_port(PORT_TYPE)) ? CHANNELS : 1;
 
-  `tnoc_internal_flit_if(PORT_CHANNELS) flit_switch_in_if[5*SWITCHES]();
-  `tnoc_internal_flit_if(PORT_CHANNELS) flit_switch_out_if[SWITCHES]();
-  logic [4:0]                           output_grant[SWITCHES];
-  logic                                 output_free[SWITCHES];
+//--------------------------------------------------------------
+//  Re-order
+//--------------------------------------------------------------
+  tnoc_flit_if #(
+    PACKET_CONFIG, PORT_CHANNELS, PORT_TYPE
+  ) port_if[5*SWITCHES](types);
 
-  if (is_local_port(PORT_TYPE)) begin
-    for (genvar i = 0;i < CHANNELS;++i) begin
+  if (is_local_port(PORT_TYPE)) begin : g_local_port
+    for (genvar i = 0;i < CHANNELS;++i) begin : g
       for (genvar j = 0;j < 5;++j) begin
-        assign  flit_switch_in_if[5*i+j].valid  = flit_in_if[j].valid[i];
-        assign  flit_in_if[j].ready[i]          = flit_switch_in_if[5*i+j].ready;
-        assign  flit_switch_in_if[5*i+j].flit   = flit_in_if[j].flit;
-        assign  flit_in_if[j].vc_available[i]   = flit_switch_in_if[5*i+j].vc_available;
+        always_comb begin
+          port_if[5*i+j].valid        = receiver_if[j].valid[i];
+          receiver_if[j].ready[i]     = port_if[5*i+j].ready;
+          port_if[5*i+j].flit         = receiver_if[j].flit;
+          receiver_if[j].vc_ready[i]  = port_if[5*i+j].vc_ready;
+        end
       end
     end
   end
-  else begin
-    for (genvar i = 0;i < 5;++i) begin
-      `tnoc_flit_if_renamer(flit_in_if[i], flit_switch_in_if[i])
+  else begin : g_internal_port
+    for (genvar i = 0;i < 5;++i) begin : g
+      tnoc_flit_if_connector u_connector (receiver_if[i], port_if[i]);
     end
   end
 
+//--------------------------------------------------------------
+//  Port controller
+//--------------------------------------------------------------
+  logic [SWITCHES-1:0][4:0] output_grant;
+  logic [SWITCHES-1:0]      output_free;
+
   if (is_local_port(PORT_TYPE)) begin : g_local_port_contoller
-    tnoc_local_port_controller #(CONFIG) u_port_controller (
-      .clk              (clk                      ),
-      .rst_n            (rst_n                    ),
-      .i_vc_available   (flit_out_if.vc_available ),
-      .port_control_if  (port_control_if          ),
-      .o_output_grant   (output_grant             ),
-      .i_output_free    (output_free              )
+    tnoc_port_controller_local #(CHANNELS) u_port_controller (
+      .i_clk            (i_clk              ),
+      .i_rst_n          (i_rst_n            ),
+      .i_vc_ready       (sender_if.vc_ready ),
+      .port_control_if  (port_control_if    ),
+      .o_output_grant   (output_grant       ),
+      .i_output_free    (output_free        )
     );
   end
   else begin : g_internal_port_controller
-    tnoc_internal_port_controller #(CONFIG) u_port_controller (
-      .clk              (clk                      ),
-      .rst_n            (rst_n                    ),
-      .i_vc_available   (flit_out_if.vc_available ),
-      .port_control_if  (port_control_if          ),
-      .o_output_grant   (output_grant[0]          ),
-      .i_output_free    (output_free[0]           )
+    tnoc_port_contller_internal #(CHANNELS) u_port_controller (
+      .i_clk            (i_clk              ),
+      .i_rst_n          (i_rst_n            ),
+      .i_vc_ready       (sender_if.vc_ready ),
+      .port_control_if  (port_control_if    ),
+      .o_output_grant   (output_grant       ),
+      .i_output_free    (output_free        )
     );
   end
+
+//--------------------------------------------------------------
+//  Switch
+//--------------------------------------------------------------
+  tnoc_types #(PACKET_CONFIG) types_temp(); //  Workaround for VCS's bug
+  tnoc_flit_if #(
+    PACKET_CONFIG, PORT_CHANNELS, PORT_TYPE
+  ) switch_if[SWITCHES](types_temp);
 
   for (genvar i = 0;i < SWITCHES;++i) begin : g_switch
     tnoc_output_switch #(
-      .CONFIG     (CONFIG         ),
-      .PORT_TYPE  (PORT_TYPE      ),
-      .CHANNELS   (PORT_CHANNELS  )
-    ) u_output_switch (
-      .clk            (clk                                          ),
-      .rst_n          (rst_n                                        ),
-      .flit_in_if     (`tnoc_array_slicer(flit_switch_in_if, i, 5)  ),
-      .flit_out_if    (flit_switch_out_if[i]                        ),
-      .i_output_grant (output_grant[i]                              ),
-      .o_output_free  (output_free[i]                               )
+      .PACKET_CONFIG  (PACKET_CONFIG  ),
+      .PORT_TYPE      (PORT_TYPE      ),
+      .CHANNELS       (PORT_CHANNELS  )
+    ) u_switch (
+      .types          (types                  ),
+      .i_clk          (i_clk                  ),
+      .i_rst_n        (i_rst_n                ),
+      .receiver_if    (port_if[5*i:5*(i+1)-1] ),
+      .sender_if      (switch_if[i]           ),
+      .i_output_grant (output_grant[i]        ),
+      .o_output_free  (output_free[i]         )
     );
   end
 
-  if (is_local_port(PORT_TYPE)) begin : g_output_local_port_renamer
-    tnoc_vc_mux #(CONFIG, PORT_TYPE) u_vc_mux (
-      .i_vc_grant   ('0                 ),
-      .flit_in_if   (flit_switch_out_if ),
-      .flit_out_if  (flit_out_if        )
+  if (is_local_port(PORT_TYPE)) begin : g_vc_mux
+    tnoc_vc_mux #(
+      .PACKET_CONFIG  (PACKET_CONFIG    ),
+      .PORT_TYPE      (TNOC_LOCAL_PORT  )
+    ) u_vc_mux (
+      .types        (types      ),
+      .i_vc_grant   ('0         ),
+      .receiver_if  (switch_if  ),
+      .sender_if    (sender_if  )
     );
   end
-  else begin : g_output_internal_port_renamer
-    `tnoc_flit_if_renamer(flit_switch_out_if[0], flit_out_if)
+  else begin : g_rename
+    tnoc_flit_if_connector u_connector (switch_if[0], sender_if);
   end
 endmodule
