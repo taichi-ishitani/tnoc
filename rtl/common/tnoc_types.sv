@@ -70,7 +70,7 @@ interface tnoc_types
   typedef logic [get_header_width(PACKET_CONFIG)-1:0]   tnoc_packed_header;
   typedef logic [get_payload_width(PACKET_CONFIG)-1:0]  tnoc_packed_payload;
 
-  typedef struct {
+  typedef struct packed {
     tnoc_packet_type      packet_type;
     tnoc_location_id      destination_id;
     tnoc_location_id      source_id;
@@ -84,7 +84,7 @@ interface tnoc_types
     tnoc_response_status  status;
   } tnoc_header_fields;
 
-  typedef struct {
+  typedef struct packed {
     tnoc_data             data;
     tnoc_byte_enable      byte_enable;
     tnoc_response_status  status;

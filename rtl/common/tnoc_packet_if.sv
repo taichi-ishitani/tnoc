@@ -40,7 +40,8 @@ interface tnoc_packet_if
   typedef types.tnoc_common_header          tnoc_common_header;
   typedef types.tnoc_request_header         tnoc_request_header;
   typedef types.tnoc_response_header        tnoc_response_header;
-  typedef types.tnoc_packed_header          tnoc_packed_header;
+  //typedef types.tnoc_packed_header          tnoc_packed_header;
+  typedef logic [get_header_width(PACKET_CONFIG)-1:0]   tnoc_packed_header;
 
   function automatic tnoc_packed_header pack_header();
     tnoc_common_header_fields   common_fields;
@@ -120,7 +121,8 @@ interface tnoc_packet_if
 
   typedef types.tnoc_request_payload    tnoc_request_payload;
   typedef types.tnoc_response_payload   tnoc_response_payload;
-  typedef types.tnoc_packed_payload     tnoc_packed_payload;
+  //typedef types.tnoc_packed_payload     tnoc_packed_payload;
+  typedef logic [get_payload_width(PACKET_CONFIG)-1:0]  tnoc_packed_payload;
 
   function automatic tnoc_packed_payload pack_payload(tnoc_packet_type packet_type);
     //if (is_request_packet_type(packet_type)) begin
