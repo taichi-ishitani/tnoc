@@ -1,82 +1,99 @@
 module tnoc_fabric
-  `include  "tnoc_default_imports.svh"
+  import  tnoc_pkg::*;
 #(
-  parameter   tnoc_config CONFIG      = TNOC_DEFAULT_CONFIG,
-  localparam  int         SIZE_X      = CONFIG.size_x,
-  localparam  int         SIZE_Y      = CONFIG.size_y,
-  localparam  int         TOTAL_SIZE  = SIZE_X * SIZE_Y
+  parameter   tnoc_packet_config                  PACKET_CONFIG = TNOC_DEFAULT_PACKET_CONFIG,
+  parameter   int                                 FIFO_DEPTH    = 4,
+  parameter   bit                                 ERROR_CHECK   = 1,
+  parameter   bit [PACKET_CONFIG.data_width-1:0]  ERROR_DATA    = '1,
+  localparam  int                                 SIZE_X        = PACKET_CONFIG.size_x,
+  localparam  int                                 SIZE_Y        = PACKET_CONFIG.size_y,
+  localparam  int                                 TOTAL_ROUTERS = SIZE_X * SIZE_Y
 )(
-  input logic             clk,
-  input logic             rst_n,
-  tnoc_flit_if.target     flit_in_if[TOTAL_SIZE],
-  tnoc_flit_if.initiator  flit_out_if[TOTAL_SIZE]
+  tnoc_types            types,
+  input var logic       i_clk,
+  input var logic       i_rst_n,
+  tnoc_flit_if.receiver receiver_if[TOTAL_ROUTERS],
+  tnoc_flit_if.sender   sender_if[TOTAL_ROUTERS]
 );
-  `include  "tnoc_macros.svh"
+  typedef logic [get_id_x_width(PACKET_CONFIG)-1:0] tnoc_id_x;
+  typedef logic [get_id_y_width(PACKET_CONFIG)-1:0] tnoc_id_y;
 
-  localparam  int CHANNELS        = CONFIG.virtual_channels;
-  localparam  int ID_X_WIDTH      = CONFIG.id_x_width;
-  localparam  int ID_Y_WIDTH      = CONFIG.id_y_width;
-  localparam  int FLIT_IF_SIZE_X  = 2 * (SIZE_X + 1) * (SIZE_Y + 0);
-  localparam  int FLIT_IF_SIZE_Y  = 2 * (SIZE_X + 0) * (SIZE_Y + 1);
+  localparam  int FLIT_IF_SIZE_X  = (SIZE_X + 1) * SIZE_Y;
+  localparam  int FLIT_IF_SIZE_Y  = (SIZE_Y + 1) * SIZE_X;
 
-  `tnoc_internal_flit_if(CHANNELS)  flit_if_x[FLIT_IF_SIZE_X]();
-  `tnoc_internal_flit_if(CHANNELS)  flit_if_y[FLIT_IF_SIZE_Y]();
+  tnoc_flit_r2r_if #(PACKET_CONFIG) flit_if_x[FLIT_IF_SIZE_X](types);
+  tnoc_flit_r2r_if #(PACKET_CONFIG) flit_if_y[FLIT_IF_SIZE_Y](types);
 
   for (genvar y = 0;y < SIZE_Y;++y) begin : g_y
     for (genvar x = 0;x < SIZE_X;++x) begin : g_x
-      localparam  int                   FLIT_IF_INDEX_X = 2 * ((SIZE_X + 1) * y + x);
-      localparam  int                   FLIT_IF_INDEX_Y = 2 * ((SIZE_Y + 1) * x + y);
-      localparam  int                   FLIT_IF_INDEX_L = 1 * ((SIZE_X + 0) * y + x);
-      localparam  bit [ID_X_WIDTH-1:0]  ID_X            = x;
-      localparam  bit [ID_Y_WIDTH-1:0]  ID_Y            = y;
-      localparam  bit [4:0]             AVAILABLE_PORTS = {
-        1'b1,                               //  Local
-        ((y > 0           ) ? 1'b1 : 1'b0), //  Y Minus
-        ((y < (SIZE_Y - 1)) ? 1'b1 : 1'b0), //  Y Plus
-        ((x > 0           ) ? 1'b1 : 1'b0), //  X Minus
-        ((x < (SIZE_X - 1)) ? 1'b1 : 1'b0)  //  X Plus
-      };
+      localparam  int       INDEX_X       = (SIZE_X + 1) * y + x;
+      localparam  int       INDEX_Y       = (SIZE_Y + 1) * x + y;
+      localparam  int       INDEX_L       = (SIZE_X + 0) * y + x;
+      localparam  tnoc_id_x ID_X          = x;
+      localparam  tnoc_id_y ID_Y          = y;
+      localparam  bit [4:0] ACTIVE_PORTS  = get_active_ports(y, x);
 
       tnoc_router #(
-        .CONFIG           (CONFIG           ),
-        .AVAILABLE_PORTS  (AVAILABLE_PORTS  )
+        .PACKET_CONFIG  (PACKET_CONFIG  ),
+        .ACTIVE_PORTS   (ACTIVE_PORTS   ),
+        .FIFO_DEPTH     (FIFO_DEPTH     ),
+        .ERROR_CHECK    (ERROR_CHECK    ),
+        .ERROR_DATA     (ERROR_DATA     )
       ) u_router (
-        .clk                  (clk                          ),
-        .rst_n                (rst_n                        ),
-        .i_id_x               (ID_X                         ),
-        .i_id_y               (ID_Y                         ),
-        .flit_in_if_x_plus    (flit_if_x[FLIT_IF_INDEX_X+3] ),
-        .flit_out_if_x_plus   (flit_if_x[FLIT_IF_INDEX_X+2] ),
-        .flit_in_if_x_minus   (flit_if_x[FLIT_IF_INDEX_X+0] ),
-        .flit_out_if_x_minus  (flit_if_x[FLIT_IF_INDEX_X+1] ),
-        .flit_in_if_y_plus    (flit_if_y[FLIT_IF_INDEX_Y+3] ),
-        .flit_out_if_y_plus   (flit_if_y[FLIT_IF_INDEX_Y+2] ),
-        .flit_in_if_y_minus   (flit_if_y[FLIT_IF_INDEX_Y+0] ),
-        .flit_out_if_y_minus  (flit_if_y[FLIT_IF_INDEX_Y+1] ),
-        .flit_in_if_local     (flit_in_if[FLIT_IF_INDEX_L]  ),
-        .flit_out_if_local    (flit_out_if[FLIT_IF_INDEX_L] )
+        .types              (types                        ),
+        .i_clk              (i_clk                        ),
+        .i_rst_n            (i_rst_n                      ),
+        .i_id_x             (ID_X                         ),
+        .i_id_y             (ID_Y                         ),
+        .receiver_if_xp     (flit_if_x[INDEX_X+1].m2p_if  ),
+        .sender_if_xp       (flit_if_x[INDEX_X+1].p2m_if  ),
+        .receiver_if_xm     (flit_if_x[INDEX_X+0].p2m_if  ),
+        .sender_if_xm       (flit_if_x[INDEX_X+0].m2p_if  ),
+        .receiver_if_yp     (flit_if_y[INDEX_Y+1].m2p_if  ),
+        .sender_if_yp       (flit_if_y[INDEX_Y+1].p2m_if  ),
+        .receiver_if_ym     (flit_if_y[INDEX_Y+0].p2m_if  ),
+        .sender_if_ym       (flit_if_y[INDEX_Y+0].m2p_if  ),
+        .receiver_if_local  (receiver_if[INDEX_L]         ),
+        .sender_if_local    (sender_if[INDEX_L]           )
       );
 
-      if (!AVAILABLE_PORTS[0]) begin : g_dummy_x_plus
-        tnoc_router_dummy #(CONFIG, TNOC_INTERNAL_PORT) u_dummy (
-          flit_if_x[FLIT_IF_INDEX_X+2], flit_if_x[FLIT_IF_INDEX_X+3]
+      if (!ACTIVE_PORTS[0]) begin : g_dummy_xp
+        tnoc_dummy_node u_dummy (
+          .receiver_if  (flit_if_x[INDEX_X+1].p2m_if  ),
+          .sender_if    (flit_if_x[INDEX_X+1].m2p_if  )
         );
       end
-      if (!AVAILABLE_PORTS[1]) begin : g_dummy_x_minus
-        tnoc_router_dummy #(CONFIG, TNOC_INTERNAL_PORT) u_dummy (
-          flit_if_x[FLIT_IF_INDEX_X+1], flit_if_x[FLIT_IF_INDEX_X+0]
+
+      if (!ACTIVE_PORTS[1]) begin : g_dummy_xm
+        tnoc_dummy_node u_dummy (
+          .receiver_if  (flit_if_x[INDEX_X+0].m2p_if  ),
+          .sender_if    (flit_if_x[INDEX_X+0].p2m_if  )
         );
       end
-      if (!AVAILABLE_PORTS[2]) begin : g_dummy_y_plus
-        tnoc_router_dummy #(CONFIG, TNOC_INTERNAL_PORT) u_dummy (
-          flit_if_y[FLIT_IF_INDEX_Y+2], flit_if_y[FLIT_IF_INDEX_Y+3]
+
+      if (!ACTIVE_PORTS[2]) begin : g_dummy_yp
+        tnoc_dummy_node u_dummy (
+          .receiver_if  (flit_if_y[INDEX_Y+1].p2m_if  ),
+          .sender_if    (flit_if_y[INDEX_Y+1].m2p_if  )
         );
       end
-      if (!AVAILABLE_PORTS[3]) begin : g_dummy_y_minus
-        tnoc_router_dummy #(CONFIG, TNOC_INTERNAL_PORT) u_dummy (
-          flit_if_y[FLIT_IF_INDEX_Y+1], flit_if_y[FLIT_IF_INDEX_Y+0]
+
+      if (!ACTIVE_PORTS[3]) begin : g_dummy_ym
+        tnoc_dummy_node u_dummy (
+          .receiver_if  (flit_if_y[INDEX_Y+0].m2p_if  ),
+          .sender_if    (flit_if_y[INDEX_Y+0].p2m_if  )
         );
       end
     end
   end
+
+  function automatic bit [4:0] get_active_ports(int y, int x);
+    bit [4:0] active_ports;
+    active_ports[0] = (x < (SIZE_X - 1)) ? 1 : 0;
+    active_ports[1] = (x > 0           ) ? 1 : 0;
+    active_ports[2] = (y < (SIZE_Y - 1)) ? 1 : 0;
+    active_ports[3] = (y > 0           ) ? 1 : 0;
+    active_ports[4] = 1;
+    return active_ports;
+  endfunction
 endmodule

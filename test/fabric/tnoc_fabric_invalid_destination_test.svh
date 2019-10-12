@@ -13,6 +13,9 @@ class tnoc_fabric_invalid_destination_test_sequence extends tnoc_fabric_test_seq
   endtask
 
   task invalid_destination_test(uvm_sequencer_base sequencer);
+    int max_x = 2**$clog2(configuration.size_x) - 1;
+    int max_y = 2**$clog2(configuration.size_y) - 1;
+
     for (int i = 0;i < 40;++i) begin
       tnoc_bfm_transmit_packet_sequence transmit_packet_sequence;
       `uvm_create_on(transmit_packet_sequence, sequencer)
@@ -21,12 +24,12 @@ class tnoc_fabric_invalid_destination_test_sequence extends tnoc_fabric_test_seq
       end
       `uvm_rand_send_with(transmit_packet_sequence, {
         if (i < 10) {
-          destination_id.x >= local::configuration.size_x;
+          destination_id.x inside {[local::configuration.size_x:max_x]};
           destination_id.y inside {[0:local::configuration.size_y-1]};
         }
         else if (i < 20) {
           destination_id.x inside {[0:local::configuration.size_x-1]};
-          destination_id.y >= local::configuration.size_y;
+          destination_id.y inside {[local::configuration.size_y:max_y]};
         }
         else if (i < 30) {
           destination_id.x inside {[0:local::configuration.size_x-1]};
@@ -34,9 +37,9 @@ class tnoc_fabric_invalid_destination_test_sequence extends tnoc_fabric_test_seq
           invalid_destination == 1;
         }
         else {
-          invalid_destination                               ||
-          (destination_id.x >= local::configuration.size_x) ||
-          (destination_id.y >= local::configuration.size_y);
+          invalid_destination                                             ||
+          (destination_id.x inside {[local::configuration.size_x:max_x]}) ||
+          (destination_id.y inside {[local::configuration.size_y:max_y]});
         }
       })
     end

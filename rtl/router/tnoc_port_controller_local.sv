@@ -78,20 +78,21 @@ module tnoc_port_controller_local
 //  Grant
 //--------------------------------------------------------------
   for (genvar i = 0;i < CHANNELS;++i) begin : g_grant
-    for (genvar j = 0;j < 5;++j) begin : g
-      always_comb begin
-        port_control_if[j].grant[i] = vc_grant[j][i];
-      end
-    end
-
     logic [4:0] grant;
     logic [4:0] free;
+    logic       fifo_full;
     logic       fifo_push;
     logic       fifo_pop;
 
+    for (genvar j = 0;j < 5;++j) begin : g
+      always_comb begin
+        port_control_if[j].grant[i] = grant[j];
+      end
+    end
+
     always_comb begin
       for (int j = 0;j < 5;++j) begin
-        grant[j]  = vc_grant[j][i];
+        grant[j]  = (!fifo_full) ? vc_grant[j][i] : '0;
         free[j]   = vc_free[j][i];
       end
 
@@ -110,7 +111,7 @@ module tnoc_port_controller_local
       .i_clear        ('0                 ),
       .o_empty        (),
       .o_almost_full  (),
-      .o_full         (),
+      .o_full         (fifo_full          ),
       .i_push         (fifo_push          ),
       .i_data         (grant              ),
       .i_pop          (fifo_pop           ),

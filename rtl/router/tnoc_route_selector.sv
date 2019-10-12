@@ -45,7 +45,7 @@ module tnoc_route_selector
     end
 
     always_ff @(posedge i_clk) begin
-      if (receiver_if[i].flit[0].head) begin
+      if (receiver_if[i].get_head_flit_valid(0)) begin
         route_latched <= route;
       end
     end
@@ -128,7 +128,8 @@ module tnoc_route_selector
 
       tnoc_flit_if_dummy_receiver_array #(
         .PACKET_CONFIG  (PACKET_CONFIG  ),
-        .CHANNELS       (1              )
+        .CHANNELS       (1              ),
+        .ENTRIES        (CHANNELS       )
       ) u_dummy_receiver (
         vc_if[CHANNELS*i:CHANNELS*(i+1)-1]
       );

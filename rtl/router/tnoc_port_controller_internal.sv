@@ -89,13 +89,16 @@ module tnoc_port_contller_internal
 //--------------------------------------------------------------
 //  Grant
 //--------------------------------------------------------------
+  logic       fifo_full;
+  logic       fifo_push;
+  logic       fifo_pop;
+  logic [4:0] output_grant;
+
   always_comb begin
     for (int i = 0;i < CHANNELS;++i) begin
-      grant[i]  = (vc_grant[i]) ? port_grant[i] : '0;
+      grant[i]  = (vc_grant[i] && (!fifo_full)) ? port_grant[i] : '0;
     end
   end
-
-  logic [4:0] output_grant;
 
   tbcm_selector #(
     .WIDTH    (5        ),
@@ -106,9 +109,6 @@ module tnoc_port_contller_internal
   always_comb begin
     output_grant  = u_grant_selector.mux(vc_grant, port_grant);
   end
-
-  logic fifo_push;
-  logic fifo_pop;
 
   always_comb begin
     fifo_push = |vc_free;
@@ -126,7 +126,7 @@ module tnoc_port_contller_internal
     .i_clear        ('0             ),
     .o_empty        (),
     .o_almost_full  (),
-    .o_full         (),
+    .o_full         (fifo_full      ),
     .i_push         (fifo_push      ),
     .i_data         (output_grant   ),
     .i_pop          (fifo_pop       ),

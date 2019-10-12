@@ -2,6 +2,10 @@ ${TNOC_HOME}/rtl/common/tnoc_pkg.sv
 ${TNOC_HOME}/rtl/common/tnoc_types.sv
 ${TNOC_HOME}/rtl/common/tnoc_flit_if.sv
 ${TNOC_HOME}/rtl/common/tnoc_flit_if_connector.sv
+${TNOC_HOME}/rtl/common/tnoc_flit_if_dummy_receiver.sv
+${TNOC_HOME}/rtl/common/tnoc_flit_if_dummy_receiver_array.sv
+${TNOC_HOME}/rtl/common/tnoc_flit_if_dummy_sender.sv
+${TNOC_HOME}/rtl/common/tnoc_flit_if_dummy_sender_array.sv
 ${TNOC_HOME}/rtl/common/tnoc_flit_if_mux.sv
 ${TNOC_HOME}/rtl/common/tnoc_flit_if_demux.sv
 ${TNOC_HOME}/rtl/common/tnoc_flit_if_fifo.sv

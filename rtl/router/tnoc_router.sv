@@ -3,7 +3,7 @@ module tnoc_router
 #(
   parameter   tnoc_packet_config                  PACKET_CONFIG = TNOC_DEFAULT_PACKET_CONFIG,
   parameter   bit [4:0]                           ACTIVE_PORTS  = 5'b11111,
-  parameter   int                                 DEPTH         = 4,
+  parameter   int                                 FIFO_DEPTH    = 4,
   parameter   bit                                 ERROR_CHECK   = 1,
   parameter   bit [PACKET_CONFIG.data_width-1:0]  ERROR_DATA    = '1,
   localparam  int                                 ID_X_WIDTH    = get_id_x_width(PACKET_CONFIG),
@@ -79,7 +79,7 @@ module tnoc_router
         .PACKET_CONFIG  (PACKET_CONFIG  ),
         .PORT_TYPE      (PORT_TYPE      ),
         .ACTIVE_PORTS   (ACTIVE_PORTS   ),
-        .DEPTH          (DEPTH          ),
+        .FIFO_DEPTH     (FIFO_DEPTH     ),
         .ERROR_CHECK    (ERROR_CHECK    ),
         .ERROR_DATA     (ERROR_DATA     )
       ) u_input_block (
@@ -125,10 +125,10 @@ module tnoc_router
     else if (i == 1) begin : g_xm
       tnoc_flit_if_connector u_connector (sender_if, sender_if_xm);
     end
-    else if (i == 2) begin : g_xp
+    else if (i == 2) begin : g_yp
       tnoc_flit_if_connector u_connector (sender_if, sender_if_yp);
     end
-    else if (i == 3) begin : g_xm
+    else if (i == 3) begin : g_ym
       tnoc_flit_if_connector u_connector (sender_if, sender_if_ym);
     end
     else begin : g_local

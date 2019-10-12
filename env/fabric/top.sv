@@ -3,7 +3,7 @@ module top();
 
   import  uvm_pkg::*;
   import  tue_pkg::*;
-  import  tnoc_config_pkg::*;
+  import  tnoc_pkg::*;
   import  tnoc_bfm_types_pkg::*;
   import  tnoc_bfm_pkg::*;
   import  tnoc_common_env_pkg::*;
@@ -11,26 +11,24 @@ module top();
   import  tnoc_fabric_tests_pkg::*;
 
   `ifndef TNOC_FABRIC_ENV_DATA_WIDTH
-    `define TNOC_FABRIC_ENV_DATA_WIDTH TNOC_DEFAULT_CONFIG.data_width
+    `define TNOC_FABRIC_ENV_DATA_WIDTH TNOC_DEFAULT_PACKET_CONFIG.data_width
   `endif
 
   `ifndef TNOC_ROUTER_ENV_VIRTUAL_CHANNELS
-    `define TNOC_ROUTER_ENV_VIRTUAL_CHANNELS  TNOC_DEFAULT_CONFIG.virtual_channels
+    `define TNOC_ROUTER_ENV_VIRTUAL_CHANNELS  TNOC_DEFAULT_PACKET_CONFIG.virtual_channels
   `endif
 
-  localparam  tnoc_config CONFIG  = '{
-    address_width:    TNOC_DEFAULT_CONFIG.address_width,
+  localparam  tnoc_packet_config  PACKET_CONFIG = '{
+    address_width:    TNOC_DEFAULT_PACKET_CONFIG.address_width,
     data_width:       `TNOC_FABRIC_ENV_DATA_WIDTH,
-    id_x_width:       TNOC_DEFAULT_CONFIG.id_x_width,
-    id_y_width:       TNOC_DEFAULT_CONFIG.id_y_width,
+    size_x:           TNOC_DEFAULT_PACKET_CONFIG.size_x,
+    size_y:           TNOC_DEFAULT_PACKET_CONFIG.size_y,
     virtual_channels: `TNOC_ROUTER_ENV_VIRTUAL_CHANNELS,
-    tags:             TNOC_DEFAULT_CONFIG.tags,
-    max_burst_length: TNOC_DEFAULT_CONFIG.max_burst_length,
-    input_fifo_depth: TNOC_DEFAULT_CONFIG.input_fifo_depth,
-    size_x:           TNOC_DEFAULT_CONFIG.size_x,
-    size_y:           TNOC_DEFAULT_CONFIG.size_y,
-    error_data:       TNOC_DEFAULT_CONFIG.error_data
+    tags:             TNOC_DEFAULT_PACKET_CONFIG.tags,
+    max_burst_length: TNOC_DEFAULT_PACKET_CONFIG.max_burst_length
   };
+
+  localparam  int CHANNELS  = PACKET_CONFIG.virtual_channels;
 
   bit clk = 0;
   initial begin
@@ -46,57 +44,77 @@ module top();
     rst_n = 1;
   end
 
-  tnoc_flit_if #(CONFIG)  flit_in_if[9]();
-  tnoc_flit_if #(CONFIG)  flit_out_if[9]();
+  tnoc_types #(PACKET_CONFIG)   types();
+  tnoc_flit_if #(PACKET_CONFIG) flit_if_b2d[9](types);
+  tnoc_flit_if #(PACKET_CONFIG) flit_if_d2b[9](types);
 
-  tnoc_bfm_flit_if  bfm_flit_in_if[9*CONFIG.virtual_channels](clk, rst_n);
-  tnoc_bfm_flit_if  bfm_flit_out_if[9*CONFIG.virtual_channels](clk, rst_n);
+  tnoc_bfm_flit_if  bfm_flit_if_b2d[9*CHANNELS](clk, rst_n);
+  tnoc_bfm_flit_if  bfm_flit_if_d2b[9*CHANNELS](clk, rst_n);
+
+  for (genvar i = 0;i < 9;++i) begin : g_connector
+    assign  flit_if_d2b[i].ready    = '1;
+    assign  flit_if_d2b[i].vc_ready = '1;
+
+    tnoc_bfm_flit_if_connector #(
+      .PACKET_CONFIG  (PACKET_CONFIG    ),
+      .PORT_TYPE      (TNOC_LOCAL_PORT  ),
+      .MONITOR_MODE   (0                )
+    ) u_connector_bfm_to_dut (
+      .types    (types                                        ),
+      .i_clk    (clk                                          ),
+      .i_rst_n  (rst_n                                        ),
+      .dut_if   (flit_if_b2d[i]                               ),
+      .bfm_if   (bfm_flit_if_b2d[CHANNELS*i:CHANNELS*(i+1)-1] )
+    );
+
+    tnoc_bfm_flit_if_connector #(
+      .PACKET_CONFIG  (PACKET_CONFIG    ),
+      .PORT_TYPE      (TNOC_LOCAL_PORT  ),
+      .MONITOR_MODE   (1                )
+    ) u_connector_dut_to_bfm (
+      .types    (types                                        ),
+      .i_clk    (clk                                          ),
+      .i_rst_n  (rst_n                                        ),
+      .dut_if   (flit_if_d2b[i]                               ),
+      .bfm_if   (bfm_flit_if_d2b[CHANNELS*i:CHANNELS*(i+1)-1] )
+    );
+  end
 
   tnoc_bfm_flit_vif tx_vif[int][int];
   tnoc_bfm_flit_vif rx_vif[int][int];
 
-  tnoc_flit_array_if_connector #(
-    .CONFIG (CONFIG ),
-    .IFS    (9      )
-  ) u_flit_if_connector (
-    .flit_in_if       (flit_in_if       ),
-    .flit_out_if      (flit_out_if      ),
-    .flit_bfm_in_if   (bfm_flit_in_if   ),
-    .flit_bfm_out_if  (bfm_flit_out_if  )
-  );
-
   for (genvar i = 0;i < 9;++i) begin
-    for (genvar j = 0;j < CONFIG.virtual_channels;++j) begin
-      assign  bfm_flit_out_if[CONFIG.virtual_channels*i+j].ready        = '1;
-      assign  bfm_flit_out_if[CONFIG.virtual_channels*i+j].vc_available = '1;
-
+    for (genvar j = 0;j < CHANNELS;++j) begin
       initial begin
-        tx_vif[i][j]  = bfm_flit_in_if[CONFIG.virtual_channels*i+j];
-        rx_vif[i][j]  = bfm_flit_out_if[CONFIG.virtual_channels*i+j];
+        tx_vif[i][j]  = bfm_flit_if_b2d[CHANNELS*i+j];
+        rx_vif[i][j]  = bfm_flit_if_d2b[CHANNELS*i+j];
       end
     end
   end
 
-  tnoc_fabric #(CONFIG) u_dut (
-    .clk          (clk          ),
-    .rst_n        (rst_n        ),
-    .flit_in_if   (flit_in_if   ),
-    .flit_out_if  (flit_out_if  )
+  tnoc_fabric #(PACKET_CONFIG) u_dut (
+    .types        (types        ),
+    .i_clk        (clk          ),
+    .i_rst_n      (rst_n        ),
+    .receiver_if  (flit_if_b2d  ),
+    .sender_if    (flit_if_d2b  )
   );
 
   function automatic tnoc_fabric_env_configuration create_cfg();
     tnoc_fabric_env_configuration cfg = new();
-    cfg.create_sub_cfgs(CONFIG.size_x, CONFIG.size_y, tx_vif, rx_vif);
+    cfg.create_sub_cfgs(
+      PACKET_CONFIG.size_x, PACKET_CONFIG.size_y, tx_vif, rx_vif
+    );
     assert(cfg.randomize() with {
-      error_data == (CONFIG.error_data & ((1 << CONFIG.data_width) - 1));
+      error_data == ((1 << PACKET_CONFIG.data_width) - 1);
       foreach (bfm_cfg[i]) {
-        bfm_cfg[i].address_width    == CONFIG.address_width;
-        bfm_cfg[i].data_width       == CONFIG.data_width;
-        bfm_cfg[i].id_x_width       == CONFIG.id_x_width;
-        bfm_cfg[i].id_y_width       == CONFIG.id_y_width;
-        bfm_cfg[i].virtual_channels == CONFIG.virtual_channels;
-        bfm_cfg[i].tags             == CONFIG.tags;
-        bfm_cfg[i].max_burst_length == CONFIG.max_burst_length;
+        bfm_cfg[i].address_width    == PACKET_CONFIG.address_width;
+        bfm_cfg[i].data_width       == PACKET_CONFIG.data_width;
+        bfm_cfg[i].id_x_width       == get_id_x_width(PACKET_CONFIG);
+        bfm_cfg[i].id_y_width       == get_id_y_width(PACKET_CONFIG);
+        bfm_cfg[i].virtual_channels == PACKET_CONFIG.virtual_channels;
+        bfm_cfg[i].tags             == PACKET_CONFIG.tags;
+        bfm_cfg[i].max_burst_length == PACKET_CONFIG.max_burst_length;
       }
     });
     return cfg;

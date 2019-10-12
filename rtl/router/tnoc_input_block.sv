@@ -4,7 +4,7 @@ module tnoc_input_block
   parameter   tnoc_packet_config                  PACKET_CONFIG = TNOC_DEFAULT_PACKET_CONFIG,
   parameter   tnoc_port_type                      PORT_TYPE     = TNOC_LOCAL_PORT,
   parameter   bit [4:0]                           ACTIVE_PORTS  = 5'b11111,
-  parameter   int                                 DEPTH         = 4,
+  parameter   int                                 FIFO_DEPTH    = 4,
   parameter   bit                                 ERROR_CHECK   = 1,
   parameter   bit [PACKET_CONFIG.data_width-1:0]  ERROR_DATA    = '1,
   localparam  int                                 ID_X_WIDTH    = get_id_x_width(PACKET_CONFIG),
@@ -29,7 +29,7 @@ module tnoc_input_block
   tnoc_input_fifo #(
     .PACKET_CONFIG  (PACKET_CONFIG  ),
     .PORT_TYPE      (PORT_TYPE      ),
-    .DEPTH          (DEPTH          )
+    .DEPTH          (FIFO_DEPTH     )
   ) u_finput_fifo (
     .types        (types                              ),
     .i_clk        (i_clk                              ),
