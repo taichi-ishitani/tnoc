@@ -1,78 +1,100 @@
 module tnoc_axi_write_read_demux
-  `include  "tnoc_default_imports.svh"
+  import  tnoc_pkg::*;
 #(
-  parameter tnoc_config       CONFIG          = TNOC_DEFAULT_CONFIG,
-  parameter tnoc_packet_type  WRITE_TYPE      = TNOC_NON_POSTED_WRITE,
-  parameter tnoc_packet_type  READ_TYPE       = TNOC_READ,
-  parameter int               FIFO_DEPTH      = CONFIG.input_fifo_depth,
-  parameter int               FIFO_THRESHOLD  = FIFO_DEPTH - 2
+  parameter tnoc_packet_config  PACKET_CONFIG = TNOC_DEFAULT_PACKET_CONFIG,
+  parameter tnoc_packet_type    WRITE_TYPE    = TNOC_WRITE,
+  parameter tnoc_packet_type    READ_TYPE     = TNOC_READ,
+  parameter int                 FIFO_DEPTH    = 4
 )(
-  input logic             clk,
-  input logic             rst_n,
-  tnoc_flit_if.target     flit_in_if,
-  tnoc_flit_if.initiator  write_flit_if,
-  tnoc_flit_if.initiator  read_flit_if
+  tnoc_types            types,
+  input var logic       i_clk,
+  input var logic       i_rst_n,
+  tnoc_flit_if.receiver receiver_if,
+  tnoc_flit_if.sender   write_if,
+  tnoc_flit_if.sender   read_if
 );
-  `include  "tnoc_packet_flit_macros.svh"
-  `tnoc_define_packet_and_flit(CONFIG)
+  localparam  int CHANNELS  = PACKET_CONFIG.virtual_channels;
 
-  localparam  int CHANNELS  = CONFIG.virtual_channels;
-
-  tnoc_flit_if #(CONFIG, CHANNELS, TNOC_LOCAL_PORT) fifo_out_if();
-  tnoc_flit_if #(CONFIG, 1       , TNOC_LOCAL_PORT) write_read_if[2*CHANNELS]();
-  tnoc_flit_if #(CONFIG, 1       , TNOC_LOCAL_PORT) flit_out[2]();
+  typedef types.tnoc_flit           tnoc_flit;
+  typedef types.tnoc_common_header  tnoc_common_header;
 
 //--------------------------------------------------------------
 //  Input FIFO
 //--------------------------------------------------------------
+  tnoc_flit_if #(
+    .PACKET_CONFIG  (PACKET_CONFIG    ),
+    .PORT_TYPE      (TNOC_LOCAL_PORT  )
+  ) fifo_out_if(types);
+
   tnoc_flit_if_fifo #(
-    .CONFIG     (CONFIG           ),
-    .DEPTH      (FIFO_DEPTH       ),
-    .THRESHOLD  (FIFO_THRESHOLD   ),
-    .PORT_TYPE  (TNOC_LOCAL_PORT  )
+    .PACKET_CONFIG  (PACKET_CONFIG    ),
+    .DEPTH          (FIFO_DEPTH       ),
+    .THRESHOLD      (FIFO_DEPTH - 2   ),
+    .PORT_TYPE      (TNOC_LOCAL_PORT  )
   ) u_input_fifo (
-    .clk            (clk          ),
-    .rst_n          (rst_n        ),
+    .types          (types        ),
+    .i_clk          (i_clk        ),
+    .i_rst_n        (i_rst_n      ),
     .i_clear        ('0           ),
     .o_empty        (),
     .o_almost_full  (),
     .o_full         (),
-    .flit_in_if     (flit_in_if   ),
-    .flit_out_if    (fifo_out_if  )
+    .receiver_if    (receiver_if  ),
+    .sender_if      (fifo_out_if  )
   );
 
 //--------------------------------------------------------------
 //  Routing
 //--------------------------------------------------------------
-  for (genvar i = 0;i < CHANNELS;++i) begin : g_router
-    logic       start_of_packet;
-    logic       end_of_packet;
+  tnoc_flit_if #(
+    .PACKET_CONFIG  (PACKET_CONFIG    ),
+    .PORT_TYPE      (TNOC_LOCAL_PORT  )
+  ) write_read_if[2](types);
+
+  for (genvar i = 0;i < CHANNELS;++i) begin : g_routing
     logic [1:0] route;
     logic [1:0] route_latched;
 
-    assign  start_of_packet = (fifo_out_if.valid[i] && is_head_flit(fifo_out_if.flit[i])) ? '1 : '0;
-    assign  route           = (start_of_packet) ? select_route(fifo_out_if.flit[i]) : route_latched;
-    always_ff @(posedge clk, negedge rst_n) begin
-      if (!rst_n) begin
-        route_latched <= '0;
-      end
-      else if (start_of_packet) begin
+    always_comb begin
+      route = (
+        fifo_out_if.flit[i].head
+      ) ? select_route(fifo_out_if.flit[i]) : route_latched;
+    end
+
+    always_ff @(posedge i_clk) begin
+      if (fifo_out_if.get_head_flit_valid(i)) begin
         route_latched <= route;
       end
     end
 
-    assign  write_read_if[0*CHANNELS+i].valid = (route[0]) ? fifo_out_if.valid[i] : '0;
-    assign  write_read_if[0*CHANNELS+i].flit  = (route[0]) ? fifo_out_if.flit[i]  : '0;
-    assign  write_read_if[1*CHANNELS+i].valid = (route[1]) ? fifo_out_if.valid[i] : '0;
-    assign  write_read_if[1*CHANNELS+i].flit  = (route[1]) ? fifo_out_if.flit[i]  : '0;
+    always_comb begin
+      if (route[0]) begin
+        write_read_if[0].valid[i] = fifo_out_if.valid[i];
+        fifo_out_if.ready[i]      = write_read_if[0].ready[i];
+        write_read_if[1].valid[i] = '0;
+      end
+      else if (route[1]) begin
+        write_read_if[0].valid[i] = '0;
+        write_read_if[1].valid[i] = fifo_out_if.valid[i];
+        fifo_out_if.ready[i]      = write_read_if[1].ready[i];
+      end
+      else begin
+        write_read_if[0].valid[i] = '0;
+        write_read_if[1].valid[i] = '0;
+        fifo_out_if.ready[i]      = '1;
+      end
 
-    assign  fifo_out_if.ready[i]        = (route[0]) ? write_read_if[0*CHANNELS+i].ready
-                                        : (route[1]) ? write_read_if[1*CHANNELS+i].ready : '1;
-    assign  fifo_out_if.vc_available[i] = '0;
+      write_read_if[0].flit[i]  = fifo_out_if.flit[i];
+      write_read_if[1].flit[i]  = fifo_out_if.flit[i];
+      fifo_out_if.vc_ready[i]   = '0;
+    end
   end
 
-  function automatic logic [1:0] select_route(input tnoc_flit flit);
-    tnoc_common_header  header  = get_common_header(flit);
+  function automatic logic [1:0] select_route(
+    tnoc_flit flit
+  );
+    tnoc_common_header  header;
+    header  = tnoc_common_header'(flit.data);
     return {
       ((header.packet_type == READ_TYPE ) ? 1'b1 : 1'b0),
       ((header.packet_type == WRITE_TYPE) ? 1'b1 : 1'b0)
@@ -82,20 +104,33 @@ module tnoc_axi_write_read_demux
 //--------------------------------------------------------------
 //  Arbitration
 //--------------------------------------------------------------
+  tnoc_flit_if #(
+    .PACKET_CONFIG  (PACKET_CONFIG    ),
+    .CHANNELS       (1                ),
+    .PORT_TYPE      (TNOC_LOCAL_PORT  )
+  ) flit_out_if[2](types);
+
   for (genvar i = 0;i < 2;++i) begin : g_arbiter
-    tnoc_flit_if_arbiter #(
-      .CONFIG     (CONFIG           ),
-      .ENTRIES    (CHANNELS         ),
-      .CHANNELS   (1                ),
-      .PORT_TYPE  (TNOC_LOCAL_PORT  )
+    tnoc_vc_arbiter #(
+      .PACKET_CONFIG  (PACKET_CONFIG    ),
+      .PORT_TYPE      (TNOC_LOCAL_PORT  ),
+      .FIFO_DEPTH     (0                )
     ) u_arbiter (
-      .clk          (clk                                            ),
-      .rst_n        (rst_n                                          ),
-      .flit_in_if   (`tnoc_array_slicer(write_read_if, i, CHANNELS) ),
-      .flit_out_if  (flit_out[i]                                    )
+      .types        (types            ),
+      .i_clk        (i_clk            ),
+      .i_rst_n      (i_rst_n          ),
+      .receiver_if  (write_read_if[i] ),
+      .sender_if    (flit_out_if[i]   )
     );
   end
 
-  `tnoc_flit_if_renamer(flit_out[0], write_flit_if)
-  `tnoc_flit_if_renamer(flit_out[1], read_flit_if )
+  tnoc_flit_if_connector u_write_if_connector (
+    .receiver_if  (flit_out_if[0] ),
+    .sender_if    (write_if       )
+  );
+
+  tnoc_flit_if_connector u_read_if_connector (
+    .receiver_if  (flit_out_if[1] ),
+    .sender_if    (read_if        )
+  );
 endmodule

@@ -21,8 +21,10 @@ module tnoc_fabric
   localparam  int FLIT_IF_SIZE_X  = (SIZE_X + 1) * SIZE_Y;
   localparam  int FLIT_IF_SIZE_Y  = (SIZE_Y + 1) * SIZE_X;
 
-  tnoc_flit_r2r_if #(PACKET_CONFIG) flit_if_x[FLIT_IF_SIZE_X](types);
-  tnoc_flit_r2r_if #(PACKET_CONFIG) flit_if_y[FLIT_IF_SIZE_Y](types);
+  tnoc_flit_if #(PACKET_CONFIG) flit_if_x_p2m[FLIT_IF_SIZE_X](types);
+  tnoc_flit_if #(PACKET_CONFIG) flit_if_x_m2p[FLIT_IF_SIZE_X](types);
+  tnoc_flit_if #(PACKET_CONFIG) flit_if_y_p2m[FLIT_IF_SIZE_Y](types);
+  tnoc_flit_if #(PACKET_CONFIG) flit_if_y_m2p[FLIT_IF_SIZE_Y](types);
 
   for (genvar y = 0;y < SIZE_Y;++y) begin : g_y
     for (genvar x = 0;x < SIZE_X;++x) begin : g_x
@@ -40,48 +42,48 @@ module tnoc_fabric
         .ERROR_CHECK    (ERROR_CHECK    ),
         .ERROR_DATA     (ERROR_DATA     )
       ) u_router (
-        .types              (types                        ),
-        .i_clk              (i_clk                        ),
-        .i_rst_n            (i_rst_n                      ),
-        .i_id_x             (ID_X                         ),
-        .i_id_y             (ID_Y                         ),
-        .receiver_if_xp     (flit_if_x[INDEX_X+1].m2p_if  ),
-        .sender_if_xp       (flit_if_x[INDEX_X+1].p2m_if  ),
-        .receiver_if_xm     (flit_if_x[INDEX_X+0].p2m_if  ),
-        .sender_if_xm       (flit_if_x[INDEX_X+0].m2p_if  ),
-        .receiver_if_yp     (flit_if_y[INDEX_Y+1].m2p_if  ),
-        .sender_if_yp       (flit_if_y[INDEX_Y+1].p2m_if  ),
-        .receiver_if_ym     (flit_if_y[INDEX_Y+0].p2m_if  ),
-        .sender_if_ym       (flit_if_y[INDEX_Y+0].m2p_if  ),
-        .receiver_if_local  (receiver_if[INDEX_L]         ),
-        .sender_if_local    (sender_if[INDEX_L]           )
+        .types              (types                    ),
+        .i_clk              (i_clk                    ),
+        .i_rst_n            (i_rst_n                  ),
+        .i_id_x             (ID_X                     ),
+        .i_id_y             (ID_Y                     ),
+        .receiver_if_xp     (flit_if_x_m2p[INDEX_X+1] ),
+        .sender_if_xp       (flit_if_x_p2m[INDEX_X+1] ),
+        .receiver_if_xm     (flit_if_x_p2m[INDEX_X+0] ),
+        .sender_if_xm       (flit_if_x_m2p[INDEX_X+0] ),
+        .receiver_if_yp     (flit_if_y_m2p[INDEX_Y+1] ),
+        .sender_if_yp       (flit_if_y_p2m[INDEX_Y+1] ),
+        .receiver_if_ym     (flit_if_y_p2m[INDEX_Y+0] ),
+        .sender_if_ym       (flit_if_y_m2p[INDEX_Y+0] ),
+        .receiver_if_local  (receiver_if[INDEX_L]     ),
+        .sender_if_local    (sender_if[INDEX_L]       )
       );
 
       if (!ACTIVE_PORTS[0]) begin : g_dummy_xp
         tnoc_dummy_node u_dummy (
-          .receiver_if  (flit_if_x[INDEX_X+1].p2m_if  ),
-          .sender_if    (flit_if_x[INDEX_X+1].m2p_if  )
+          .receiver_if  (flit_if_x_p2m[INDEX_X+1] ),
+          .sender_if    (flit_if_x_m2p[INDEX_X+1] )
         );
       end
 
       if (!ACTIVE_PORTS[1]) begin : g_dummy_xm
         tnoc_dummy_node u_dummy (
-          .receiver_if  (flit_if_x[INDEX_X+0].m2p_if  ),
-          .sender_if    (flit_if_x[INDEX_X+0].p2m_if  )
+          .receiver_if  (flit_if_x_m2p[INDEX_X+0] ),
+          .sender_if    (flit_if_x_p2m[INDEX_X+0] )
         );
       end
 
       if (!ACTIVE_PORTS[2]) begin : g_dummy_yp
         tnoc_dummy_node u_dummy (
-          .receiver_if  (flit_if_y[INDEX_Y+1].p2m_if  ),
-          .sender_if    (flit_if_y[INDEX_Y+1].m2p_if  )
+          .receiver_if  (flit_if_y_p2m[INDEX_Y+1] ),
+          .sender_if    (flit_if_y_m2p[INDEX_Y+1] )
         );
       end
 
       if (!ACTIVE_PORTS[3]) begin : g_dummy_ym
         tnoc_dummy_node u_dummy (
-          .receiver_if  (flit_if_y[INDEX_Y+0].m2p_if  ),
-          .sender_if    (flit_if_y[INDEX_Y+0].p2m_if  )
+          .receiver_if  (flit_if_y_m2p[INDEX_Y+0] ),
+          .sender_if    (flit_if_y_p2m[INDEX_Y+0] )
         );
       end
     end

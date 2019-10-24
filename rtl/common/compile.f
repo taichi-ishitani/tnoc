@@ -16,3 +16,4 @@ ${TNOC_HOME}/rtl/common/tnoc_vc_mux.sv
 ${TNOC_HOME}/rtl/common/tnoc_packet_if.sv
 ${TNOC_HOME}/rtl/common/tnoc_packet_serializer.sv
 ${TNOC_HOME}/rtl/common/tnoc_packet_deserializer.sv
+${TNOC_HOME}/rtl/common/tnoc_address_decoder_if.sv

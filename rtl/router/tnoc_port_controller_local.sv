@@ -50,7 +50,7 @@ module tnoc_port_controller_local
 
       for (genvar j = 0;j < CHANNELS;++j) begin : g
         always_comb begin
-          vc_request[j] = port_grant[j][i] & port_control_if[i].request[j];
+          vc_request[j] = port_grant[j][i] & port_control_if[i].request[j] & i_vc_ready[j];
           vc_free[i][j] = port_grant[j][i] & port_control_if[i].free[j];
         end
       end

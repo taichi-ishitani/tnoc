@@ -1,92 +1,104 @@
 module tnoc_axi_slave_write_adapter
-  `include  "tnoc_default_imports.svh"
+  import  tnoc_pkg::*,
+          tnoc_axi_pkg::*;
 #(
-  parameter   tnoc_config CONFIG      = TNOC_DEFAULT_CONFIG,
-  localparam  int         ID_X_WIDTH  = CONFIG.id_x_width,
-  localparam  int         ID_Y_WIDTH  = CONFIG.id_y_width,
-  localparam  int         VC_WIDTH    = $clog2(CONFIG.virtual_channels)
+  parameter   tnoc_packet_config  PACKET_CONFIG = TNOC_DEFAULT_PACKET_CONFIG,
+  localparam  int                 ID_X_WIDTH    = get_id_x_width(PACKET_CONFIG),
+  localparam  int                 ID_Y_WIDTH    = get_id_y_width(PACKET_CONFIG),
+  localparam  int                 VC_WIDTH      = get_vc_width(PACKET_CONFIG)
 )(
-  input logic                       clk,
-  input logic                       rst_n,
-  input logic [ID_X_WIDTH-1:0]      i_id_x,
-  input logic [ID_Y_WIDTH-1:0]      i_id_y,
-  input logic [VC_WIDTH-1:0]        i_vc,
-  tnoc_address_decoer_if.requester  decoder_if,
-  tnoc_axi_write_if.slave           axi_if,
-  tnoc_flit_if.initiator            flit_out_if,
-  tnoc_flit_if.target               flit_in_if
+  tnoc_types                        types,
+  input var logic                   i_clk,
+  input var logic                   i_rst_n,
+  input var logic [ID_X_WIDTH-1:0]  i_id_x,
+  input var logic [ID_Y_WIDTH-1:0]  i_id_y,
+  input var logic [VC_WIDTH-1:0]    i_vc,
+  tnoc_address_decoder_if.requester decoder_if,
+  tnoc_axi_if.slave_write           axi_if,
+  tnoc_flit_if.receiver             receiver_if,
+  tnoc_flit_if.sender               sender_if
 );
-  import  tnoc_axi_types_pkg::*;
-  `include  "tnoc_packet_flit_macros.svh"
-  `include  "tnoc_axi_macros.svh"
-
-  `tnoc_define_packet_and_flit(CONFIG)
-  `tnoc_axi_define_types(CONFIG)
+  typedef types.tnoc_decode_result  tnoc_decode_result;
+  typedef types.tnoc_location_id    tnoc_location_id;
 
 //--------------------------------------------------------------
 //  Request
 //--------------------------------------------------------------
-  tnoc_location_id          destination_id;
-  logic                     invalid_destination;
-  tnoc_packet_if #(CONFIG)  request_if();
-  tnoc_axi_id               awid;
+  tnoc_decode_result              decode_result;
+  tnoc_location_id                source_id;
+  tnoc_packet_if #(PACKET_CONFIG) request_if(types);
 
-  //  Address Decoding
-  assign  decoder_if.address  = axi_if.awaddr;
-  assign  destination_id.x    = decoder_if.id_x;
-  assign  destination_id.y    = decoder_if.id_y;
-  assign  invalid_destination = decoder_if.invalid;
+  always_comb begin
+    decode_result = decoder_if.decode(axi_if.awaddr);
+    source_id.x   = i_id_x;
+    source_id.y   = i_id_y;
 
-  //  Packing
-  assign  request_if.header_valid         = axi_if.awvalid;
-  assign  axi_if.awready                  = request_if.header_ready;
-  assign  request_if.packet_type          = TNOC_NON_POSTED_WRITE;
-  assign  request_if.destination_id       = destination_id;
-  assign  request_if.source_id.x          = i_id_x;
-  assign  request_if.source_id.y          = i_id_y;
-  assign  request_if.vc                   = i_vc;
-  assign  request_if.tag                  = awid.tag;
-  assign  request_if.invalid_destination  = invalid_destination;
-  assign  request_if.burst_type           = tnoc_burst_type'(axi_if.awburst);
-  assign  request_if.burst_length         = unpack_burst_length(axi_if.awlen);
-  assign  request_if.burst_size           = axi_if.awsize[$bits(tnoc_burst_size)-1:0];
-  assign  request_if.address              = axi_if.awaddr;
-  assign  request_if.packet_status        = TNOC_OKAY;
-  assign  request_if.payload_valid        = axi_if.wvalid;
-  assign  axi_if.wready                   = request_if.payload_ready;
-  assign  request_if.payload_type         = TNOC_WRITE_PAYLOAD;
-  assign  request_if.payload_last         = axi_if.wlast;
-  assign  request_if.data                 = axi_if.wdata;
-  assign  request_if.byte_enable          = axi_if.wstrb;
-  assign  request_if.payload_status       = TNOC_OKAY;
-  assign  request_if.response_last        = '0;
-  assign  awid                            = axi_if.awid;
+    request_if.header_valid = axi_if.awvalid;
+    axi_if.awready          = request_if.header_ready;
+    request_if.header       = '{
+      packet_type:          TNOC_WRITE,
+      destination_id:       decode_result.id,
+      source_id:            source_id,
+      vc:                   i_vc,
+      tag:                  axi_if.awid,
+      invalid_destination:  decode_result.decode_error,
+      burst_type:           tnoc_burst_type'(axi_if.awburst),
+      burst_length:         unpack_burst_length(axi_if.awlen),
+      burst_size:           axi_if.awsize,
+      address:              axi_if.awaddr,
+      status:               TNOC_OKAY
+    };
+  end
 
-  tnoc_packet_packer #(CONFIG, 1) u_packet_packer (
-    .clk          (clk          ),
-    .rst_n        (rst_n        ),
-    .packet_in_if (request_if   ),
-    .flit_out_if  (flit_out_if  )
+  always_comb begin
+    request_if.payload_valid  = axi_if.wvalid;
+    axi_if.wready             = request_if.payload_ready;
+    request_if.payload_last   = axi_if.wlast;
+    request_if.payload        = '{
+      data:         axi_if.wdata,
+      byte_enable:  axi_if.wstrb,
+      status:       TNOC_OKAY,
+      last:         axi_if.wlast
+    };
+  end
+
+  tnoc_packet_serializer #(
+    .PACKET_CONFIG  (PACKET_CONFIG    ),
+    .CHANNELS       (1                ),
+    .PORT_TYPE      (TNOC_LOCAL_PORT  )
+  ) u_serializer (
+    .types      (types      ),
+    .i_clk      (i_clk      ),
+    .i_rst_n    (i_rst_n    ),
+    .packet_if  (request_if ),
+    .sender_if  (sender_if  )
   );
 
 //--------------------------------------------------------------
 //  Response
 //--------------------------------------------------------------
-  tnoc_packet_if #(CONFIG)  response_if();
-  tnoc_axi_id               bid;
+  tnoc_packet_if #(PACKET_CONFIG) response_if(types);
 
-  assign  axi_if.bvalid             = response_if.header_valid;
-  assign  response_if.header_ready  = axi_if.bready;
-  assign  axi_if.bid                = bid;
-  assign  axi_if.bresp              = tnoc_axi_response'(response_if.packet_status);
-  assign  response_if.payload_ready = '1;
-  assign  bid.location_id           = '0;
-  assign  bid.tag                   = response_if.tag;
-
-  tnoc_packet_unpacker #(CONFIG, 1) u_packet_unpacker (
-    .clk            (clk          ),
-    .rst_n          (rst_n        ),
-    .flit_in_if     (flit_in_if   ),
-    .packet_out_if  (response_if  )
+  tnoc_packet_deserializer #(
+    .PACKET_CONFIG  (PACKET_CONFIG    ),
+    .CHANNELS       (1                ),
+    .PORT_TYPE      (TNOC_LOCAL_PORT  )
+  ) u_deserializer (
+    .types        (types        ),
+    .i_clk        (i_clk        ),
+    .i_rst_n      (i_rst_n      ),
+    .receiver_if  (receiver_if  ),
+    .packet_if    (response_if  )
   );
+
+  always_comb begin
+    axi_if.bvalid             = response_if.header_valid;
+    response_if.header_ready  = axi_if.bready;
+    axi_if.bid                = response_if.header.tag;
+    axi_if.bresp              = tnoc_axi_response'(response_if.header.status);
+  end
+
+  always_comb begin
+    response_if.payload_ready = '1;
+  end
 endmodule

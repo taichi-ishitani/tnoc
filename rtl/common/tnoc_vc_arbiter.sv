@@ -29,22 +29,30 @@ module tnoc_vc_arbiter
   );
 
   for (genvar i = 0;i < CHANNELS;++i) begin : g_fifo
-    tnoc_flit_if_fifo #(
-      .PACKET_CONFIG  (PACKET_CONFIG  ),
-      .CHANNELS       (1              ),
-      .DEPTH          (FIFO_DEPTH     ),
-      .THRESHOLD      (FIFO_DEPTH - 2 )
-    ) u_fifo (
-      .types          (types            ),
-      .i_clk          (i_clk            ),
-      .i_rst_n        (i_rst_n          ),
-      .i_clear        ('0               ),
-      .o_empty        (),
-      .o_almost_full  (),
-      .o_full         (),
-      .receiver_if    (flit_fifo_in_if  ),
-      .sender_if      (flit_vc_if       )
-    );
+    if (FIFO_DEPTH > 2) begin : g
+      tnoc_flit_if_fifo #(
+        .PACKET_CONFIG  (PACKET_CONFIG  ),
+        .CHANNELS       (1              ),
+        .DEPTH          (FIFO_DEPTH     ),
+        .THRESHOLD      (FIFO_DEPTH - 2 )
+      ) u_fifo (
+        .types          (types            ),
+        .i_clk          (i_clk            ),
+        .i_rst_n        (i_rst_n          ),
+        .i_clear        ('0               ),
+        .o_empty        (),
+        .o_almost_full  (),
+        .o_full         (),
+        .receiver_if    (flit_fifo_in_if[i] ),
+        .sender_if      (flit_vc_if[i]      )
+      );
+    end
+    else begin : g
+      tnoc_flit_if_connector u_connector (
+        .receiver_if  (flit_fifo_in_if[i] ),
+        .sender_if    (flit_vc_if[i]      )
+      );
+    end
   end
 
 //--------------------------------------------------------------

@@ -102,5 +102,13 @@ interface tnoc_types
     logic           head;
     tnoc_flit_type  flit_type;
   } tnoc_flit;
+
+//--------------------------------------------------------------
+//  ETC
+//--------------------------------------------------------------
+  typedef struct packed {
+    tnoc_location_id  id;
+    logic             decode_error;
+  } tnoc_decode_result;
 endinterface
 `endif
