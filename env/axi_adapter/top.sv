@@ -104,6 +104,12 @@ module top();
         axi_master_cfg[i].max_burst_length == PACKET_CONFIG.max_burst_length;
         axi_master_cfg[i].data_width       == PACKET_CONFIG.data_width;
 
+        axi_master_cfg[i].request_start_delay.min_delay          == 0;
+        axi_master_cfg[i].request_start_delay.max_delay          == 10;
+        axi_master_cfg[i].request_start_delay.weight_zero_delay  == 7;
+        axi_master_cfg[i].request_start_delay.weight_short_delay == 2;
+        axi_master_cfg[i].request_start_delay.weight_long_delay  == 1;
+
         axi_master_cfg[i].write_data_delay.min_delay          == 0;
         axi_master_cfg[i].write_data_delay.max_delay          == 10;
         axi_master_cfg[i].write_data_delay.weight_zero_delay  == 17;
