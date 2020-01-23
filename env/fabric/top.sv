@@ -19,13 +19,14 @@ module top();
   `endif
 
   localparam  tnoc_packet_config  PACKET_CONFIG = '{
-    address_width:    TNOC_DEFAULT_PACKET_CONFIG.address_width,
-    data_width:       `TNOC_FABRIC_ENV_DATA_WIDTH,
     size_x:           TNOC_DEFAULT_PACKET_CONFIG.size_x,
     size_y:           TNOC_DEFAULT_PACKET_CONFIG.size_y,
     virtual_channels: `TNOC_ROUTER_ENV_VIRTUAL_CHANNELS,
     tags:             TNOC_DEFAULT_PACKET_CONFIG.tags,
-    max_burst_length: TNOC_DEFAULT_PACKET_CONFIG.max_burst_length
+    address_width:    TNOC_DEFAULT_PACKET_CONFIG.address_width,
+    data_width:       `TNOC_FABRIC_ENV_DATA_WIDTH,
+    max_data_width:   TNOC_DEFAULT_PACKET_CONFIG.max_data_width,
+    max_byte_length:  TNOC_DEFAULT_PACKET_CONFIG.max_byte_length
   };
 
   localparam  int CHANNELS  = PACKET_CONFIG.virtual_channels;
@@ -60,11 +61,11 @@ module top();
       .PORT_TYPE      (TNOC_LOCAL_PORT  ),
       .MONITOR_MODE   (0                )
     ) u_connector_bfm_to_dut (
-      .types    (types                                        ),
-      .i_clk    (clk                                          ),
-      .i_rst_n  (rst_n                                        ),
-      .dut_if   (flit_if_b2d[i]                               ),
-      .bfm_if   (bfm_flit_if_b2d[CHANNELS*i:CHANNELS*(i+1)-1] )
+      .types    (types                                                  ),
+      .i_clk    (clk                                                    ),
+      .i_rst_n  (rst_n                                                  ),
+      .dut_if   (flit_if_b2d[i]                                         ),
+      .bfm_if   (bfm_flit_if_b2d[CHANNELS*i:CHANNELS*(i+1)-1].initiator )
     );
 
     tnoc_bfm_flit_if_connector #(
@@ -72,11 +73,11 @@ module top();
       .PORT_TYPE      (TNOC_LOCAL_PORT  ),
       .MONITOR_MODE   (1                )
     ) u_connector_dut_to_bfm (
-      .types    (types                                        ),
-      .i_clk    (clk                                          ),
-      .i_rst_n  (rst_n                                        ),
-      .dut_if   (flit_if_d2b[i]                               ),
-      .bfm_if   (bfm_flit_if_d2b[CHANNELS*i:CHANNELS*(i+1)-1] )
+      .types    (types                                                ),
+      .i_clk    (clk                                                  ),
+      .i_rst_n  (rst_n                                                ),
+      .dut_if   (flit_if_d2b[i]                                       ),
+      .bfm_if   (bfm_flit_if_d2b[CHANNELS*i:CHANNELS*(i+1)-1].monitor )
     );
   end
 
@@ -108,13 +109,14 @@ module top();
     assert(cfg.randomize() with {
       error_data == ((1 << PACKET_CONFIG.data_width) - 1);
       foreach (bfm_cfg[i]) {
-        bfm_cfg[i].address_width    == PACKET_CONFIG.address_width;
-        bfm_cfg[i].data_width       == PACKET_CONFIG.data_width;
         bfm_cfg[i].id_x_width       == get_id_x_width(PACKET_CONFIG);
         bfm_cfg[i].id_y_width       == get_id_y_width(PACKET_CONFIG);
         bfm_cfg[i].virtual_channels == PACKET_CONFIG.virtual_channels;
         bfm_cfg[i].tags             == PACKET_CONFIG.tags;
-        bfm_cfg[i].max_burst_length == PACKET_CONFIG.max_burst_length;
+        bfm_cfg[i].address_width    == PACKET_CONFIG.address_width;
+        bfm_cfg[i].data_width       == PACKET_CONFIG.data_width;
+        bfm_cfg[i].max_data_width   == PACKET_CONFIG.max_data_width;
+        bfm_cfg[i].max_byte_length  == PACKET_CONFIG.max_byte_length;
       }
     });
     return cfg;
