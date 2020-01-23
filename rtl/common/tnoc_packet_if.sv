@@ -32,19 +32,20 @@ interface tnoc_packet_if
     return payload_valid & payload_ready;
   endfunction
 
-  typedef types.tnoc_burst_length           tnoc_burst_length;
-  typedef types.tnoc_packed_burst_length    tnoc_packed_burst_length;
+  typedef types.tnoc_byte_length            tnoc_byte_length;
+  typedef types.tnoc_packed_byte_length     tnoc_packed_byte_length;
+  typedef types.tnoc_byte_count             tnoc_byte_count;
+  typedef types.tnoc_packed_byte_count      tnoc_packed_byte_count;
   typedef types.tnoc_common_header_fields   tnoc_common_header_fields;
   typedef types.tnoc_request_header_fields  tnoc_request_header_fields;
   typedef types.tnoc_response_header_fields tnoc_response_header_fields;
   typedef types.tnoc_common_header          tnoc_common_header;
   typedef types.tnoc_request_header         tnoc_request_header;
   typedef types.tnoc_response_header        tnoc_response_header;
-  //typedef types.tnoc_packed_header          tnoc_packed_header;
-  typedef logic [get_header_width(PACKET_CONFIG)-1:0]   tnoc_packed_header;
+  typedef types.tnoc_packed_header          tnoc_packed_header;
 
-  function automatic tnoc_packed_header pack_header();
-    tnoc_common_header_fields   common_fields;
+  function automatic logic [get_header_width(PACKET_CONFIG)-1:0] pack_header();
+    tnoc_common_header_fields common_fields;
 
     common_fields.packet_type         = header.packet_type;
     common_fields.destination_id      = header.destination_id;
@@ -53,44 +54,53 @@ interface tnoc_packet_if
     common_fields.tag                 = header.tag;
     common_fields.invalid_destination = header.invalid_destination;
 
-    //if (is_request_packet_type(header.packet_type)) begin
-    if (!header.packet_type[7]) begin
-      tnoc_request_header         request_header;
-      tnoc_request_header_fields  request_fields;
+    if (header.packet_type[TNOC_PACKET_TYPE_RESPONSE_BIT]) begin
+      tnoc_response_header_fields response_fields;
+      tnoc_response_header        response_header;
 
-      request_fields.burst_type   = header.burst_type;
-      request_fields.burst_length = tnoc_packed_burst_length'(header.burst_length);
-      request_fields.burst_size   = header.burst_size;
+      response_fields.byte_size       = header.byte_size;
+      response_fields.byte_count      = tnoc_packed_byte_count'(header.byte_count);
+      response_fields.byte_offset     = header.byte_offset;
+      response_fields.response_status = header.response_status;
+
+      response_header.common    = common_fields;
+      response_header.response  = response_fields;
+      return tnoc_packed_header'(response_header);
+    end
+    else begin
+      tnoc_request_header_fields  request_fields;
+      tnoc_request_header         request_header;
+
+      request_fields.byte_size    = header.byte_size;
+      request_fields.byte_length  = tnoc_packed_byte_length'(header.byte_length);
       request_fields.address      = header.address;
+      request_fields.burst_type   = header.burst_type;
 
       request_header.common   = common_fields;
       request_header.request  = request_fields;
-      return request_header;
-    end
-    else begin
-      tnoc_response_header  response_header;
-      response_header.common          = common_fields;
-      response_header.response.status = header.status;
-      return response_header;
+      return tnoc_packed_header'(request_header);
     end
   endfunction
 
   function automatic void unpack_header(tnoc_packed_header packed_header);
-    tnoc_burst_length     burst_length;
+    tnoc_byte_length      byte_length;
+    tnoc_byte_count       byte_count;
     tnoc_common_header    common_header;
     tnoc_request_header   request_header;
     tnoc_response_header  response_header;
 
-    common_header   = packed_header;
-    request_header  = packed_header;
-    response_header = packed_header;
+    common_header   = tnoc_common_header'(packed_header);
+    request_header  = tnoc_request_header'(packed_header);
+    response_header = tnoc_response_header'(packed_header);
 
-    if (request_header.request.burst_length == 0) begin
-      burst_length  = PACKET_CONFIG.max_burst_length;
-    end
-    else begin
-      burst_length  = request_header.request.burst_length;
-    end
+    byte_length = {
+      ((request_header.request.byte_length == '0) ? 1'b1 : 1'b0),
+      request_header.request.byte_length
+    };
+    byte_count  = {
+      ((response_header.response.byte_count == '0) ? 1'b1 : 1'b0),
+      response_header.response.byte_count
+    };
 
     header.packet_type          = common_header.packet_type;
     header.destination_id       = common_header.destination_id;
@@ -98,36 +108,31 @@ interface tnoc_packet_if
     header.vc                   = common_header.vc;
     header.tag                  = common_header.tag;
     header.invalid_destination  = common_header.invalid_destination;
-    header.burst_type           = request_header.request.burst_type;
-    header.burst_length         = burst_length;
-    header.burst_size           = request_header.request.burst_size;
+    header.byte_size            = request_header.request.byte_size;
+    header.byte_length          = byte_length;
     header.address              = request_header.request.address;
-    header.status               = response_header.response.status;
+    header.burst_type           = request_header.request.burst_type;
+    header.byte_count           = byte_count;
+    header.byte_offset          = response_header.response.byte_offset;
+    header.response_status      = response_header.response.response_status;
   endfunction
 
   typedef types.tnoc_request_payload    tnoc_request_payload;
   typedef types.tnoc_response_payload   tnoc_response_payload;
-  //typedef types.tnoc_packed_payload     tnoc_packed_payload;
-  typedef logic [get_payload_width(PACKET_CONFIG)-1:0]  tnoc_packed_payload;
+  typedef types.tnoc_packed_payload     tnoc_packed_payload;
 
-  function automatic tnoc_packed_payload pack_payload(tnoc_packet_type packet_type);
-    //if (is_request_packet_type(packet_type)) begin
-    if (!packet_type[7]) begin
-      tnoc_request_payload  request_payload;
-
-      request_payload.data        = payload.data;
-      request_payload.byte_enable = payload.byte_enable;
-
-      return request_payload;
+  function automatic logic [get_payload_width(PACKET_CONFIG)-1:0] pack_payload(tnoc_packet_type packet_type);
+    if (packet_type[TNOC_PACKET_TYPE_RESPONSE_BIT]) begin
+      tnoc_response_payload response_payload;
+      response_payload.data             = payload.data;
+      response_payload.response_status  = payload.response_status;
+      return tnoc_packed_payload'(response_payload);
     end
     else begin
-      tnoc_response_payload response_payload;
-
-      response_payload.data   = payload.data;
-      response_payload.status = payload.status;
-      response_payload.last   = payload.last;
-
-      return response_payload;
+      tnoc_request_payload  request_payload;
+      request_payload.data        = payload.data;
+      request_payload.byte_enable = payload.byte_enable;
+      return tnoc_packed_payload'(request_payload);
     end
   endfunction
 
@@ -135,13 +140,12 @@ interface tnoc_packet_if
     tnoc_request_payload  request_payload;
     tnoc_response_payload response_payload;
 
-    request_payload   = packed_payload;
-    response_payload  = packed_payload;
+    request_payload   = tnoc_request_payload'(packed_payload);
+    response_payload  = tnoc_response_payload'(packed_payload);
 
-    payload.data          = request_payload.data;
-    payload.byte_enable   = request_payload.byte_enable;
-    payload.status        = response_payload.status;
-    payload.last          = response_payload.last;
+    payload.data            = request_payload.data;
+    payload.byte_enable     = request_payload.byte_enable;
+    payload.response_status = response_payload.response_status;
   endfunction
 
 //--------------------------------------------------------------

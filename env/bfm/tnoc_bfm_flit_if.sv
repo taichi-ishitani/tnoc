@@ -1,8 +1,8 @@
 `ifndef TNOC_BFM_FLIT_IF_SV
 `define TNOC_BFM_FLIT_IF_SV
 interface tnoc_bfm_flit_if (
-  input logic clk,
-  input logic rst_n
+  input var bit i_clk,
+  input var bit i_rst_n
 );
   import  tnoc_bfm_types_pkg::tnoc_bfm_flit;
 
@@ -10,32 +10,34 @@ interface tnoc_bfm_flit_if (
   bit           ready;
   tnoc_bfm_flit flit;
   bit           vc_available;
-  bit           acknowledgement;
+  bit           ack;
 
-  assign  acknowledgement = (valid && ready) ? '1 : '0;
+  always_comb begin
+    ack = valid & ready;
+  end
 
-  clocking master_cb @(posedge clk);
+  clocking master_cb @(posedge i_clk);
     output  valid;
     input   ready;
     output  flit;
     input   vc_available;
-    input   acknowledgement;
+    input   ack;
   endclocking
 
-  clocking slave_cb @(posedge clk);
+  clocking slave_cb @(posedge i_clk);
     input   valid;
     output  ready;
     input   flit;
     output  vc_available;
-    input   acknowledgement;
+    input   ack;
   endclocking
 
-  clocking monitor_cb @(posedge clk);
+  clocking monitor_cb @(posedge i_clk);
     input valid;
     input ready;
     input flit;
     input vc_available;
-    input acknowledgement;
+    input ack;
   endclocking
 
   modport initiator(
@@ -43,7 +45,7 @@ interface tnoc_bfm_flit_if (
     input   ready,
     output  flit,
     input   vc_available,
-    input   acknowledgement
+    input   ack
   );
 
   modport target(
@@ -51,7 +53,15 @@ interface tnoc_bfm_flit_if (
     output  ready,
     input   flit,
     output  vc_available,
-    input   acknowledgement
+    input   ack
+  );
+
+  modport monitor (
+    input valid,
+    input ready,
+    input flit,
+    input vc_available,
+    input ack
   );
 endinterface
 `endif

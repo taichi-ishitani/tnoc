@@ -20,7 +20,7 @@ class tnoc_packet_scoreboard extends tue_scoreboard #(tnoc_bfm_configuration);
   virtual function void write_tx(tnoc_bfm_packet_item item);
     if (is_acceptable_item(item)) begin
       tnoc_bfm_location_id  source_id = item.source_id;
-      tnoc_bfm_vc           vc        = item.virtual_channel;
+      tnoc_bfm_vc           vc        = item.vc;
       raise_objection();
       tx_item_queue[source_id][vc].push_back(item);
     end
@@ -28,7 +28,7 @@ class tnoc_packet_scoreboard extends tue_scoreboard #(tnoc_bfm_configuration);
 
   virtual function void write_rx(tnoc_bfm_packet_item item);
     tnoc_bfm_location_id  source_id     = item.source_id;
-    tnoc_bfm_vc           vc            = item.virtual_channel;
+    tnoc_bfm_vc           vc            = item.vc;
     int                   tx_item_index = -1;
 
     if (is_unexpected_item(source_id, vc)) begin

@@ -54,9 +54,11 @@ module tnoc_packet_serializer
   end
 
   if (CHANNELS == 1) begin : g_single_vc
-    assign  sender_if.valid   = flit_if[2].valid;
-    assign  flit_if[2].ready  = sender_if.ready;
-    assign  sender_if.flit    = flit_if[2].flit;
+    always_comb begin
+      sender_if.valid   = flit_if[2].valid;
+      flit_if[2].ready  = sender_if.ready;
+      sender_if.flit    = flit_if[2].flit;
+    end
   end
   else begin : g_multi_vc
     localparam  int FLITS = (is_local_port(PORT_TYPE)) ? CHANNELS : 1;

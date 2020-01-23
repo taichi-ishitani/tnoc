@@ -19,13 +19,14 @@ module top();
   `endif
 
   localparam  tnoc_packet_config  PACKET_CONFIG  = '{
-    address_width:    TNOC_DEFAULT_PACKET_CONFIG.address_width,
-    data_width:       `TNOC_ROUTER_ENV_DATA_WIDTH,
     size_x:           TNOC_DEFAULT_PACKET_CONFIG.size_x,
     size_y:           TNOC_DEFAULT_PACKET_CONFIG.size_y,
     virtual_channels: `TNOC_ROUTER_ENV_VIRTUAL_CHANNELS,
     tags:             TNOC_DEFAULT_PACKET_CONFIG.tags,
-    max_burst_length: TNOC_DEFAULT_PACKET_CONFIG.max_burst_length
+    address_width:    TNOC_DEFAULT_PACKET_CONFIG.address_width,
+    data_width:       `TNOC_ROUTER_ENV_DATA_WIDTH,
+    max_data_width:   TNOC_DEFAULT_PACKET_CONFIG.max_data_width,
+    max_byte_length:  TNOC_DEFAULT_PACKET_CONFIG.max_byte_length
   };
 
   bit clk = 0;
@@ -154,13 +155,14 @@ module top();
       size_y     == PACKET_CONFIG.size_y;
       error_data == ((1 << PACKET_CONFIG.data_width) - 1);
       foreach (bfm_cfg[i]) {
-        bfm_cfg[i].address_width    == PACKET_CONFIG.address_width;
-        bfm_cfg[i].data_width       == PACKET_CONFIG.data_width;
         bfm_cfg[i].id_x_width       == get_id_x_width(PACKET_CONFIG);
         bfm_cfg[i].id_y_width       == get_id_y_width(PACKET_CONFIG);
         bfm_cfg[i].virtual_channels == PACKET_CONFIG.virtual_channels;
         bfm_cfg[i].tags             == PACKET_CONFIG.tags;
-        bfm_cfg[i].max_burst_length == PACKET_CONFIG.max_burst_length;
+        bfm_cfg[i].address_width    == PACKET_CONFIG.address_width;
+        bfm_cfg[i].data_width       == PACKET_CONFIG.data_width;
+        bfm_cfg[i].max_data_width   == PACKET_CONFIG.max_data_width;
+        bfm_cfg[i].max_byte_length  == PACKET_CONFIG.max_byte_length;
       }
     });
 

@@ -41,11 +41,11 @@ class tnoc_bfm_flit_item extends tnoc_bfm_flit_item_base;
   endfunction
 
   function bit is_header_flit();
-    return (flit_type == TNOC_BFM_HEADER_FLIT) ? '1 : '0;
+    return (flit_type == TNOC_BFM_HEADER_FLIT);
   endfunction
 
   function bit is_payload_flit();
-    return (flit_type == TNOC_BFM_PAYLOAD_FLIT) ? '1 : '0;
+    return (flit_type == TNOC_BFM_PAYLOAD_FLIT);
   endfunction
 
   function bit is_head_flit();

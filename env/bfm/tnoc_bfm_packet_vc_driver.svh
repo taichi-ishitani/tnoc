@@ -21,12 +21,12 @@ class tnoc_bfm_packet_vc_driver extends tnoc_bfm_component_base #(
   endfunction
 
   task run_phase(uvm_phase phase);
-    forever @(vif.master_cb, negedge vif.rst_n) begin
-      if (!vif.rst_n) begin
+    forever @(vif.master_cb, negedge vif.i_rst_n) begin
+      if (!vif.i_rst_n) begin
         do_reset();
       end
       else begin
-        if (vif.monitor_cb.acknowledgement) begin
+        if (vif.monitor_cb.ack) begin
           finish_flit();
         end
 

@@ -1,14 +1,6 @@
 `ifndef TNOC_PKG_SV
 `define TNOC_PKG_SV
 
-`ifndef TNOC_DEFAULT_ADDRESS_WIDTH
-  `define TNOC_DEFAULT_ADDRESS_WIDTH  64
-`endif
-
-`ifndef TNOC_DEFAULT_DATA_WIDTH
-  `define TNOC_DEFAULT_DATA_WIDTH 256
-`endif
-
 `ifndef TNOC_DEFAULT_SIZE_X
   `define TNOC_DEFAULT_SIZE_X 3
 `endif
@@ -25,8 +17,20 @@
   `define TNOC_DEFAULT_TAGS 256
 `endif
 
-`ifndef TNOC_DEFAULT_MAX_BURST_LENGTH
-  `define TNOC_DEFAULT_MAX_BURST_LENGTH 256
+`ifndef TNOC_DEFAULT_ADDRESS_WIDTH
+  `define TNOC_DEFAULT_ADDRESS_WIDTH  64
+`endif
+
+`ifndef TNOC_DEFAULT_DATA_WIDTH
+  `define TNOC_DEFAULT_DATA_WIDTH 256
+`endif
+
+`ifndef TNOC_DEFAULT_MAX_DATA_WIDTH
+  `define TNOC_DEFAULT_MAX_DATA_WIDTH 256
+`endif
+
+`ifndef TNOC_DEFAULT_MAX_BYTE_LENGTH
+  `define TNOC_DEFAULT_MAX_BYTE_LENGTH  4096
 `endif
 
 `ifndef TNOC_DEFAULT_FIFO_DEPTH
@@ -38,23 +42,25 @@ package tnoc_pkg;
 //  Configuration
 //--------------------------------------------------------------
   typedef struct packed {
-    int unsigned  address_width;
-    int unsigned  data_width;
-    int unsigned  size_x;
-    int unsigned  size_y;
-    int unsigned  virtual_channels;
-    int unsigned  tags;
-    int unsigned  max_burst_length;
+    shortint  size_x;
+    shortint  size_y;
+    shortint  virtual_channels;
+    shortint  tags;
+    shortint  address_width;
+    shortint  data_width;
+    shortint  max_data_width;
+    shortint  max_byte_length;
   } tnoc_packet_config;
 
   localparam  tnoc_packet_config  TNOC_DEFAULT_PACKET_CONFIG  = '{
-    address_width:    `TNOC_DEFAULT_ADDRESS_WIDTH,
-    data_width:       `TNOC_DEFAULT_DATA_WIDTH,
     size_x:           `TNOC_DEFAULT_SIZE_X,
     size_y:           `TNOC_DEFAULT_SIZE_Y,
     virtual_channels: `TNOC_DEFAULT_VIRTUAL_CHANNELS,
     tags:             `TNOC_DEFAULT_TAGS,
-    max_burst_length: `TNOC_DEFAULT_MAX_BURST_LENGTH
+    address_width:    `TNOC_DEFAULT_ADDRESS_WIDTH,
+    data_width:       `TNOC_DEFAULT_DATA_WIDTH,
+    max_data_width:   `TNOC_DEFAULT_MAX_DATA_WIDTH,
+    max_byte_length:  `TNOC_DEFAULT_MAX_BYTE_LENGTH
   };
 
   function automatic int clog2(bit [31:0] n);
@@ -76,9 +82,7 @@ package tnoc_pkg;
     end
   endfunction
 
-  function automatic int get_id_x_width(
-    tnoc_packet_config  packet_config
-  );
+  function automatic int get_id_x_width(tnoc_packet_config packet_config);
     if (packet_config.size_x >= 2) begin
       return clog2(packet_config.size_x);
     end
@@ -87,9 +91,7 @@ package tnoc_pkg;
     end
   endfunction
 
-  function automatic int get_id_y_width(
-    tnoc_packet_config  packet_config
-  );
+  function automatic int get_id_y_width(tnoc_packet_config packet_config);
     if (packet_config.size_y >= 2) begin
       return clog2(packet_config.size_y);
     end
@@ -98,15 +100,11 @@ package tnoc_pkg;
     end
   endfunction
 
-  function automatic int get_location_id_width(
-    tnoc_packet_config  packet_config
-  );
+  function automatic int get_location_id_width(tnoc_packet_config packet_config);
     return get_id_x_width(packet_config) + get_id_y_width(packet_config);
   endfunction
 
-  function automatic int get_vc_width(
-    tnoc_packet_config  packet_config
-  );
+  function automatic int get_vc_width(tnoc_packet_config packet_config);
     if (packet_config.virtual_channels >= 2) begin
       return clog2(packet_config.virtual_channels);
     end
@@ -115,9 +113,7 @@ package tnoc_pkg;
     end
   endfunction
 
-  function automatic int get_tag_width(
-    tnoc_packet_config  packet_config
-  );
+  function automatic int get_tag_width(tnoc_packet_config packet_config);
     if (packet_config.tags >= 2) begin
       return clog2(packet_config.tags);
     end
@@ -126,36 +122,53 @@ package tnoc_pkg;
     end
   endfunction
 
-  function automatic int get_burst_length_width(
-    tnoc_packet_config  packet_config
-  );
-    return clog2(packet_config.max_burst_length + 1);
-  endfunction
-
-  function automatic int get_packed_burst_length_width(
-    tnoc_packet_config  packet_config
-  );
-    if (packet_config.max_burst_length >= 2) begin
-      return clog2(packet_config.max_burst_length);
+  function automatic int get_byte_size_width(tnoc_packet_config packet_config);
+    if (packet_config.max_data_width >= 16) begin
+      return clog2(clog2(packet_config.max_data_width / 8) + 1);
     end
     else begin
       return 1;
     end
   endfunction
 
-  function automatic int get_burst_size_width(
-    tnoc_packet_config  packet_config
-  );
-    if (packet_config.data_width >= 16) begin
-      return clog2(clog2(packet_config.data_width) - 3);
+  function automatic int get_byte_length_width(tnoc_packet_config packet_config);
+    return clog2(packet_config.max_byte_length + 1);
+  endfunction
+
+  function automatic int get_packed_byte_length_width(tnoc_packet_config packet_config);
+    if (packet_config.max_byte_length >= 2) begin
+      return clog2(packet_config.max_byte_length);
     end
     else begin
       return 1;
     end
+  endfunction
+
+  function automatic int get_byte_count_width(tnoc_packet_config packet_config);
+    return get_byte_length_width(packet_config);
+  endfunction
+
+  function automatic int get_packed_byte_count_width(tnoc_packet_config packet_config);
+    return get_packed_byte_length_width(packet_config);
+  endfunction
+
+  function automatic int get_byte_offset_width(tnoc_packet_config packet_config);
+    if (packet_config.max_data_width >= 16) begin
+      return clog2(packet_config.max_data_width / 8);
+    end
+    else begin
+      return 1;
+    end
+  endfunction
+
+  function automatic int get_burst_length_width(tnoc_packet_config packet_config);
+    int byte_width;
+    byte_width  = packet_config.data_width / 8;
+    return clog2((packet_config.max_byte_length / byte_width) + 1);
   endfunction
 
 //--------------------------------------------------------------
-//  Packet/Flit
+//  Packet
 //--------------------------------------------------------------
   typedef enum logic [7:0] {
     TNOC_INVALID_PACKET     = 'b000_00000,
@@ -166,88 +179,85 @@ package tnoc_pkg;
     TNOC_RESPONSE_WITH_DATA = 'b110_00000
   } tnoc_packet_type;
 
+  localparam  int TNOC_PACKET_TYPE_RESPONSE_BIT   = 7;
+  localparam  int TNOC_PACKET_TYPE_PAYLOAD_BIT    = 6;
+  localparam  int TNOC_PACKET_TYPE_NON_POSTED_BIT = 5;
+
   typedef enum logic [1:0] {
     TNOC_FIXED_BURST    = 2'b00,
     TNOC_NORMAL_BURST   = 2'b01,
     TNOC_WRAPPING_BURST = 2'b10
   } tnoc_burst_type;
 
-  typedef enum logic [1:0] {
-    TNOC_OKAY         = 2'b00,
-    TNOC_EXOKAY       = 2'b01,
-    TNOC_SLAVE_ERROR  = 2'b10,
-    TNOC_DECODE_ERROR = 2'b11
+  typedef struct packed {
+    logic exokay;
+    logic slave_error;
+    logic decode_error;
   } tnoc_response_status;
 
-  typedef enum logic {
-    TNOC_HEADER_FLIT  = 1'b0,
-    TNOC_PAYLOAD_FLIT = 1'b1
-  } tnoc_flit_type;
+  function automatic logic is_valid_packet_type(tnoc_packet_type packet_type);
+    return (packet_type != TNOC_INVALID_PACKET);
+  endfunction
 
   function automatic logic is_request_packet_type(tnoc_packet_type packet_type);
-    return ((packet_type != TNOC_INVALID_PACKET) && (packet_type[7] == '0)) ? '1 : '0;
+    return (is_valid_packet_type(packet_type) && (!packet_type[TNOC_PACKET_TYPE_RESPONSE_BIT]));
   endfunction
 
   function automatic logic is_response_packet_type(tnoc_packet_type packet_type);
-    return ((packet_type != TNOC_INVALID_PACKET) && (packet_type[7] == '1)) ? '1 : '0;
+    return (is_valid_packet_type(packet_type) && packet_type[TNOC_PACKET_TYPE_RESPONSE_BIT]);
   endfunction
 
   function automatic logic is_packet_with_payload_type(tnoc_packet_type packet_type);
-    return ((packet_type != TNOC_INVALID_PACKET) && (packet_type[6] == '1)) ? '1 : '0;
+    return (is_valid_packet_type(packet_type) && packet_type[TNOC_PACKET_TYPE_PAYLOAD_BIT]);
   endfunction
 
   function automatic logic is_header_only_packet_type(tnoc_packet_type packet_type);
-    return ((packet_type != TNOC_INVALID_PACKET) && (packet_type[6] == '0)) ? '1 : '0;
+    return (is_valid_packet_type(packet_type) && (!packet_type[TNOC_PACKET_TYPE_PAYLOAD_BIT]));
   endfunction
 
   function automatic logic is_posted_request_packet_type(tnoc_packet_type packet_type);
-    return (is_request_packet_type(packet_type) && (packet_type[5] == '0)) ? '1 : '0;
+    return (is_request_packet_type(packet_type) && (!packet_type[TNOC_PACKET_TYPE_NON_POSTED_BIT]));
   endfunction
 
   function automatic logic is_non_posted_request_packet_type(tnoc_packet_type packet_type);
-    return (is_request_packet_type(packet_type) && (packet_type[5] == '1)) ? '1 : '0;
+    return (is_request_packet_type(packet_type) && packet_type[TNOC_PACKET_TYPE_NON_POSTED_BIT]);
   endfunction
 
-  function automatic int get_common_header_field_width(
-    tnoc_packet_config  packet_config
-  );
+  function automatic int get_common_header_field_width(tnoc_packet_config packet_config);
     int width;
     width = 0;
-    width += $bits(tnoc_packet_type);               //  packet_type
-    width += get_location_id_width(packet_config);  //  destination_id
-    width += get_location_id_width(packet_config);  //  source_id
+    width += $bits(tnoc_packet_type);               //  packet type
+    width += get_location_id_width(packet_config);  //  destination id
+    width += get_location_id_width(packet_config);  //  source id
     width += get_vc_width(packet_config);           //  vc
     width += get_tag_width(packet_config);          //  tag
-    width += 1;                                     //  invalid_destination
+    width += 1;                                     //  invalid destination
     return width;
   endfunction
 
-  function automatic int get_request_header_width(
-    tnoc_packet_config  packet_config
-  );
+  function automatic int get_request_header_width(tnoc_packet_config packet_config);
     int width;
     width = 0;
     width += get_common_header_field_width(packet_config);  //  common fields
-    width += $bits(tnoc_burst_type);                        //  burst.burst_type
-    width += get_packed_burst_length_width(packet_config);  //  burst.length
-    width += get_burst_size_width(packet_config);           //  burst.size
+    width += get_byte_size_width(packet_config);            //  byte size
+    width += get_packed_byte_length_width(packet_config);   //  byte length
     width += packet_config.address_width;                   //  address
+    width += $bits(tnoc_burst_type);                        //  burst type
     return width;
   endfunction
 
-  function automatic int get_response_header_width(
-    tnoc_packet_config  packet_config
-  );
+  function automatic int get_response_header_width(tnoc_packet_config packet_config);
     int width;
     width = 0;
     width += get_common_header_field_width(packet_config);  //  common fields
-    width += $bits(tnoc_response_status);                   //  status
+    width += get_byte_size_width(packet_config);            //  byte size
+    width += get_packed_byte_count_width(packet_config);    //  byte count
+    width += get_byte_offset_width(packet_config);          //  byte offset
+    width += $bits(tnoc_response_status);                   //  status for response without payload
     return width;
   endfunction
 
-  function automatic int get_header_width(
-    tnoc_packet_config  packet_config
-  );
+  function automatic int get_header_width(tnoc_packet_config packet_config);
     int width;
 
     width = 0;
@@ -261,30 +271,23 @@ package tnoc_pkg;
     return width;
   endfunction
 
-  function automatic int get_request_payload_width(
-    tnoc_packet_config  packet_config
-  );
+  function automatic int get_request_payload_width(tnoc_packet_config packet_config);
     int width;
     width = 0;
     width += packet_config.data_width;      //  data
-    width += packet_config.data_width / 8;  //  byte_enable
+    width += packet_config.data_width / 8;  //  byte enable
     return width;
   endfunction
 
-  function automatic int get_response_payload_width(
-    tnoc_packet_config  packet_config
-  );
+  function automatic int get_response_payload_width(tnoc_packet_config packet_config);
     int width;
     width = 0;
     width += packet_config.data_width;    //  data
-    width += $bits(tnoc_response_status); //  status
-    width += 1;                           //  last
+    width += $bits(tnoc_response_status); //  status for response with payload
     return width;
   endfunction
 
-  function automatic int get_payload_width(
-    tnoc_packet_config  packet_config
-  );
+  function automatic int get_payload_width(tnoc_packet_config packet_config);
     int width;
 
     width = 0;
@@ -298,9 +301,15 @@ package tnoc_pkg;
     return width;
   endfunction
 
-  function automatic int get_flit_data_width(
-    tnoc_packet_config  packet_config
-  );
+//--------------------------------------------------------------
+//  Flit
+//--------------------------------------------------------------
+  typedef enum logic {
+    TNOC_HEADER_FLIT  = 1'b0,
+    TNOC_PAYLOAD_FLIT = 1'b1
+  } tnoc_flit_type;
+
+  function automatic int get_flit_data_width(tnoc_packet_config packet_config);
     int width;
 
     width = 0;
@@ -314,9 +323,7 @@ package tnoc_pkg;
     return width;
   endfunction
 
-  function automatic int get_flit_width(
-    tnoc_packet_config  packet_config
-  );
+  function automatic int get_flit_width(tnoc_packet_config packet_config);
     int width;
 
     width = 0;
@@ -328,10 +335,7 @@ package tnoc_pkg;
     return width;
   endfunction
 
-
-  function automatic int get_request_header_flits(
-    tnoc_packet_config  packet_config
-  );
+  function automatic int get_request_header_flits(tnoc_packet_config packet_config);
     int header_width;
     int flit_width;
     header_width  = get_request_header_width(packet_config);
@@ -339,9 +343,7 @@ package tnoc_pkg;
     return (header_width + flit_width - 1) / flit_width;
   endfunction
 
-  function automatic int get_response_header_flits(
-    tnoc_packet_config  packet_config
-  );
+  function automatic int get_response_header_flits(tnoc_packet_config packet_config);
     int header_width;
     int flit_width;
     header_width  = get_response_header_width(packet_config);
@@ -349,9 +351,7 @@ package tnoc_pkg;
     return (header_width + flit_width - 1) / flit_width;
   endfunction
 
-  function automatic int get_header_flits(
-    tnoc_packet_config  packet_config
-  );
+  function automatic int get_header_flits(tnoc_packet_config packet_config);
     int flits;
 
     flits = 0;

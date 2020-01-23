@@ -52,9 +52,9 @@ class tnoc_router_virtual_channel_test_sequence extends tnoc_router_test_sequenc
     });
 
     for (int i = 0;i < 20;++i) begin
-      tnoc_bfm_transmit_packet_sequence transmit_packet_sequence;
-      `uvm_do_on_with(transmit_packet_sequence, sequencer, {
-        virtual_channel == local::vc[i%2];
+      tnoc_bfm_packet_item  packet_item;
+      `uvm_do_on_with(packet_item, sequencer, {
+        vc == local::vc[i%2];
         ((i % 2) == index) -> destination_id == destinations[0];
         ((i % 2) != index) -> destination_id == destinations[1];
       })

@@ -24,7 +24,7 @@ class tnoc_bfm_packet_vc_monitor extends tnoc_bfm_component_base #(
 
   task run_phase(uvm_phase phase);
     forever @(vif.monitor_cb) begin
-      if (!vif.rst_n) begin
+      if (!vif.i_rst_n) begin
         do_reset();
       end
       else begin
@@ -35,7 +35,7 @@ class tnoc_bfm_packet_vc_monitor extends tnoc_bfm_component_base #(
           flit_item = sample_flit_item();
         end
 
-        if (!vif.monitor_cb.acknowledgement) begin
+        if (!vif.monitor_cb.ack) begin
           continue;
         end
 
