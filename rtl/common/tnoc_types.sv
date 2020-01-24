@@ -8,19 +8,18 @@ interface tnoc_types
 //--------------------------------------------------------------
 //  Typedefs for packet
 //--------------------------------------------------------------
-  typedef logic [get_id_x_width(PACKET_CONFIG)-1:0]                 tnoc_id_x;
-  typedef logic [get_id_y_width(PACKET_CONFIG)-1:0]                 tnoc_id_y;
-  typedef logic [get_vc_width(PACKET_CONFIG)-1:0]                   tnoc_vc;
-  typedef logic [get_tag_width(PACKET_CONFIG)-1:0]                  tnoc_tag;
-  typedef logic [get_byte_size_width(PACKET_CONFIG)-1:0]            tnoc_byte_size;
-  typedef logic [get_byte_length_width(PACKET_CONFIG)-1:0]          tnoc_byte_length;
-  typedef logic [get_packed_byte_length_width(PACKET_CONFIG)-1:0]   tnoc_packed_byte_length;
-  typedef logic [PACKET_CONFIG.address_width-1:0]                   tnoc_address;
-  typedef logic [get_byte_count_width(PACKET_CONFIG)-1:0]           tnoc_byte_count;
-  typedef logic [get_packed_byte_count_width(PACKET_CONFIG)-1:0]    tnoc_packed_byte_count;
-  typedef logic [get_byte_offset_width(PACKET_CONFIG)-1:0]          tnoc_byte_offset;
-  typedef logic [PACKET_CONFIG.data_width-1:0]                      tnoc_data;
-  typedef logic [PACKET_CONFIG.data_width/8-1:0]                    tnoc_byte_enable;
+  typedef logic [get_id_x_width(PACKET_CONFIG)-1:0]               tnoc_id_x;
+  typedef logic [get_id_y_width(PACKET_CONFIG)-1:0]               tnoc_id_y;
+  typedef logic [get_vc_width(PACKET_CONFIG)-1:0]                 tnoc_vc;
+  typedef logic [get_tag_width(PACKET_CONFIG)-1:0]                tnoc_tag;
+  typedef logic [get_byte_size_width(PACKET_CONFIG)-1:0]          tnoc_byte_size;
+  typedef logic [get_byte_length_width(PACKET_CONFIG)-1:0]        tnoc_byte_length;
+  typedef logic [get_packed_byte_length_width(PACKET_CONFIG)-1:0] tnoc_packed_byte_length;
+  typedef logic [PACKET_CONFIG.address_width-1:0]                 tnoc_address;
+  typedef logic [get_byte_offset_width(PACKET_CONFIG)-1:0]        tnoc_byte_offset;
+  typedef logic [get_byte_end_width(PACKET_CONFIG)-1:0]           tnoc_byte_end;
+  typedef logic [PACKET_CONFIG.data_width-1:0]                    tnoc_data;
+  typedef logic [PACKET_CONFIG.data_width/8-1:0]                  tnoc_byte_enable;
 
   typedef struct packed {
     tnoc_id_x x;
@@ -44,10 +43,9 @@ interface tnoc_types
   } tnoc_request_header_fields;
 
   typedef struct packed {
-    tnoc_response_status    response_status;
-    tnoc_byte_offset        byte_offset;
-    tnoc_packed_byte_count  byte_count;
-    tnoc_byte_size          byte_size;
+    tnoc_response_status  response_status;
+    tnoc_byte_offset      byte_offset;
+    tnoc_byte_size        byte_size;
   } tnoc_response_header_fields;
 
   typedef tnoc_common_header_fields tnoc_common_header;
@@ -68,6 +66,8 @@ interface tnoc_types
   } tnoc_request_payload;
 
   typedef struct packed {
+    logic                 last_response;
+    tnoc_byte_end         byte_end;
     tnoc_response_status  response_status;
     tnoc_data             data;
   } tnoc_response_payload;
@@ -86,7 +86,6 @@ interface tnoc_types
     tnoc_byte_length      byte_length;
     tnoc_address          address;
     tnoc_burst_type       burst_type;
-    tnoc_byte_count       byte_count;
     tnoc_byte_offset      byte_offset;
     tnoc_response_status  response_status;
   } tnoc_header_fields;
@@ -95,6 +94,8 @@ interface tnoc_types
     tnoc_data             data;
     tnoc_byte_enable      byte_enable;
     tnoc_response_status  response_status;
+    tnoc_byte_end         byte_end;
+    logic                 last_response;
   } tnoc_payload_fields;
 
 //--------------------------------------------------------------

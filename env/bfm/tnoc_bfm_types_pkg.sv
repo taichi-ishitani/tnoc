@@ -65,15 +65,17 @@ package tnoc_bfm_types_pkg;
 
   localparam  int TNOC_BFM_BYTE_LENGTH_WIDTH  = `tnoc_bfm_calc_width(`TNOC_BFM_MAX_BYTE_LENGTH);
   typedef bit [TNOC_BFM_BYTE_LENGTH_WIDTH-1:0]  tnoc_bfm_byte_length;
-  typedef tnoc_bfm_byte_length                  tnoc_bfm_byte_count;
 
   localparam  int TNOC_BFM_BYTE_SIZE_WIDTH  = `tnoc_bfm_calc_width($clog2(`TNOC_BFM_MAX_DATA_WIDTH / 8) + 1);
   typedef bit [TNOC_BFM_BYTE_SIZE_WIDTH-1:0]  tnoc_bfm_byte_size;
 
+  typedef bit [`TNOC_BFM_MAX_ADDRESS_WIDTH-1:0] tnoc_bfm_address;
+
   localparam  int TNOC_BFM_BYTE_OFFSET_WIDTH  = `tnoc_bfm_calc_width(`TNOC_BFM_MAX_DATA_WIDTH / 8);
   typedef bit [TNOC_BFM_BYTE_OFFSET_WIDTH-1:0]  tnoc_bfm_byte_offset;
 
-  typedef bit [`TNOC_BFM_MAX_ADDRESS_WIDTH-1:0] tnoc_bfm_address;
+  localparam  int TNOC_BFM_BYTE_END_WIDTH = `tnoc_bfm_calc_width(`TNOC_BFM_MAX_DATA_WIDTH / 8);
+  typedef bit [TNOC_BFM_BYTE_END_WIDTH-1:0] tnoc_bfm_byte_end;
 
   typedef struct packed {
     bit exokay;
@@ -97,7 +99,6 @@ package tnoc_bfm_types_pkg;
   localparam  int TNOC_BFM_RESPONSE_HEADER_WIDTH  =
     TNOC_BFM_COMMON_HEADER_WIDTH    +
     $bits(tnoc_bfm_byte_size      ) +
-    $bits(tnoc_bfm_byte_count     ) +
     $bits(tnoc_bfm_byte_offset    ) +
     $bits(tnoc_bfm_response_status);
   localparam  int TNOC_BFM_HEADER_WIDTH  = (
@@ -106,15 +107,6 @@ package tnoc_bfm_types_pkg;
 
   typedef bit [`TNOC_BFM_MAX_DATA_WIDTH-1:0]    tnoc_bfm_data;
   typedef bit [`TNOC_BFM_MAX_DATA_WIDTH/8-1:0]  tnoc_bfm_byte_enable;
-  typedef struct packed {
-    tnoc_bfm_data         data;
-    tnoc_bfm_byte_enable  byte_enable;
-  } tnoc_bfm_request_payload;
-  typedef struct packed {
-    tnoc_bfm_data             data;
-    tnoc_bfm_response_status  response_status;
-    bit                       last;
-  } tnoc_bfm_response_payload;
 
   localparam  int TNOC_BFM_REQUEST_PAYLOAD_WIDTH  =
     $bits(tnoc_bfm_data       ) + //  data
@@ -122,7 +114,9 @@ package tnoc_bfm_types_pkg;
 
   localparam  int TNOC_BFM_RESPONSE_PAYLOAD_WIDTH =
     $bits(tnoc_bfm_data           ) + //  data
-    $bits(tnoc_bfm_response_status);  //  status
+    $bits(tnoc_bfm_response_status) + //  error status
+    $bits(tnoc_bfm_byte_end       ) + //  byte end
+    1;                                //  last
 
   localparam  int TNOC_BFM_PAYLOAD_WIDTH  = (
     TNOC_BFM_REQUEST_PAYLOAD_WIDTH > TNOC_BFM_RESPONSE_PAYLOAD_WIDTH

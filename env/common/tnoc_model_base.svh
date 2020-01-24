@@ -86,8 +86,9 @@ virtual class tnoc_model_base #(
     else begin
       int length  = item.get_request_burst_length();
       response_item.byte_size       = item.byte_size;
-      response_item.byte_count      = item.byte_length;
       response_item.byte_offset     = get_byte_offset(item);
+      response_item.byte_end        = get_byte_end(item);
+      response_item.last_response   = item.has_no_payload();
       response_item.data            = new[length];
       response_item.response_status = new[length];
       foreach (response_item.data[i]) begin
@@ -105,10 +106,14 @@ virtual class tnoc_model_base #(
 
   local function tnoc_bfm_byte_offset get_byte_offset(tnoc_bfm_packet_item item);
     tnoc_bfm_configuration  packet_configuration;
-    tnoc_bfm_byte_offset    mask;
     packet_configuration  = item.get_configuration();
-    mask                  = (1 << packet_configuration.byte_offset_width) - 1;
-    return item.address & mask;
+    return item.address % packet_configuration.max_byte_width;
+  endfunction
+
+  local function tnoc_bfm_byte_end get_byte_end(tnoc_bfm_packet_item item);
+    tnoc_bfm_configuration  packet_configuration;
+    packet_configuration  = item.get_configuration();
+    return (item.address + (item.byte_length - 1)) % packet_configuration.byte_width;
   endfunction
 
   `tue_component_default_constructor(tnoc_model_base)

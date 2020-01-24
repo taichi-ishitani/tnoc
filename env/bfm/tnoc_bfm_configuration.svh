@@ -14,11 +14,13 @@ class tnoc_bfm_configuration extends tue_configuration;
         int                     byte_width;
         int                     byte_enable_width;
   rand  int                     max_byte_length;
-  rand  int                     byte_length_width;
-  rand  int                     byte_count_width;
+        int                     byte_length_width;
+        int                     max_burst_length;
   rand  int                     max_data_width;
+        int                     max_byte_width;
         int                     byte_size_width;
         int                     byte_offset_width;
+        int                     byte_end_width;
   rand  int                     id_x;
   rand  int                     id_y;
   rand  int                     vc_map[tnoc_bfm_packet_type];
@@ -75,16 +77,6 @@ class tnoc_bfm_configuration extends tue_configuration;
   constraint c_valid_max_byte_length {
     max_byte_length inside {[1:`TNOC_BFM_MAX_BYTE_LENGTH]};
     $countones(max_byte_length) == 1;
-    if (max_byte_length == 1) {
-      byte_length_width == 1;
-    }
-    else {
-      byte_length_width == $clog2(max_byte_length);
-    }
-  }
-
-  constraint c_valid_byte_count_width {
-    byte_count_width == byte_length_width;
   }
 
   constraint c_valid_id {
@@ -115,10 +107,14 @@ class tnoc_bfm_configuration extends tue_configuration;
 
   function void post_randomize();
     super.post_randomize();
+    byte_length_width = (max_byte_length == 1) ? 1 : $clog2(max_byte_length);
     byte_width        = data_width / 8;
     byte_enable_width = data_width / 8;
-    byte_size_width   = (max_data_width == 8) ? 1 : $clog2($clog2(max_data_width / 8) + 1);
-    byte_offset_width = (max_data_width == 8) ? 1 : $clog2(max_data_width / 8);
+    max_byte_width    = max_data_width / 8;
+    byte_size_width   = (max_byte_width == 1) ? 1 : $clog2($clog2(max_byte_width) + 1);
+    byte_offset_width = (max_byte_width == 8) ? 1 : $clog2(max_byte_width);
+    byte_end_width    = (byte_width     == 8) ? 1 : $clog2(byte_width);
+    max_burst_length  = max_byte_length / byte_width;
   endfunction
 
   function int get_common_header_width();
@@ -152,7 +148,6 @@ class tnoc_bfm_configuration extends tue_configuration;
         get_common_header_width() +
         byte_size_width           +       //  byte size
         byte_offset_width         +       //  byte offset
-        byte_count_width          +       //  byte count
         $bits(tnoc_bfm_response_status);  //  status
     end
     return response_header_width;
@@ -182,8 +177,10 @@ class tnoc_bfm_configuration extends tue_configuration;
   function int get_response_payload_width();
     if (response_payload_width == 0) begin
       response_payload_width  =
-        data_width +                      //  data
-        $bits(tnoc_bfm_response_status);  //  response status
+        data_width                      + //  data
+        $bits(tnoc_bfm_response_status) + //  status
+        byte_end_width                  + //  byte end
+        1;                                //  last
     end
     return response_payload_width;
   endfunction
@@ -226,10 +223,12 @@ class tnoc_bfm_configuration extends tue_configuration;
     `uvm_field_int(byte_enable_width, UVM_DEFAULT | UVM_DEC)
     `uvm_field_int(max_byte_length, UVM_DEFAULT | UVM_DEC)
     `uvm_field_int(byte_length_width, UVM_DEFAULT | UVM_DEC)
-    `uvm_field_int(byte_count_width, UVM_DEFAULT | UVM_DEC)
+    `uvm_field_int(max_burst_length, UVM_DEFAULT | UVM_DEC)
     `uvm_field_int(max_data_width, UVM_DEFAULT | UVM_DEC)
+    `uvm_field_int(max_byte_width, UVM_DEFAULT | UVM_DEC)
     `uvm_field_int(byte_size_width, UVM_DEFAULT | UVM_DEC)
     `uvm_field_int(byte_offset_width, UVM_DEFAULT | UVM_DEC)
+    `uvm_field_int(byte_end_width, UVM_DEFAULT | UVM_DEC)
     `uvm_field_int(id_x, UVM_DEFAULT | UVM_DEC)
     `uvm_field_int(id_y, UVM_DEFAULT | UVM_DEC)
     `uvm_field_aa_int_enumkey(tnoc_bfm_packet_type, vc_map, UVM_DEFAULT | UVM_DEC)

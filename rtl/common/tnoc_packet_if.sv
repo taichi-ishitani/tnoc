@@ -34,8 +34,6 @@ interface tnoc_packet_if
 
   typedef types.tnoc_byte_length            tnoc_byte_length;
   typedef types.tnoc_packed_byte_length     tnoc_packed_byte_length;
-  typedef types.tnoc_byte_count             tnoc_byte_count;
-  typedef types.tnoc_packed_byte_count      tnoc_packed_byte_count;
   typedef types.tnoc_common_header_fields   tnoc_common_header_fields;
   typedef types.tnoc_request_header_fields  tnoc_request_header_fields;
   typedef types.tnoc_response_header_fields tnoc_response_header_fields;
@@ -59,7 +57,6 @@ interface tnoc_packet_if
       tnoc_response_header        response_header;
 
       response_fields.byte_size       = header.byte_size;
-      response_fields.byte_count      = tnoc_packed_byte_count'(header.byte_count);
       response_fields.byte_offset     = header.byte_offset;
       response_fields.response_status = header.response_status;
 
@@ -84,7 +81,6 @@ interface tnoc_packet_if
 
   function automatic void unpack_header(tnoc_packed_header packed_header);
     tnoc_byte_length      byte_length;
-    tnoc_byte_count       byte_count;
     tnoc_common_header    common_header;
     tnoc_request_header   request_header;
     tnoc_response_header  response_header;
@@ -97,10 +93,6 @@ interface tnoc_packet_if
       ((request_header.request.byte_length == '0) ? 1'b1 : 1'b0),
       request_header.request.byte_length
     };
-    byte_count  = {
-      ((response_header.response.byte_count == '0) ? 1'b1 : 1'b0),
-      response_header.response.byte_count
-    };
 
     header.packet_type          = common_header.packet_type;
     header.destination_id       = common_header.destination_id;
@@ -112,7 +104,6 @@ interface tnoc_packet_if
     header.byte_length          = byte_length;
     header.address              = request_header.request.address;
     header.burst_type           = request_header.request.burst_type;
-    header.byte_count           = byte_count;
     header.byte_offset          = response_header.response.byte_offset;
     header.response_status      = response_header.response.response_status;
   endfunction
@@ -126,6 +117,8 @@ interface tnoc_packet_if
       tnoc_response_payload response_payload;
       response_payload.data             = payload.data;
       response_payload.response_status  = payload.response_status;
+      response_payload.byte_end         = payload.byte_end;
+      response_payload.last_response    = payload.last_response;
       return tnoc_packed_payload'(response_payload);
     end
     else begin
@@ -146,6 +139,8 @@ interface tnoc_packet_if
     payload.data            = request_payload.data;
     payload.byte_enable     = request_payload.byte_enable;
     payload.response_status = response_payload.response_status;
+    payload.byte_end        = response_payload.byte_end;
+    payload.last_response   = response_payload.last_response;
   endfunction
 
 //--------------------------------------------------------------

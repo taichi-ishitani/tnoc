@@ -144,17 +144,18 @@ package tnoc_pkg;
     end
   endfunction
 
-  function automatic int get_byte_count_width(tnoc_packet_config packet_config);
-    return get_byte_length_width(packet_config);
-  endfunction
-
-  function automatic int get_packed_byte_count_width(tnoc_packet_config packet_config);
-    return get_packed_byte_length_width(packet_config);
-  endfunction
-
   function automatic int get_byte_offset_width(tnoc_packet_config packet_config);
     if (packet_config.max_data_width >= 16) begin
       return clog2(packet_config.max_data_width / 8);
+    end
+    else begin
+      return 1;
+    end
+  endfunction
+
+  function automatic int get_byte_end_width(tnoc_packet_config packet_config);
+    if (packet_config.data_width >= 16) begin
+      return $clog2(packet_config.data_width / 8);
     end
     else begin
       return 1;
@@ -251,9 +252,8 @@ package tnoc_pkg;
     width = 0;
     width += get_common_header_field_width(packet_config);  //  common fields
     width += get_byte_size_width(packet_config);            //  byte size
-    width += get_packed_byte_count_width(packet_config);    //  byte count
     width += get_byte_offset_width(packet_config);          //  byte offset
-    width += $bits(tnoc_response_status);                   //  status for response without payload
+    width += $bits(tnoc_response_status);                   //  status
     return width;
   endfunction
 
@@ -282,8 +282,10 @@ package tnoc_pkg;
   function automatic int get_response_payload_width(tnoc_packet_config packet_config);
     int width;
     width = 0;
-    width += packet_config.data_width;    //  data
-    width += $bits(tnoc_response_status); //  status for response with payload
+    width += packet_config.data_width;          //  data
+    width += $bits(tnoc_response_status);       //  status
+    width += get_byte_end_width(packet_config); //  byte end
+    width += 1;                                 //  last response
     return width;
   endfunction
 

@@ -15,8 +15,8 @@ module tnoc_error_checker
   typedef types.tnoc_byte_length    tnoc_byte_size;
   typedef types.tnoc_byte_length    tnoc_byte_length;
   typedef types.tnoc_address        tnoc_address;
-  typedef types.tnoc_byte_count     tnoc_byte_count;
   typedef types.tnoc_byte_offset    tnoc_byte_offset;
+  typedef types.tnoc_byte_end       tnoc_byte_end;
   typedef types.tnoc_burst_length   tnoc_burst_length;
 
   localparam  tnoc_response_status  ERROR_STATUS  = '{
@@ -221,7 +221,6 @@ module tnoc_error_checker
 
   tnoc_packet_type  response_packet_type;
   tnoc_byte_size    response_byte_size;
-  tnoc_byte_count   response_byte_count;
   tnoc_byte_offset  response_byte_offset;
 
   always_comb begin
@@ -239,13 +238,11 @@ module tnoc_error_checker
     if (response_with_payload) begin
       response_packet_type  = TNOC_RESPONSE_WITH_DATA;
       response_byte_size    = error_header_fields.byte_size;
-      response_byte_count   = error_header_fields.byte_length;
       response_byte_offset  = tnoc_byte_offset'(error_header_fields.address);
     end
     else begin
       response_packet_type  = TNOC_RESPONSE;
       response_byte_size    = '0;
-      response_byte_count   = '0;
       response_byte_offset  = '0;
     end
 
@@ -260,34 +257,60 @@ module tnoc_error_checker
       byte_length:          '0,
       address:              '0,
       burst_type:           TNOC_NORMAL_BURST,
-      byte_count:           response_byte_count,
       byte_offset:          response_byte_offset,
       response_status:      ERROR_STATUS
     };
   end
 
+  logic         last_response;
+  tnoc_byte_end byte_end;
+
   always_comb begin
-    error_packet_if[1].payload_valid  =
-      (error_route_busy[1] && response_with_payload);
-    error_packet_if[1].payload_last   =
-      get_payload_last(error_header_fields.byte_length, error_header_fields.address, burst_count);
+    last_response = get_last_response(error_header_fields, burst_count);
+    byte_end      = get_byte_end(error_header_fields, last_response);
+
+    error_packet_if[1].payload_valid  = (error_route_busy[1] && response_with_payload);
+    error_packet_if[1].payload_last   = last_response;
     error_packet_if[1].payload        = '{
       data:             ERROR_DATA,
       byte_enable:      '0,
-      response_status:  ERROR_STATUS
+      response_status:  ERROR_STATUS,
+      byte_end:         byte_end,
+      last_response:    last_response
     };
   end
 
   tnoc_utils #(PACKET_CONFIG) u_utils(types);
 
-  function automatic logic get_payload_last(
-    tnoc_byte_length  byte_length,
-    tnoc_address      address,
-    tnoc_burst_length burst_count
+  function automatic logic get_last_response(
+    tnoc_header_fields  error_header_fields,
+    tnoc_burst_length   burst_count
   );
+    tnoc_byte_length  byte_length;
+    tnoc_address      address;
     tnoc_burst_length burst_length;
+
+    byte_length   = error_header_fields.byte_length;
+    address       = error_header_fields.address;
     burst_length  = u_utils.calc_burst_length(byte_length, address);
+
     return ((burst_count + 1) == burst_length);
+  endfunction
+
+  function automatic tnoc_byte_end get_byte_end(
+    tnoc_header_fields  error_header_fields,
+    logic               last_response
+  );
+    if (last_response) begin
+      tnoc_byte_length  byte_length;
+      tnoc_address      address;
+      byte_length = error_header_fields.byte_length;
+      address     = error_header_fields.address;
+      return tnoc_byte_end'(address) + tnoc_byte_end'(byte_length - 1);
+    end
+    else begin
+      return '0;
+    end
   endfunction
 
   tnoc_packet_serializer #(
