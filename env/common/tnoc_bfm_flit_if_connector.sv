@@ -43,20 +43,20 @@ module tnoc_bfm_flit_if_connector
     if (MONITOR_MODE) begin : g_monitor
       for (genvar i = 0;i < CHANNELS;++i) begin : g
         always_comb begin
-          bfm_if[i].valid         = dut_if.valid[i];
-          bfm_if[i].ready         = dut_if.ready[i];
-          bfm_if[i].flit          = convert_to_bfm_flit(dut_if.flit[i]);
-          bfm_if[i].vc_available  = dut_if.vc_ready[i];
+          bfm_if[i].valid     = dut_if.valid[i];
+          bfm_if[i].ready     = dut_if.ready[i];
+          bfm_if[i].flit      = convert_to_bfm_flit(dut_if.flit[i]);
+          bfm_if[i].vc_ready  = dut_if.vc_ready[i];
         end
       end
     end
     else begin : g_driver
       for (genvar i = 0;i < CHANNELS;++i) begin : g
         always_comb begin
-          dut_if.valid[i]         = bfm_if[i].valid;
-          bfm_if[i].ready         = dut_if.ready[i];
-          dut_if.flit[i]          = convert_to_dut_flit(bfm_if[i].flit);
-          bfm_if[i].vc_available  = dut_if.vc_ready[i];
+          dut_if.valid[i]     = bfm_if[i].valid;
+          bfm_if[i].ready     = dut_if.ready[i];
+          dut_if.flit[i]      = convert_to_dut_flit(bfm_if[i].flit);
+          bfm_if[i].vc_ready  = dut_if.vc_ready[i];
         end
       end
     end

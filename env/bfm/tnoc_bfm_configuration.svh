@@ -112,8 +112,8 @@ class tnoc_bfm_configuration extends tue_configuration;
     byte_enable_width = data_width / 8;
     max_byte_width    = max_data_width / 8;
     byte_size_width   = (max_byte_width == 1) ? 1 : $clog2($clog2(max_byte_width) + 1);
-    byte_offset_width = (max_byte_width == 8) ? 1 : $clog2(max_byte_width);
-    byte_end_width    = (byte_width     == 8) ? 1 : $clog2(byte_width);
+    byte_offset_width = (max_byte_width == 1) ? 1 : $clog2(max_byte_width);
+    byte_end_width    = (byte_width     == 1) ? 1 : $clog2(byte_width);
     max_burst_length  = max_byte_length / byte_width;
   endfunction
 

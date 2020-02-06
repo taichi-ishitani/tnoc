@@ -9,7 +9,7 @@ interface tnoc_bfm_flit_if (
   bit           valid;
   bit           ready;
   tnoc_bfm_flit flit;
-  bit           vc_available;
+  bit           vc_ready;
   bit           ack;
 
   always_comb begin
@@ -20,7 +20,7 @@ interface tnoc_bfm_flit_if (
     output  valid;
     input   ready;
     output  flit;
-    input   vc_available;
+    input   vc_ready;
     input   ack;
   endclocking
 
@@ -28,7 +28,7 @@ interface tnoc_bfm_flit_if (
     input   valid;
     output  ready;
     input   flit;
-    output  vc_available;
+    output  vc_ready;
     input   ack;
   endclocking
 
@@ -36,7 +36,7 @@ interface tnoc_bfm_flit_if (
     input valid;
     input ready;
     input flit;
-    input vc_available;
+    input vc_ready;
     input ack;
   endclocking
 
@@ -44,7 +44,7 @@ interface tnoc_bfm_flit_if (
     output  valid,
     input   ready,
     output  flit,
-    input   vc_available,
+    input   vc_ready,
     input   ack
   );
 
@@ -52,7 +52,7 @@ interface tnoc_bfm_flit_if (
     input   valid,
     output  ready,
     input   flit,
-    output  vc_available,
+    output  vc_ready,
     input   ack
   );
 
@@ -60,8 +60,15 @@ interface tnoc_bfm_flit_if (
     input valid,
     input ready,
     input flit,
-    input vc_available,
+    input vc_ready,
     input ack
+  );
+
+  ast_keep_request_until_transfer_is_completed:
+  assert property (
+    @(posedge i_clk)
+    (valid && (!ready)) |=>
+      ($stable(valid) && $stable(flit))
   );
 endinterface
 `endif
