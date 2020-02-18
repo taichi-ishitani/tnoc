@@ -326,7 +326,7 @@ module tnoc_axi_master_read_adapter
   end
 
   //  Payload
-  localparam  bit [AXI_BYTE_SIZE_WIDTH] PACKET_MAX_BYTE_SIZE  = $clog2(PACKET_BYTE_SIZE);
+  localparam  bit [AXI_BYTE_SIZE_WIDTH-1:0] PACKET_MAX_BYTE_SIZE  = $clog2(PACKET_BYTE_SIZE);
 
   always_comb begin
     payload_last        = rlast || next_packet;
