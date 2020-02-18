@@ -71,29 +71,50 @@ virtual class tnoc_model_base #(
     tnoc_bfm_packet_item  item
   );
     tnoc_bfm_packet_item  response_item;
+
     response_item                     = tnoc_bfm_packet_item::type_id::create(item.get_name());
-    response_item.packet_type         = (item.has_payload() || (item.burst_length == 0)) ? TNOC_BFM_RESPONSE : TNOC_BFM_RESPONSE_WITH_DATA;
+    response_item.packet_type         = (item.has_payload()) ? TNOC_BFM_RESPONSE : TNOC_BFM_RESPONSE_WITH_DATA;
     response_item.destination_id      = item.source_id;
     response_item.source_id           = item.destination_id;
-    response_item.virtual_channel     = item.virtual_channel;
+    response_item.vc                  = item.vc;
     response_item.tag                 = item.tag;
     response_item.invalid_destination = 0;
-    response_item.packet_status       = TNOC_BFM_DECODE_ERROR;
-    response_item.response_last       = (!item.has_payload()) ? 1 : 0;
-    if (!item.has_payload()) begin
-      response_item.data            = new[item.burst_length];
-      response_item.payload_status  = new[item.burst_length];
+    if (item.has_payload()) begin
+      response_item.response_status     = new[1];
+      response_item.response_status[0]  = '{ decode_error: 1'b1, default: 1'b0 };
+    end
+    else begin
+      int length  = item.get_request_burst_length();
+      response_item.byte_size       = item.byte_size;
+      response_item.byte_offset     = get_byte_offset(item);
+      response_item.byte_end        = get_byte_end(item);
+      response_item.last_response   = item.has_no_payload();
+      response_item.data            = new[length];
+      response_item.response_status = new[length];
       foreach (response_item.data[i]) begin
-        response_item.data[i]           = configuration.error_data;
-        response_item.payload_status[i] = TNOC_BFM_DECODE_ERROR;
+        response_item.data[i]             = configuration.error_data;
+        response_item.response_status[i]  = '{ decode_error: 1'b1, default: 1'b0 };
       end
     end
+
     return response_item;
   endfunction
 
   protected pure virtual function tue_packet_analysis_port find_port(
     tnoc_bfm_packet_item  item
   );
+
+  local function tnoc_bfm_byte_offset get_byte_offset(tnoc_bfm_packet_item item);
+    tnoc_bfm_configuration  packet_configuration;
+    packet_configuration  = item.get_configuration();
+    return item.address % packet_configuration.max_byte_width;
+  endfunction
+
+  local function tnoc_bfm_byte_end get_byte_end(tnoc_bfm_packet_item item);
+    tnoc_bfm_configuration  packet_configuration;
+    packet_configuration  = item.get_configuration();
+    return (item.address + (item.byte_length - 1)) % packet_configuration.byte_width;
+  endfunction
 
   `tue_component_default_constructor(tnoc_model_base)
 endclass

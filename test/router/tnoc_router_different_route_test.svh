@@ -45,8 +45,8 @@ class tnoc_router_different_route_test_sequence extends tnoc_router_test_sequenc
     end
 
     repeat (20) begin
-      tnoc_bfm_transmit_packet_sequence transmit_packet_sequence;
-      `uvm_do_on_with(transmit_packet_sequence, p_sequencer.bfm_sequencer[index], {
+      tnoc_bfm_packet_item  packet_item;
+      `uvm_do_on_with(packet_item, p_sequencer.bfm_sequencer[index], {
         destination_id == local::destination;
       })
     end

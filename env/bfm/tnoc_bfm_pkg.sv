@@ -7,25 +7,22 @@ package tnoc_bfm_pkg;
 
   `include  "uvm_macros.svh"
   `include  "tue_macros.svh"
-  `include  "tnoc_bfm_macro.svh"
 
   typedef virtual tnoc_bfm_flit_if  tnoc_bfm_flit_vif;
 
   `include  "tnoc_bfm_configuration.svh"
   `include  "tnoc_bfm_status.svh"
+  `include  "tnoc_bfm_utils.svh"
   `include  "tnoc_bfm_flit_item.svh"
   `include  "tnoc_bfm_packet_item.svh"
-
   `include  "tnoc_bfm_component_base.svh"
   `include  "tnoc_bfm_packet_vc_monitor.svh"
   `include  "tnoc_bfm_packet_vc_sequencer.svh"
   `include  "tnoc_bfm_packet_vc_driver.svh"
   `include  "tnoc_bfm_packet_vc_agent.svh"
-
+  `include  "tnoc_bfm_packet_dispatcher.svh"
   `include  "tnoc_bfm_packet_sequencer.svh"
   `include  "tnoc_bfm_packet_agent.svh"
-
   `include  "tnoc_bfm_sequence_base.svh"
-  `include  "tnoc_bfm_transmit_packet_sequence.svh"
 endpackage
 `endif

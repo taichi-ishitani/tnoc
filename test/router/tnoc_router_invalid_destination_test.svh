@@ -6,12 +6,12 @@ class tnoc_router_invalid_destination_test_sequence extends tnoc_router_test_seq
     int max_y = 2**$clog2(configuration.size_y) - 1;
 
     for (int i = 0;i < 40;++i) begin
-      tnoc_bfm_transmit_packet_sequence transmit_packet_sequence;
-      `uvm_create_on(transmit_packet_sequence, p_sequencer.bfm_sequencer[4])
+      tnoc_bfm_packet_item  packet_item;
+      `uvm_create_on(packet_item, p_sequencer.bfm_sequencer[4])
       if (i >= 30) begin
-        transmit_packet_sequence.c_default_invalid_destination.constraint_mode(0);
+        packet_item.c_default_invalid_destination.constraint_mode(0);
       end
-      `uvm_rand_send_with(transmit_packet_sequence, {
+      `uvm_rand_send_with(packet_item, {
         if (i < 10) {
           destination_id.x inside {[local::configuration.size_x:max_x]};
           destination_id.y inside {[0:local::configuration.size_y-1]};

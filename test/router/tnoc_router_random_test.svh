@@ -13,8 +13,8 @@ class tnoc_router_random_test_sequence extends tnoc_router_test_sequence_base;
 
   task do_noc_access(int index);
     repeat (20) begin
-      tnoc_bfm_transmit_packet_sequence transmit_packet_sequence;
-      `uvm_do_on_with(transmit_packet_sequence, p_sequencer.bfm_sequencer[index], {
+      tnoc_bfm_packet_item  packet_item;
+      `uvm_do_on_with(packet_item, p_sequencer.bfm_sequencer[index], {
         if ((source_id.x == 1) && (source_id.y != 1)) {
           destination_id.x == 1;
           destination_id.y inside {[0:2]};

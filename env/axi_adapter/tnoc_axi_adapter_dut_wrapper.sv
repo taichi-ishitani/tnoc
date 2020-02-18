@@ -1,32 +1,33 @@
 module tnoc_axi_adapter_dut_wrapper
-  import  tnoc_pkg::*;
+  import  tnoc_pkg::*,
+          tnoc_axi_pkg::*,
+          tvip_axi_types_pkg::*;
 #(
-  parameter tnoc_packet_config  PACKET_CONFIG = TNOC_DEFAULT_PACKET_CONFIG
+  parameter tnoc_packet_config  PACKET_CONFIG = TNOC_DEFAULT_PACKET_CONFIG,
+  parameter tnoc_axi_config     AXI_CONFIG    = TNOC_DEFAULT_AXI_CONFIG
 )(
-  tnoc_types  types,
-  input logic i_clk,
-  input logic i_rst_n,
-  tvip_axi_if slave_if[3],
-  tvip_axi_if master_if[3]
+  tnoc_types      packet_types,
+  tnoc_axi_types  axi_types,
+  input logic     i_clk,
+  input logic     i_rst_n,
+  tvip_axi_if     slave_if[3],
+  tvip_axi_if     master_if[3]
 );
-  typedef types.tnoc_address        tnoc_address;
-  typedef types.tnoc_vc             tnoc_vc;
-  typedef types.tnoc_decode_result  tnoc_decode_result;
+  typedef packet_types.tnoc_vc            tnoc_vc;
+  typedef packet_types.tnoc_address       tnoc_address;
+  typedef packet_types.tnoc_decode_result tnoc_decode_result;
 
   localparam  int ADDRESS_WIDTH = PACKET_CONFIG.address_width;
   localparam  int CHANNELS      = PACKET_CONFIG.virtual_channels;
   localparam  int ID_X_WIDTH    = get_id_x_width(PACKET_CONFIG);
   localparam  int ID_Y_WIDTH    = get_id_y_width(PACKET_CONFIG);
 
-  import  tnoc_axi_pkg::*;
-  import  tvip_axi_types_pkg::*;
-
   localparam  int BFM_IFS = 6 * CHANNELS;
   tnoc_bfm_flit_if  flit_tx_if[BFM_IFS](i_clk, i_rst_n);
   tnoc_bfm_flit_if  flit_rx_if[BFM_IFS](i_clk, i_rst_n);
 
-  tnoc_flit_if #(PACKET_CONFIG) flit_f2a_if[6](types);
-  tnoc_flit_if #(PACKET_CONFIG) flit_a2f_if[6](types);
+  tnoc_flit_if #(PACKET_CONFIG) flit_f2a_if[6](packet_types);
+  tnoc_flit_if #(PACKET_CONFIG) flit_a2f_if[6](packet_types);
 
   for (genvar i = 0;i < 6;++i) begin : g_connector
     tnoc_bfm_flit_if_connector #(
@@ -34,7 +35,7 @@ module tnoc_axi_adapter_dut_wrapper
       .PORT_TYPE      (TNOC_LOCAL_PORT  ),
       .MONITOR_MODE   (1                )
     ) u_connector_a2f (
-      .types    (types                                    ),
+      .types    (packet_types                             ),
       .i_clk    (i_clk                                    ),
       .i_rst_n  (i_rst_n                                  ),
       .dut_if   (flit_a2f_if[i]                           ),
@@ -46,31 +47,13 @@ module tnoc_axi_adapter_dut_wrapper
       .PORT_TYPE      (TNOC_LOCAL_PORT  ),
       .MONITOR_MODE   (1                )
     ) u_connector_f2a (
-      .types    (types                                    ),
+      .types    (packet_types                             ),
       .i_clk    (i_clk                                    ),
       .i_rst_n  (i_rst_n                                  ),
       .dut_if   (flit_f2a_if[i]                           ),
       .bfm_if   (flit_rx_if[CHANNELS*i:CHANNELS*(i+1)-1]  )
     );
   end
-
-  tnoc_vc write_vc[6];
-  tnoc_vc read_vc[6];
-
-  always_ff @(negedge i_rst_n) begin
-    for (int i = 0;i < 6;++i) begin
-      write_vc[i] <= randomize_vc();
-      read_vc[i]  <= randomize_vc();
-    end
-  end
-
-  function automatic tnoc_vc randomize_vc();
-    tnoc_vc vc;
-    void'(std::randomize(vc) with {
-      vc inside {[0:PACKET_CONFIG.virtual_channels-1]};
-    });
-    return vc;
-  endfunction
 
   function automatic tnoc_decode_result decode_address(tnoc_address address);
     tnoc_decode_result  result;
@@ -110,6 +93,16 @@ module tnoc_axi_adapter_dut_wrapper
     return result;
   endfunction
 
+  tnoc_vc base_vc[2];
+  always_comb begin
+    void'(std::randomize(base_vc) with {
+      base_vc[0] != base_vc[1];
+      foreach (base_vc[i]) {
+        base_vc[i] inside {0, 1};
+      }
+    });
+  end
+
   for (genvar i = 0;i < 3;++i) begin : g_slave_adapter
     localparam  int ID_X      = (i == 0) ? 0
                               : (i == 1) ? 2 : 1;
@@ -117,8 +110,8 @@ module tnoc_axi_adapter_dut_wrapper
                               : (i == 1) ? 0 : 1;
     localparam  int IF_INDEX  = 3 * ID_Y + ID_X;
 
-    tnoc_axi_if #(PACKET_CONFIG)              axi_if();
-    tnoc_address_decoder_if #(PACKET_CONFIG)  decoder_if[2](types);
+    tnoc_axi_if #(AXI_CONFIG)                 axi_if(axi_types);
+    tnoc_address_decoder_if #(PACKET_CONFIG)  decoder_if[2](packet_types);
     tnoc_decode_result  [1:0]                 decode_result;
 
     always_comb begin
@@ -143,6 +136,7 @@ module tnoc_axi_adapter_dut_wrapper
       axi_if.awlen        = slave_if[i].awlen;
       axi_if.awsize       = tnoc_axi_burst_size'(slave_if[i].awsize);
       axi_if.awburst      = tnoc_axi_burst_type'(slave_if[i].awburst);
+      axi_if.awqos        = slave_if[i].awqos;
     end
 
     always_comb begin
@@ -168,6 +162,7 @@ module tnoc_axi_adapter_dut_wrapper
       axi_if.arlen        = slave_if[i].arlen;
       axi_if.arsize       = tnoc_axi_burst_size'(slave_if[i].arsize);
       axi_if.arburst      = tnoc_axi_burst_type'(slave_if[i].arburst);
+      axi_if.arqos        = slave_if[i].arqos;
     end
 
     always_comb begin
@@ -180,32 +175,32 @@ module tnoc_axi_adapter_dut_wrapper
     end
 
     tnoc_axi_slave_adapter #(
-      .PACKET_CONFIG  (PACKET_CONFIG  )
+      .PACKET_CONFIG  (PACKET_CONFIG  ),
+      .AXI_CONFIG     (AXI_CONFIG     )
     ) u_adapter (
-      .types            (types  ),
-      .i_clk            (i_clk                  ),
-      .i_rst_n          (i_rst_n                ),
-      .i_id_x           (ID_X[ID_X_WIDTH-1:0]   ),
-      .i_id_y           (ID_Y[ID_Y_WIDTH-1:0]   ),
-      .i_write_vc       (write_vc[3*0+i]        ),
-      .write_decoder_if (decoder_if[0]          ),
-      .i_read_vc        (read_vc[3*0+i]         ),
-      .read_decoder_if  (decoder_if[1]          ),
-      .axi_if           (axi_if                 ),
-      .receiver_if      (flit_f2a_if[IF_INDEX]  ),
-      .sender_if        (flit_a2f_if[IF_INDEX]  )
+      .packet_types       (packet_types           ),
+      .axi_types          (axi_types              ),
+      .i_clk              (i_clk                  ),
+      .i_rst_n            (i_rst_n                ),
+      .i_id_x             (ID_X[ID_X_WIDTH-1:0]   ),
+      .i_id_y             (ID_Y[ID_Y_WIDTH-1:0]   ),
+      .i_request_base_vc  (base_vc[0]             ),
+      .write_decoder_if   (decoder_if[0]          ),
+      .read_decoder_if    (decoder_if[1]          ),
+      .axi_if             (axi_if                 ),
+      .receiver_if        (flit_f2a_if[IF_INDEX]  ),
+      .sender_if          (flit_a2f_if[IF_INDEX]  )
     );
   end
 
   for (genvar i = 0;i < 3;++i) begin : g_master_adapter
-    localparam  int ID_X              = (i == 0) ? 1
-                                      : (i == 1) ? 0 : 2;
-    localparam  int ID_Y              = (i == 0) ? 0
-                                      : (i == 1) ? 1 : 1;
-    localparam  int IF_INDEX          = 3 * ID_Y + ID_X;
-    localparam  bit READ_INTERLEAVING = (i == 2) ? 1 : 0;
+    localparam  int ID_X      = (i == 0) ? 1
+                              : (i == 1) ? 0 : 2;
+    localparam  int ID_Y      = (i == 0) ? 0
+                              : (i == 1) ? 1 : 1;
+    localparam  int IF_INDEX  = 3 * ID_Y + ID_X;
 
-    tnoc_axi_if #(PACKET_CONFIG) axi_if();
+    tnoc_axi_if #(AXI_CONFIG) axi_if(axi_types);
 
     always_comb begin
       master_if[i].awvalid  = axi_if.awvalid;
@@ -215,6 +210,7 @@ module tnoc_axi_adapter_dut_wrapper
       master_if[i].awlen    = axi_if.awlen;
       master_if[i].awsize   = tvip_axi_burst_size'(axi_if.awsize);
       master_if[i].awburst  = tvip_axi_burst_type'(axi_if.awburst);
+      master_if[i].awqos    = axi_if.awqos;
     end
 
     always_comb begin
@@ -240,6 +236,7 @@ module tnoc_axi_adapter_dut_wrapper
       master_if[i].arlen    = axi_if.arlen;
       master_if[i].arsize   = tvip_axi_burst_size'(axi_if.arsize);
       master_if[i].arburst  = tvip_axi_burst_type'(axi_if.arburst);
+      master_if[i].arqos    = axi_if.arqos;
     end
 
     always_comb begin
@@ -252,24 +249,24 @@ module tnoc_axi_adapter_dut_wrapper
     end
 
     tnoc_axi_master_adapter #(
-      .PACKET_CONFIG      (PACKET_CONFIG      ),
-      .READ_INTERLEAVING  (READ_INTERLEAVING  )
+      .PACKET_CONFIG  (PACKET_CONFIG  ),
+      .AXI_CONFIG     (AXI_CONFIG     )
     ) u_adapter (
-      .types        (types                  ),
-      .i_clk        (i_clk                  ),
-      .i_rst_n      (i_rst_n                ),
-      .i_id_x       (ID_X[ID_X_WIDTH-1:0]   ),
-      .i_id_y       (ID_Y[ID_Y_WIDTH-1:0]   ),
-      .i_write_vc   (write_vc[3*1+i]        ),
-      .i_read_vc    (read_vc[3*1+i]         ),
-      .axi_if       (axi_if                 ),
-      .receiver_if  (flit_f2a_if[IF_INDEX]  ),
-      .sender_if    (flit_a2f_if[IF_INDEX]  )
+      .packet_types       (packet_types           ),
+      .axi_types          (axi_types              ),
+      .i_clk              (i_clk                  ),
+      .i_rst_n            (i_rst_n                ),
+      .i_id_x             (ID_X[ID_X_WIDTH-1:0]   ),
+      .i_id_y             (ID_Y[ID_Y_WIDTH-1:0]   ),
+      .i_response_base_vc (base_vc[1]             ),
+      .axi_if             (axi_if                 ),
+      .receiver_if        (flit_f2a_if[IF_INDEX]  ),
+      .sender_if          (flit_a2f_if[IF_INDEX]  )
     );
   end
 
   tnoc_fabric #(PACKET_CONFIG) u_fabric (
-    .types        (types        ),
+    .types        (packet_types ),
     .i_clk        (i_clk        ),
     .i_rst_n      (i_rst_n      ),
     .receiver_if  (flit_a2f_if  ),

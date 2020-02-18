@@ -1,14 +1,36 @@
 `ifndef TNOC_AXI_PKG_SV
 `define TNOC_AXI_PKG_SV
+
+`ifndef TNOC_AXI_DEFAULT_ID_WIDTH
+  `define TNOC_AXI_DEFAULT_ID_WIDTH  8
+`endif
+
+`ifndef TNOC_AXI_DEFAULT_ADDRESS_WIDTH
+  `define TNOC_AXI_DEFAULT_ADDRESS_WIDTH  `TNOC_DEFAULT_ADDRESS_WIDTH
+`endif
+
+`ifndef TNOC_AXI_DEFAULT_DATA_WIDTH
+  `define TNOC_AXI_DEFAULT_DATA_WIDTH `TNOC_DEFAULT_DATA_WIDTH
+`endif
+
+`ifndef TNOC_AXI_DEFAULT_QOS_WIDTH
+  `define TNOC_AXI_DEFAULT_QOS_WIDTH  0
+`endif
+
 package tnoc_axi_pkg;
-  function automatic int get_id_width(
-    tnoc_pkg::tnoc_packet_config  packet_config
-  );
-    return (
-      tnoc_pkg::get_location_id_width(packet_config) +
-      tnoc_pkg::get_tag_width(packet_config)
-    );
-  endfunction
+  typedef struct packed {
+    shortint  id_width;
+    shortint  address_width;
+    shortint  data_width;
+    shortint  qos_width;
+  } tnoc_axi_config;
+
+  localparam  tnoc_axi_config TNOC_DEFAULT_AXI_CONFIG = '{
+    id_width:       `TNOC_AXI_DEFAULT_ID_WIDTH,
+    address_width:  `TNOC_AXI_DEFAULT_ADDRESS_WIDTH,
+    data_width:     `TNOC_AXI_DEFAULT_DATA_WIDTH,
+    qos_width:      `TNOC_AXI_DEFAULT_QOS_WIDTH
+  };
 
   typedef logic [7:0] tnoc_axi_burst_length;
   typedef logic [8:0] tnoc_axi_unpacked_burst_length;
@@ -48,5 +70,29 @@ package tnoc_axi_pkg;
     TNOC_AXI_SLAVE_ERROR  = 2,
     TNOC_AXI_DECODE_ERROR = 3
   } tnoc_axi_response;
+
+  function automatic tnoc_axi_response convert_to_axi_status(
+    tnoc_pkg::tnoc_response_status  status
+  );
+    case (1'b1)
+      status.decode_error:  return TNOC_AXI_DECODE_ERROR;
+      status.slave_error:   return TNOC_AXI_SLAVE_ERROR;
+      status.exokay:        return TNOC_AXI_EXOKAY;
+      default:              return TNOC_AXI_OKAY;
+    endcase
+  endfunction
+
+  function automatic tnoc_pkg::tnoc_response_status convert_from_axi_status(
+    tnoc_axi_response status
+  );
+    case (status)
+      TNOC_AXI_OKAY:          return '{                     default: 1'b0 };
+      TNOC_AXI_EXOKAY:        return '{ exokay:       1'b1, default: 1'b0 };
+      TNOC_AXI_SLAVE_ERROR:   return '{ slave_error:  1'b1, default: 1'b0 };
+      TNOC_AXI_DECODE_ERROR:  return '{ decode_error: 1'b1, default: 1'b0 };
+    endcase
+  endfunction
+
+  typedef logic [3:0] tnoc_axi_qos;
 endpackage
 `endif

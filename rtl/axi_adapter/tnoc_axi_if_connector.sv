@@ -10,6 +10,7 @@ module tnoc_axi_if_connector (
     master_if.awlen   = slave_if.awlen;
     master_if.awsize  = slave_if.awsize;
     master_if.awburst = slave_if.awburst;
+    master_if.awqos   = slave_if.awqos;
     master_if.wvalid  = slave_if.wvalid;
     slave_if.wready   = master_if.wready;
     master_if.wdata   = slave_if.wdata;
@@ -29,6 +30,7 @@ module tnoc_axi_if_connector (
     master_if.arlen   = slave_if.arlen;
     master_if.arsize  = slave_if.arsize;
     master_if.arburst = slave_if.arburst;
+    master_if.arqos   = slave_if.arqos;
     slave_if.rvalid   = master_if.rvalid;
     master_if.rready  = slave_if.rready;
     slave_if.rid      = master_if.rid;

@@ -1,5 +1,6 @@
 ${TNOC_HOME}/rtl/common/tnoc_pkg.sv
 ${TNOC_HOME}/rtl/common/tnoc_types.sv
+${TNOC_HOME}/rtl/common/tnoc_utils.sv
 ${TNOC_HOME}/rtl/common/tnoc_flit_if.sv
 ${TNOC_HOME}/rtl/common/tnoc_flit_if_connector.sv
 ${TNOC_HOME}/rtl/common/tnoc_flit_if_dummy_receiver.sv

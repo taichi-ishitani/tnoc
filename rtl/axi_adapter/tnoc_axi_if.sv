@@ -1,49 +1,53 @@
 `ifndef TNOC_AXI_IF_SV
 `define TNOC_AXI_IF_SV
 interface tnoc_axi_if
-  import  tnoc_pkg::*,
-          tnoc_axi_pkg::*;
+  import  tnoc_axi_pkg::*;
 #(
-  parameter tnoc_packet_config  PACKET_CONFIG = TNOC_DEFAULT_PACKET_CONFIG
+  parameter tnoc_axi_config AXI_CONFIG  = '0
+)(
+  tnoc_axi_types  axi_types
 );
-  localparam  int ID_WIDTH      = get_id_width(PACKET_CONFIG);
-  localparam  int ADDRESS_WIDTH = PACKET_CONFIG.address_width;
-  localparam  int DATA_WIDTH    = PACKET_CONFIG.data_width;
+  typedef axi_types.tnoc_axi_id       tnoc_axi_id;
+  typedef axi_types.tnoc_axi_address  tnoc_axi_address;
+  typedef axi_types.tnoc_axi_data     tnoc_axi_data;
+  typedef axi_types.tnoc_axi_strobe   tnoc_axi_strobe;
 
   //  Write Address Channel
-  logic                     awvalid;
-  logic                     awready;
-  logic [ID_WIDTH-1:0]      awid;
-  logic [ADDRESS_WIDTH-1:0] awaddr;
-  tnoc_axi_burst_length     awlen;
-  tnoc_axi_burst_size       awsize;
-  tnoc_axi_burst_type       awburst;
+  logic                 awvalid;
+  logic                 awready;
+  tnoc_axi_id           awid;
+  tnoc_axi_address      awaddr;
+  tnoc_axi_burst_length awlen;
+  tnoc_axi_burst_size   awsize;
+  tnoc_axi_burst_type   awburst;
+  tnoc_axi_qos          awqos;
   //  Write Data Channel
-  logic                     wvalid;
-  logic                     wready;
-  logic [DATA_WIDTH-1:0]    wdata;
-  logic [DATA_WIDTH/8-1:0]  wstrb;
-  logic                     wlast;
+  logic                 wvalid;
+  logic                 wready;
+  tnoc_axi_data         wdata;
+  tnoc_axi_strobe       wstrb;
+  logic                 wlast;
   //  Write Response Channel
-  logic                     bvalid;
-  logic                     bready;
-  logic [ID_WIDTH-1:0]      bid;
-  tnoc_axi_response         bresp;
+  logic                 bvalid;
+  logic                 bready;
+  tnoc_axi_id           bid;
+  tnoc_axi_response     bresp;
   //  Read Address Channel
-  logic                     arvalid;
-  logic                     arready;
-  logic [ID_WIDTH-1:0]      arid;
-  logic [ADDRESS_WIDTH-1:0] araddr;
-  tnoc_axi_burst_length     arlen;
-  tnoc_axi_burst_size       arsize;
-  tnoc_axi_burst_type       arburst;
+  logic                 arvalid;
+  logic                 arready;
+  tnoc_axi_id           arid;
+  tnoc_axi_address      araddr;
+  tnoc_axi_burst_length arlen;
+  tnoc_axi_burst_size   arsize;
+  tnoc_axi_burst_type   arburst;
+  tnoc_axi_qos          arqos;
   //  Read Response Channel
-  logic                     rvalid;
-  logic                     rready;
-  logic [ID_WIDTH-1:0]      rid;
-  logic [DATA_WIDTH-1:0]    rdata;
-  tnoc_axi_response         rresp;
-  logic                     rlast;
+  logic                 rvalid;
+  logic                 rready;
+  tnoc_axi_id           rid;
+  tnoc_axi_data         rdata;
+  tnoc_axi_response     rresp;
+  logic                 rlast;
 
   function automatic logic get_awchannel_ack();
     return awvalid & awready;
@@ -73,6 +77,7 @@ interface tnoc_axi_if
     output  awlen,
     output  awsize,
     output  awburst,
+    output  awqos,
     output  wvalid,
     input   wready,
     output  wdata,
@@ -89,6 +94,7 @@ interface tnoc_axi_if
     output  arlen,
     output  arsize,
     output  arburst,
+    output  arqos,
     input   rvalid,
     output  rready,
     input   rid,
@@ -110,6 +116,7 @@ interface tnoc_axi_if
     output  awlen,
     output  awsize,
     output  awburst,
+    output  awqos,
     output  wvalid,
     input   wready,
     output  wdata,
@@ -132,6 +139,7 @@ interface tnoc_axi_if
     output  arlen,
     output  arsize,
     output  arburst,
+    output  arqos,
     input   rvalid,
     output  rready,
     input   rid,
@@ -150,6 +158,7 @@ interface tnoc_axi_if
     input   awlen,
     input   awsize,
     input   awburst,
+    input   awqos,
     input   wvalid,
     output  wready,
     input   wdata,
@@ -166,6 +175,7 @@ interface tnoc_axi_if
     input   arlen,
     input   arsize,
     input   arburst,
+    input   arqos,
     output  rvalid,
     input   rready,
     output  rid,
@@ -187,6 +197,7 @@ interface tnoc_axi_if
     input   awlen,
     input   awsize,
     input   awburst,
+    input   awqos,
     input   wvalid,
     output  wready,
     input   wdata,
@@ -209,6 +220,7 @@ interface tnoc_axi_if
     input   arlen,
     input   arsize,
     input   arburst,
+    input   arqos,
     output  rvalid,
     input   rready,
     output  rid,
