@@ -5,7 +5,8 @@ module tnoc_axi_slave_write_adapter
   parameter tnoc_packet_config  PACKET_CONFIG = TNOC_DEFAULT_PACKET_CONFIG,
   parameter tnoc_axi_config     AXI_CONFIG    = TNOC_DEFAULT_AXI_CONFIG,
   parameter int                 ID_X_WIDTH    = 1,
-  parameter int                 ID_Y_WIDTH    = 1
+  parameter int                 ID_Y_WIDTH    = 1,
+  parameter int                 VC_WIDTH      = 1
 )(
   tnoc_types                        packet_types,
   tnoc_axi_types                    axi_types,
@@ -13,6 +14,7 @@ module tnoc_axi_slave_write_adapter
   input var logic                   i_rst_n,
   input var logic [ID_X_WIDTH-1:0]  i_id_x,
   input var logic [ID_Y_WIDTH-1:0]  i_id_y,
+  input var logic [VC_WIDTH-1:0]    i_base_vc,
   tnoc_address_decoder_if.requester decoder_if,
   tnoc_axi_if.slave_write           axi_if,
   tnoc_flit_if.receiver             receiver_if,
@@ -53,7 +55,7 @@ module tnoc_axi_slave_write_adapter
       packet_type:          TNOC_WRITE,
       destination_id:       decode_result.id,
       source_id:            '{ x: i_id_x, y: i_id_y },
-      vc:                   tnoc_vc'(axi_if.awqos),
+      vc:                   u_axi_utils.get_vc(axi_if.awqos, i_base_vc),
       tag:                  tnoc_tag'(axi_if.awid),
       invalid_destination:  decode_result.decode_error,
       byte_size:            tnoc_byte_size'(axi_if.awsize),

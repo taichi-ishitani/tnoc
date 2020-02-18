@@ -13,17 +13,23 @@
   `define TNOC_AXI_DEFAULT_DATA_WIDTH `TNOC_DEFAULT_DATA_WIDTH
 `endif
 
+`ifndef TNOC_AXI_DEFAULT_QOS_WIDTH
+  `define TNOC_AXI_DEFAULT_QOS_WIDTH  0
+`endif
+
 package tnoc_axi_pkg;
   typedef struct packed {
     shortint  id_width;
     shortint  address_width;
     shortint  data_width;
+    shortint  qos_width;
   } tnoc_axi_config;
 
   localparam  tnoc_axi_config TNOC_DEFAULT_AXI_CONFIG = '{
     id_width:       `TNOC_AXI_DEFAULT_ID_WIDTH,
     address_width:  `TNOC_AXI_DEFAULT_ADDRESS_WIDTH,
-    data_width:     `TNOC_AXI_DEFAULT_DATA_WIDTH
+    data_width:     `TNOC_AXI_DEFAULT_DATA_WIDTH,
+    qos_width:      `TNOC_AXI_DEFAULT_QOS_WIDTH
   };
 
   typedef logic [7:0] tnoc_axi_burst_length;

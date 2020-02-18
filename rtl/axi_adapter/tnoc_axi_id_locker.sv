@@ -44,4 +44,11 @@ interface tnoc_axi_id_locker
       end
     end
   end
+
+`ifndef SYNTHESIS
+  int in_flight_id_count;
+  always_comb begin
+    in_flight_id_count  = $countones(id_locked);
+  end
+`endif
 endinterface

@@ -8,12 +8,40 @@ interface tnoc_axi_utils
   tnoc_types      packet_types,
   tnoc_axi_types  axi_types
 );
+  typedef packet_types.tnoc_vc                      tnoc_vc;
   typedef packet_types.tnoc_byte_size               tnoc_byte_size;
   typedef packet_types.tnoc_address                 tnoc_address;
   typedef packet_types.tnoc_byte_length             tnoc_byte_length;
   typedef packet_types.tnoc_byte_end                tnoc_byte_end;
   typedef packet_types.tnoc_header_fields           tnoc_header_fields;
   typedef axi_types.tnoc_axi_address                tnoc_axi_address;
+
+  localparam  int VC_WIDTH      = get_vc_width(PACKET_CONFIG);
+  localparam  int BASE_VC_WIDTH = VC_WIDTH - AXI_CONFIG.qos_width;
+
+  function automatic tnoc_vc get_vc(
+    tnoc_axi_qos  qos,
+    tnoc_vc       base_vc
+  );
+    if (AXI_CONFIG.qos_width > 0) begin
+      return {
+        qos[AXI_CONFIG.qos_width-1:0],
+        base_vc[BASE_VC_WIDTH-1:0]
+      };
+    end
+    else begin
+      return base_vc;
+    end
+  endfunction
+
+  function automatic tnoc_axi_qos get_qos(tnoc_vc vc);
+    if (AXI_CONFIG.qos_width > 0) begin
+      return 4'(vc[BASE_VC_WIDTH+:AXI_CONFIG.qos_width]);
+    end
+    else begin
+      return 4'd0;
+    end
+  endfunction
 
   function automatic tnoc_address align_address(
     tnoc_axi_address    address,

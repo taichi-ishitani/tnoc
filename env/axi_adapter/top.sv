@@ -21,12 +21,12 @@ module top();
 
   localparam  int DATA_WIDTH        = `TNOC_AXI_ADAPTER_ENV_PACKET_DATA_WIDTH;
   localparam  int MAX_BURST_LENGTH  = 256;
-  localparam  int MAX_BYTE_LENGTH   = MAX_BURST_LENGTH * (`TNOC_AXI_ADAPTER_ENV_DATA_WIDTH / 8);
+  localparam  int MAX_BYTE_LENGTH   = 4096;
 
   localparam  tnoc_packet_config  PACKET_CONFIG = '{
     size_x:           3,
     size_y:           2,
-    virtual_channels: 2,
+    virtual_channels: 4,
     tags:             32,
     address_width:    TNOC_DEFAULT_PACKET_CONFIG.address_width,
     data_width:       `TNOC_AXI_ADAPTER_ENV_PACKET_DATA_WIDTH,
@@ -37,7 +37,8 @@ module top();
   localparam  tnoc_axi_config AXI_CONFIG  = '{
     id_width:       $clog2(PACKET_CONFIG.tags),
     address_width:  PACKET_CONFIG.address_width,
-    data_width:     `TNOC_AXI_ADAPTER_ENV_DATA_WIDTH
+    data_width:     `TNOC_AXI_ADAPTER_ENV_DATA_WIDTH,
+    qos_width:      1
   };
 
   bit clk = 0;
@@ -121,6 +122,8 @@ module top();
         axi_master_cfg[i].id_width         == AXI_CONFIG.id_width;
         axi_master_cfg[i].address_width    == AXI_CONFIG.address_width;
         axi_master_cfg[i].max_burst_length == MAX_BURST_LENGTH;
+        axi_master_cfg[i].qos_range[0]     == 0;
+        axi_master_cfg[i].qos_range[1]     == (PACKET_CONFIG.virtual_channels - 1);
         axi_master_cfg[i].data_width       == AXI_CONFIG.data_width;
 
         axi_master_cfg[i].request_start_delay.min_delay          == 0;

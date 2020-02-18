@@ -5,7 +5,8 @@ module tnoc_axi_master_write_adapter
   parameter tnoc_packet_config  PACKET_CONFIG = TNOC_DEFAULT_PACKET_CONFIG,
   parameter tnoc_axi_config     AXI_CONFIG    = TNOC_DEFAULT_AXI_CONFIG,
   parameter int                 ID_X_WIDTH    = 1,
-  parameter int                 ID_Y_WIDTH    = 1
+  parameter int                 ID_Y_WIDTH    = 1,
+  parameter int                 VC_WIDTH      = 1
 )(
   tnoc_types                        packet_types,
   tnoc_axi_types                    axi_types,
@@ -13,6 +14,7 @@ module tnoc_axi_master_write_adapter
   input var logic                   i_rst_n,
   input var logic [ID_X_WIDTH-1:0]  i_id_x,
   input var logic [ID_Y_WIDTH-1:0]  i_id_y,
+  input var logic [VC_WIDTH-1:0]    i_base_vc,
   tnoc_axi_if.master_write          axi_if,
   tnoc_flit_if.receiver             receiver_if,
   tnoc_flit_if.sender               sender_if
@@ -20,7 +22,7 @@ module tnoc_axi_master_write_adapter
   typedef struct packed {
     logic [get_id_x_width(PACKET_CONFIG)-1:0] source_x;
     logic [get_id_y_width(PACKET_CONFIG)-1:0] source_y;
-    logic [get_vc_width(PACKET_CONFIG)-1:0]   vc;
+    logic [AXI_CONFIG.qos_width-1:0]          qos;
     logic [get_tag_width(PACKET_CONFIG)-1:0]  tag;
   } tnoc_axi_request_info;
 
@@ -101,7 +103,7 @@ module tnoc_axi_master_write_adapter
       axi_if.awlen    <= u_utils.calc_burst_length(request_if.header);
       axi_if.awsize   <= u_utils.get_burst_size(request_if.header);
       axi_if.awburst  <= tnoc_axi_burst_type'(request_if.header.burst_type);
-      axi_if.awqos    <= tnoc_axi_qos'(request_if.header.vc);
+      axi_if.awqos    <= u_utils.get_qos(request_if.header.vc);
     end
   end
 
@@ -307,7 +309,7 @@ module tnoc_axi_master_write_adapter
       request_info[0] <= '{
         source_x: request_if.header.source_id.x,
         source_y: request_if.header.source_id.y,
-        vc:       request_if.header.vc,
+        qos:      u_utils.get_qos(request_if.header.vc),
         tag:      request_if.header.tag
       };
     end
@@ -337,7 +339,7 @@ module tnoc_axi_master_write_adapter
       packet_type:          TNOC_RESPONSE,
       destination_id:       '{ x: request_info[1].source_x, y: request_info[1].source_y },
       source_id:            '{ x: i_id_x, y: i_id_y },
-      vc:                   request_info[1].vc,
+      vc:                   u_utils.get_vc(request_info[1].qos, i_base_vc),
       tag:                  request_info[1].tag,
       invalid_destination:  '0,
       byte_size:            '0,

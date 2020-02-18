@@ -6,7 +6,8 @@ module tnoc_axi_slave_adapter
   parameter   tnoc_axi_config     AXI_CONFIG    = TNOC_DEFAULT_AXI_CONFIG,
   parameter   int                 FIFO_DEPTH    = 4,
   localparam  int                 ID_X_WIDTH    = get_id_x_width(PACKET_CONFIG),
-  localparam  int                 ID_Y_WIDTH    = get_id_y_width(PACKET_CONFIG)
+  localparam  int                 ID_Y_WIDTH    = get_id_y_width(PACKET_CONFIG),
+  localparam  int                 VC_WIDTH      = get_vc_width(PACKET_CONFIG)
 )(
   tnoc_types                        packet_types,
   tnoc_axi_types                    axi_types,
@@ -14,6 +15,7 @@ module tnoc_axi_slave_adapter
   input var logic                   i_rst_n,
   input var logic [ID_X_WIDTH-1:0]  i_id_x,
   input var logic [ID_Y_WIDTH-1:0]  i_id_y,
+  input var logic [VC_WIDTH-1:0]    i_request_base_vc,
   tnoc_address_decoder_if.requester write_decoder_if,
   tnoc_address_decoder_if.requester read_decoder_if,
   tnoc_axi_if.slave                 axi_if,
@@ -36,7 +38,8 @@ module tnoc_axi_slave_adapter
     .PACKET_CONFIG  (PACKET_CONFIG  ),
     .AXI_CONFIG     (AXI_CONFIG     ),
     .ID_X_WIDTH     (ID_X_WIDTH     ),
-    .ID_Y_WIDTH     (ID_Y_WIDTH     )
+    .ID_Y_WIDTH     (ID_Y_WIDTH     ),
+    .VC_WIDTH       (VC_WIDTH       )
   ) u_write_adapter (
     .packet_types (packet_types       ),
     .axi_types    (axi_types          ),
@@ -44,6 +47,7 @@ module tnoc_axi_slave_adapter
     .i_rst_n      (i_rst_n            ),
     .i_id_x       (i_id_x             ),
     .i_id_y       (i_id_y             ),
+    .i_base_vc    (i_request_base_vc  ),
     .decoder_if   (write_decoder_if   ),
     .axi_if       (axi_write_read_if  ),
     .receiver_if  (flit_if[0]         ),
@@ -54,7 +58,8 @@ module tnoc_axi_slave_adapter
     .PACKET_CONFIG  (PACKET_CONFIG  ),
     .AXI_CONFIG     (AXI_CONFIG     ),
     .ID_X_WIDTH     (ID_X_WIDTH     ),
-    .ID_Y_WIDTH     (ID_Y_WIDTH     )
+    .ID_Y_WIDTH     (ID_Y_WIDTH     ),
+    .VC_WIDTH       (VC_WIDTH       )
   ) u_read_adapter (
     .packet_types (packet_types       ),
     .axi_types    (axi_types          ),
@@ -62,6 +67,7 @@ module tnoc_axi_slave_adapter
     .i_rst_n      (i_rst_n            ),
     .i_id_x       (i_id_x             ),
     .i_id_y       (i_id_y             ),
+    .i_base_vc    (i_request_base_vc  ),
     .decoder_if   (read_decoder_if    ),
     .axi_if       (axi_write_read_if  ),
     .receiver_if  (flit_if[2]         ),

@@ -5,7 +5,8 @@ module tnoc_axi_master_read_adapter
   parameter tnoc_packet_config  PACKET_CONFIG = TNOC_DEFAULT_PACKET_CONFIG,
   parameter tnoc_axi_config     AXI_CONFIG    = TNOC_DEFAULT_AXI_CONFIG,
   parameter int                 ID_X_WIDTH    = 1,
-  parameter int                 ID_Y_WIDTH    = 1
+  parameter int                 ID_Y_WIDTH    = 1,
+  parameter int                 VC_WIDTH      = 1
 )(
   tnoc_types                        packet_types,
   tnoc_axi_types                    axi_types,
@@ -13,6 +14,7 @@ module tnoc_axi_master_read_adapter
   input var logic                   i_rst_n,
   input var logic [ID_X_WIDTH-1:0]  i_id_x,
   input var logic [ID_Y_WIDTH-1:0]  i_id_y,
+  input var logic [VC_WIDTH-1:0]    i_base_vc,
   tnoc_axi_if.master_read           axi_if,
   tnoc_flit_if.receiver             receiver_if,
   tnoc_flit_if.sender               sender_if
@@ -20,7 +22,7 @@ module tnoc_axi_master_read_adapter
   typedef struct packed {
     logic [get_id_x_width(PACKET_CONFIG)-1:0]         source_x;
     logic [get_id_y_width(PACKET_CONFIG)-1:0]         source_y;
-    logic [get_vc_width(PACKET_CONFIG)-1:0]           vc;
+    logic [AXI_CONFIG.qos_width-1:0]                  qos;
     logic [get_tag_width(PACKET_CONFIG)-1:0]          tag;
     logic [get_byte_size_width(PACKET_CONFIG)-1:0]    byte_size;
     logic [get_byte_offset_width(PACKET_CONFIG)-1:0]  byte_offset;
@@ -110,7 +112,7 @@ module tnoc_axi_master_read_adapter
       axi_if.arlen    <= u_utils.calc_burst_length(request_if.header);
       axi_if.arsize   <= u_utils.get_burst_size(request_if.header);
       axi_if.arburst  <= tnoc_axi_burst_type'(request_if.header.burst_type);
-      axi_if.arqos    <= tnoc_axi_qos'(request_if.header.vc);
+      axi_if.arqos    <= u_utils.get_qos(request_if.header.vc);
     end
   end
 
@@ -121,8 +123,9 @@ module tnoc_axi_master_read_adapter
 //--------------------------------------------------------------
 //  Response
 //--------------------------------------------------------------
-  localparam  int PACKET_BYTE_SIZE  = PACKET_CONFIG.data_width / 8;
-  localparam  int AXI_BYTE_SIZE     = AXI_CONFIG.data_width / 8;
+  localparam  int PACKET_BYTE_SIZE    = PACKET_CONFIG.data_width / 8;
+  localparam  int AXI_BYTE_SIZE       = AXI_CONFIG.data_width / 8;
+  localparam  int AXI_BYTE_SIZE_WIDTH = $clog2($clog2(AXI_BYTE_SIZE) + 1);
 
   tnoc_packet_if #(PACKET_CONFIG) response_if(packet_types);
 
@@ -139,6 +142,7 @@ module tnoc_axi_master_read_adapter
   logic                 header_done;
   logic                 payload_valid;
   logic                 payload_last;
+  logic                 payload_last_valid;
   tnoc_data             payload_data;
   tnoc_response_status  payload_status;
   tnoc_response_status  payload_status_latched;
@@ -177,12 +181,22 @@ module tnoc_axi_master_read_adapter
 
   always_ff @(posedge i_clk, negedge i_rst_n) begin
     if (!i_rst_n) begin
-      rid   <= '0;
+      rid <= '0;
+    end
+    else if (axi_if.get_rchannel_ack()) begin
+      rid <= axi_if.rid;
+    end
+  end
+
+  always_ff @(posedge i_clk, negedge i_rst_n) begin
+    if (!i_rst_n) begin
       rlast <= '0;
     end
     else if (axi_if.get_rchannel_ack()) begin
-      rid   <= axi_if.rid;
       rlast <= axi_if.rlast;
+    end
+    else if (rvalid && axi_if.rready && rlast) begin
+      rlast <= '0;
     end
   end
 
@@ -213,7 +227,7 @@ module tnoc_axi_master_read_adapter
       request_info[0] <= '{
         source_x:     request_if.header.source_id.x,
         source_y:     request_if.header.source_id.y,
-        vc:           request_if.header.vc,
+        qos:          u_utils.get_qos(request_if.header.vc),
         tag:          request_if.header.tag,
         byte_size:    request_if.header.byte_size,
         byte_offset:  tnoc_byte_offset'(request_if.header.address)
@@ -247,7 +261,7 @@ module tnoc_axi_master_read_adapter
     request_info[3]     = '{
       source_x:     request_info[2].source_x,
       source_y:     request_info[2].source_y,
-      vc:           request_info[2].vc,
+      qos:          request_info[2].qos,
       tag:          request_info[2].tag,
       byte_size:    request_info[2].byte_size,
       byte_offset:  tnoc_byte_offset'(u_byte_counter.byte_count_next)
@@ -285,7 +299,7 @@ module tnoc_axi_master_read_adapter
       packet_type:          TNOC_RESPONSE_WITH_DATA,
       destination_id:       '{ x: request_info[1].source_x, y: request_info[1].source_y },
       source_id:            '{ x: i_id_x, y: i_id_y },
-      vc:                   request_info[1].vc,
+      vc:                   u_utils.get_vc(request_info[1].qos, i_base_vc),
       tag:                  request_info[1].tag,
       invalid_destination:  '0,
       byte_size:            request_info[1].byte_size,
@@ -312,21 +326,26 @@ module tnoc_axi_master_read_adapter
   end
 
   //  Payload
+  localparam  bit [AXI_BYTE_SIZE_WIDTH] PACKET_MAX_BYTE_SIZE  = $clog2(PACKET_BYTE_SIZE);
+
   always_comb begin
-    payload_last  = axi_ready && (rlast || next_packet);
-    payload_valid = (rvalid && axi_if.rvalid && packet_ready) || payload_last;
+    payload_last        = rlast || next_packet;
+    payload_last_valid  = (u_byte_counter.byte_size > PACKET_MAX_BYTE_SIZE)
+                            ? payload_last && packet_ready
+                            : payload_last && axi_ready;
+    payload_valid       = (rvalid && axi_if.rvalid && packet_ready) || payload_last_valid;
   end
 
   always_comb begin
     payload_byte_end          = tnoc_byte_end'(u_byte_counter.byte_count_next - 1);
     response_if.payload_valid = payload_valid;
-    response_if.payload_last  = payload_last;
+    response_if.payload_last  = payload_last && axi_ready;
     response_if.payload       = '{
       data:             payload_data,
       byte_enable:      '0,
       response_status:  payload_status,
-      byte_end:         (payload_last) ? payload_byte_end : '0,
-      last_response:    (payload_last) ? rlast            : '0
+      byte_end:         (response_if.payload_last) ? payload_byte_end : '0,
+      last_response:    (response_if.payload_last) ? rlast            : '0
     };
   end
 

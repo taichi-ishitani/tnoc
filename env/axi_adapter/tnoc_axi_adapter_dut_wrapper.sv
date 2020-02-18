@@ -13,6 +13,7 @@ module tnoc_axi_adapter_dut_wrapper
   tvip_axi_if     slave_if[3],
   tvip_axi_if     master_if[3]
 );
+  typedef packet_types.tnoc_vc            tnoc_vc;
   typedef packet_types.tnoc_address       tnoc_address;
   typedef packet_types.tnoc_decode_result tnoc_decode_result;
 
@@ -92,6 +93,16 @@ module tnoc_axi_adapter_dut_wrapper
     return result;
   endfunction
 
+  tnoc_vc base_vc[2];
+  always_comb begin
+    void'(std::randomize(base_vc) with {
+      base_vc[0] != base_vc[1];
+      foreach (base_vc[i]) {
+        base_vc[i] inside {0, 1};
+      }
+    });
+  end
+
   for (genvar i = 0;i < 3;++i) begin : g_slave_adapter
     localparam  int ID_X      = (i == 0) ? 0
                               : (i == 1) ? 2 : 1;
@@ -167,17 +178,18 @@ module tnoc_axi_adapter_dut_wrapper
       .PACKET_CONFIG  (PACKET_CONFIG  ),
       .AXI_CONFIG     (AXI_CONFIG     )
     ) u_adapter (
-      .packet_types     (packet_types           ),
-      .axi_types        (axi_types              ),
-      .i_clk            (i_clk                  ),
-      .i_rst_n          (i_rst_n                ),
-      .i_id_x           (ID_X[ID_X_WIDTH-1:0]   ),
-      .i_id_y           (ID_Y[ID_Y_WIDTH-1:0]   ),
-      .write_decoder_if (decoder_if[0]          ),
-      .read_decoder_if  (decoder_if[1]          ),
-      .axi_if           (axi_if                 ),
-      .receiver_if      (flit_f2a_if[IF_INDEX]  ),
-      .sender_if        (flit_a2f_if[IF_INDEX]  )
+      .packet_types       (packet_types           ),
+      .axi_types          (axi_types              ),
+      .i_clk              (i_clk                  ),
+      .i_rst_n            (i_rst_n                ),
+      .i_id_x             (ID_X[ID_X_WIDTH-1:0]   ),
+      .i_id_y             (ID_Y[ID_Y_WIDTH-1:0]   ),
+      .i_request_base_vc  (base_vc[0]             ),
+      .write_decoder_if   (decoder_if[0]          ),
+      .read_decoder_if    (decoder_if[1]          ),
+      .axi_if             (axi_if                 ),
+      .receiver_if        (flit_f2a_if[IF_INDEX]  ),
+      .sender_if          (flit_a2f_if[IF_INDEX]  )
     );
   end
 
@@ -240,15 +252,16 @@ module tnoc_axi_adapter_dut_wrapper
       .PACKET_CONFIG  (PACKET_CONFIG  ),
       .AXI_CONFIG     (AXI_CONFIG     )
     ) u_adapter (
-      .packet_types (packet_types           ),
-      .axi_types    (axi_types              ),
-      .i_clk        (i_clk                  ),
-      .i_rst_n      (i_rst_n                ),
-      .i_id_x       (ID_X[ID_X_WIDTH-1:0]   ),
-      .i_id_y       (ID_Y[ID_Y_WIDTH-1:0]   ),
-      .axi_if       (axi_if                 ),
-      .receiver_if  (flit_f2a_if[IF_INDEX]  ),
-      .sender_if    (flit_a2f_if[IF_INDEX]  )
+      .packet_types       (packet_types           ),
+      .axi_types          (axi_types              ),
+      .i_clk              (i_clk                  ),
+      .i_rst_n            (i_rst_n                ),
+      .i_id_x             (ID_X[ID_X_WIDTH-1:0]   ),
+      .i_id_y             (ID_Y[ID_Y_WIDTH-1:0]   ),
+      .i_response_base_vc (base_vc[1]             ),
+      .axi_if             (axi_if                 ),
+      .receiver_if        (flit_f2a_if[IF_INDEX]  ),
+      .sender_if          (flit_a2f_if[IF_INDEX]  )
     );
   end
 

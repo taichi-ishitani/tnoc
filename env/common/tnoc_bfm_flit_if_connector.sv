@@ -65,10 +65,10 @@ module tnoc_bfm_flit_if_connector
     if (MONITOR_MODE) begin : g_monitor
       for (genvar i = 0;i < CHANNELS;++i) begin : g
         always_comb begin
-          bfm_if[i].valid         = dut_if.valid[i];
-          bfm_if[i].ready         = dut_if.ready[i];
-          bfm_if[i].flit          = convert_to_bfm_flit(dut_if.flit[0]);
-          bfm_if[i].vc_available  = dut_if.vc_ready[i];
+          bfm_if[i].valid     = dut_if.valid[i];
+          bfm_if[i].ready     = dut_if.ready[i];
+          bfm_if[i].flit      = convert_to_bfm_flit(dut_if.flit[0]);
+          bfm_if[i].vc_ready  = dut_if.vc_ready[i];
         end
       end
     end
@@ -88,7 +88,7 @@ module tnoc_bfm_flit_if_connector
 
       for (genvar i = 0;i < CHANNELS;++i) begin : g
         always_comb begin
-          request[i]  = bfm_if[i].valid & bfm_if[i].vc_available;
+          request[i]  = bfm_if[i].valid & bfm_if[i].vc_ready;
           free[i]     = bfm_if[i].ready;
           bfm_flit[i] = bfm_if[i].flit;
         end
@@ -98,8 +98,8 @@ module tnoc_bfm_flit_if_connector
         end
 
         always_comb begin
-          bfm_if[i].ready         = dut_if.ready[i] & grant[i];
-          bfm_if[i].vc_available  = dut_if.vc_ready[i];
+          bfm_if[i].ready     = dut_if.ready[i] & grant[i];
+          bfm_if[i].vc_ready  = dut_if.vc_ready[i];
         end
       end
 

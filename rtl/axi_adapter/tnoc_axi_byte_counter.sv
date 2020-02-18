@@ -10,13 +10,13 @@ interface tnoc_axi_byte_counter
   input var logic i_clk,
   input var logic i_rst_n
 );
-  localparam  int                       PACKET_BYTE_WIDTH       = PACKET_CONFIG.data_width / 8;
-  localparam  int                       PACKET_BYTE_SIZE_WIDTH  = $clog2($clog2(PACKET_BYTE_WIDTH) + 1);
-  localparam  int                       PACKET_COUNTER_WIDTH    = $clog2(PACKET_BYTE_WIDTH);
-  localparam  int                       AXI_BYTE_WIDTH          = AXI_CONFIG.data_width / 8;
-  localparam  int                       AXI_BYTE_SIZE_WIDTH     = $clog2($clog2(AXI_BYTE_WIDTH) + 1);
-  localparam  int                       BYTE_SIZE_WIDTH         = AXI_BYTE_SIZE_WIDTH;
-  localparam  bit [BYTE_SIZE_WIDTH-1:0] PACKET_MAX_BYTE_SIZE    = $clog2(PACKET_BYTE_WIDTH);
+  localparam  int PACKET_BYTE_WIDTH       = PACKET_CONFIG.data_width / 8;
+  localparam  int PACKET_BYTE_SIZE_WIDTH  = $clog2($clog2(PACKET_BYTE_WIDTH) + 1);
+  localparam  int PACKET_COUNTER_WIDTH    = $clog2(PACKET_BYTE_WIDTH);
+  localparam  int AXI_BYTE_WIDTH          = AXI_CONFIG.data_width / 8;
+  localparam  int AXI_BYTE_SIZE_WIDTH     = $clog2($clog2(AXI_BYTE_WIDTH) + 1);
+  localparam  int BYTE_SIZE_WIDTH         = AXI_BYTE_SIZE_WIDTH;
+  localparam  int PACKET_MAX_BYTE_SIZE    = $clog2(PACKET_BYTE_WIDTH);
 
   logic                       initialize_valid;
   logic [BYTE_SIZE_WIDTH-1:0] initialize_byte_size;
@@ -57,12 +57,18 @@ interface tnoc_axi_byte_counter
   function automatic logic is_active_byte(
     logic [PACKET_COUNTER_WIDTH-1:0]  index
   );
-    logic [PACKET_COUNTER_WIDTH-0:0]  current_count[2];
-    current_count[0]  = {1'b0, byte_count[PACKET_COUNTER_WIDTH-1:0]};
-    current_count[1]  = byte_count_next[PACKET_COUNTER_WIDTH-0:0];
+    logic [PACKET_COUNTER_WIDTH-0:0]  index_begin;
+    logic [PACKET_COUNTER_WIDTH-0:0]  index_end;
+    logic                             overflow;
+
+    overflow    =
+      byte_count[PACKET_COUNTER_WIDTH] != byte_count_next[PACKET_COUNTER_WIDTH];
+    index_begin = {1'b0    , byte_count[PACKET_COUNTER_WIDTH-1:0]};
+    index_end   = {overflow, byte_count_next[PACKET_COUNTER_WIDTH-1:0]};
+
     return
-      ((PACKET_COUNTER_WIDTH + 1)'(index) >= current_count[0]) &&
-      ((PACKET_COUNTER_WIDTH + 1)'(index) <  current_count[1]);
+      ((PACKET_COUNTER_WIDTH + 1)'(index) >= index_begin) &&
+      ((PACKET_COUNTER_WIDTH + 1)'(index) <  index_end  );
   endfunction
 
   always_ff @(posedge i_clk, negedge i_rst_n) begin
@@ -108,7 +114,7 @@ interface tnoc_axi_byte_counter
     if (PACKET_BYTE_WIDTH >= AXI_BYTE_WIDTH) begin
       return byte_size;
     end
-    else if (byte_size >= PACKET_MAX_BYTE_SIZE) begin
+    else if (byte_size > PACKET_MAX_BYTE_SIZE) begin
       return PACKET_MAX_BYTE_SIZE;
     end
     else begin
