@@ -108,7 +108,7 @@ interface tnoc_axi_byte_counter
     end
   endfunction
 
-  function logic [BYTE_SIZE_WIDTH-1:0] clip_byte_size(
+  function automatic logic [BYTE_SIZE_WIDTH-1:0] clip_byte_size(
     logic [BYTE_SIZE_WIDTH-1:0] byte_size
   );
     if (PACKET_BYTE_WIDTH >= AXI_BYTE_WIDTH) begin

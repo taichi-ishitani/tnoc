@@ -24,7 +24,7 @@ module tnoc_output_block
 
   if (is_local_port(PORT_TYPE)) begin : g_local_port
     for (genvar i = 0;i < CHANNELS;++i) begin : g
-      for (genvar j = 0;j < 5;++j) begin
+      for (genvar j = 0;j < 5;++j) begin : g
         always_comb begin
           port_if[5*i+j].valid        = receiver_if[j].valid[i];
           receiver_if[j].ready[i]     = port_if[5*i+j].ready;

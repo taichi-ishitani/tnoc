@@ -9,7 +9,7 @@ module tnoc_flit_if_dummy_receiver_array
 )(
   tnoc_flit_if.receiver receiver_if[ENTRIES]
 );
-  for (genvar i = 0;i < ENTRIES;++i) begin
+  for (genvar i = 0;i < ENTRIES;++i) begin : g
     assign  receiver_if[i].ready    = {CHANNELS{READY}};
     assign  receiver_if[i].vc_ready = {CHANNELS{VC_READY}};
   end
