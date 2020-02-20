@@ -1,0 +1,24 @@
+name: svlint
+
+on: [push, pull_request]
+
+jobs:
+  svlint:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v2
+
+      - name: Install svlint
+        run: |
+          sudo snap install svlint --edge
+      - name: Run svlint
+        run: |
+          svlint \
+            -v \
+            -f ${TNOC_HOME}/rtl/common/compile.f \
+            -f ${TNOC_HOME}/rtl/router/compile.f \
+            -f ${TNOC_HOME}/rtl/fabric/compile.f \
+            -f ${TNOC_HOME}/rtl/axi_adapter/compile.f
+        env:
+          TNOC_HOME: ${{ github.workspace }}

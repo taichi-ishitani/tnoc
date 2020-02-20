@@ -208,7 +208,7 @@ module tnoc_axi_slave_read_adapter
     end
 
     for (genvar i = 0;i < WORDS;++i) begin : g
-      if (i < (WORDS - 1)) begin
+      if (i < (WORDS - 1)) begin : g
         tnoc_data payload_data_latched;
 
         always_comb begin
@@ -226,7 +226,7 @@ module tnoc_axi_slave_read_adapter
           end
         end
       end
-      else begin
+      else begin : g
         always_comb begin
           payload_data[i] = response_if.payload.data;
         end

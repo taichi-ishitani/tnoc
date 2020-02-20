@@ -63,7 +63,7 @@ package tnoc_pkg;
     max_byte_length:  `TNOC_DEFAULT_MAX_BYTE_LENGTH
   };
 
-  function automatic int clog2(bit [31:0] n);
+  function automatic int tnoc_clog2(bit [31:0] n);
     int result;
 
     result  = 0;
@@ -84,7 +84,7 @@ package tnoc_pkg;
 
   function automatic int get_id_x_width(tnoc_packet_config packet_config);
     if (packet_config.size_x >= 2) begin
-      return clog2(packet_config.size_x);
+      return tnoc_clog2(packet_config.size_x);
     end
     else begin
       return 1;
@@ -93,7 +93,7 @@ package tnoc_pkg;
 
   function automatic int get_id_y_width(tnoc_packet_config packet_config);
     if (packet_config.size_y >= 2) begin
-      return clog2(packet_config.size_y);
+      return tnoc_clog2(packet_config.size_y);
     end
     else begin
       return 1;
@@ -106,7 +106,7 @@ package tnoc_pkg;
 
   function automatic int get_vc_width(tnoc_packet_config packet_config);
     if (packet_config.virtual_channels >= 2) begin
-      return clog2(packet_config.virtual_channels);
+      return tnoc_clog2(packet_config.virtual_channels);
     end
     else begin
       return 1;
@@ -115,7 +115,7 @@ package tnoc_pkg;
 
   function automatic int get_tag_width(tnoc_packet_config packet_config);
     if (packet_config.tags >= 2) begin
-      return clog2(packet_config.tags);
+      return tnoc_clog2(packet_config.tags);
     end
     else begin
       return 1;
@@ -124,7 +124,7 @@ package tnoc_pkg;
 
   function automatic int get_byte_size_width(tnoc_packet_config packet_config);
     if (packet_config.max_data_width >= 16) begin
-      return clog2(clog2(packet_config.max_data_width / 8) + 1);
+      return tnoc_clog2(tnoc_clog2(packet_config.max_data_width / 8) + 1);
     end
     else begin
       return 1;
@@ -132,12 +132,12 @@ package tnoc_pkg;
   endfunction
 
   function automatic int get_byte_length_width(tnoc_packet_config packet_config);
-    return clog2(packet_config.max_byte_length + 1);
+    return tnoc_clog2(packet_config.max_byte_length + 1);
   endfunction
 
   function automatic int get_packed_byte_length_width(tnoc_packet_config packet_config);
     if (packet_config.max_byte_length >= 2) begin
-      return clog2(packet_config.max_byte_length);
+      return tnoc_clog2(packet_config.max_byte_length);
     end
     else begin
       return 1;
@@ -146,7 +146,7 @@ package tnoc_pkg;
 
   function automatic int get_byte_offset_width(tnoc_packet_config packet_config);
     if (packet_config.max_data_width >= 16) begin
-      return clog2(packet_config.max_data_width / 8);
+      return tnoc_clog2(packet_config.max_data_width / 8);
     end
     else begin
       return 1;
@@ -155,7 +155,7 @@ package tnoc_pkg;
 
   function automatic int get_byte_end_width(tnoc_packet_config packet_config);
     if (packet_config.data_width >= 16) begin
-      return $clog2(packet_config.data_width / 8);
+      return tnoc_clog2(packet_config.data_width / 8);
     end
     else begin
       return 1;
@@ -165,7 +165,7 @@ package tnoc_pkg;
   function automatic int get_burst_length_width(tnoc_packet_config packet_config);
     int byte_width;
     byte_width  = packet_config.data_width / 8;
-    return clog2((packet_config.max_byte_length / byte_width) + 1);
+    return tnoc_clog2((packet_config.max_byte_length / byte_width) + 1);
   endfunction
 
 //--------------------------------------------------------------

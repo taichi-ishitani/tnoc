@@ -21,7 +21,7 @@ module tnoc_vc_splitter
         sender_if[i].flit = receiver_if.flit[i];
       end
     end
-    else begin
+    else begin : g
       always_comb begin
         sender_if[i].flit = receiver_if.flit;
       end
