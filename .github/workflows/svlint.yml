@@ -9,16 +9,13 @@ jobs:
     steps:
       - uses: actions/checkout@v2
 
-      - name: Install svlint
-        run: |
-          sudo snap install svlint --edge
       - name: Run svlint
-        run: |
-          svlint \
-            -v \
-            -f ${TNOC_HOME}/rtl/common/compile.f \
-            -f ${TNOC_HOME}/rtl/router/compile.f \
-            -f ${TNOC_HOME}/rtl/fabric/compile.f \
-            -f ${TNOC_HOME}/rtl/axi_adapter/compile.f
+        uses: dalance/svlint-action@v1
+        with:
+          filelists: |
+            rtl/common/compile.f
+            rtl/router/compile.f
+            rtl/fabric/compile.f
+            rtl/axi_adapter/compile.f
         env:
           TNOC_HOME: ${{ github.workspace }}
