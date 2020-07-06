@@ -7,3 +7,6 @@
 [submodule "rtl/bcm"]
 	path = rtl/bcm
 	url = git@github.com:taichi-ishitani/tbcm.git
+[submodule "env/vip_common"]
+	path = env/vip_common
+	url = git@github.com:taichi-ishitani/tvip-common.git

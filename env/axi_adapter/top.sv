@@ -186,10 +186,9 @@ module top();
         axi_slave_cfg[i].arready_delay.weight_short_delay == 2;
         axi_slave_cfg[i].arready_delay.weight_long_delay  == 1;
 
-        if (i == 5) {
-          axi_slave_cfg[i].response_ordering == TVIP_AXI_OUT_OF_ORDER;
-          axi_slave_cfg[i].interleave_depth inside {[2:32]};
-        }
+        axi_slave_cfg[i].enable_response_interleaving == (i == 5);
+        axi_slave_cfg[i].response_ordering            == TVIP_AXI_OUT_OF_ORDER;
+        axi_slave_cfg[i].outstanding_responses inside {[4:32]};
       }
       foreach (fabric_env_cfg.bfm_cfg[i]) {
         fabric_env_cfg.bfm_cfg[i].agent_mode       == UVM_PASSIVE;

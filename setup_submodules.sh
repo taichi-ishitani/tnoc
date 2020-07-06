@@ -2,6 +2,7 @@
 submodules=(
   rtl/bcm
   env/tue
+  env/vip_common
   env/axi_vip
 )
 

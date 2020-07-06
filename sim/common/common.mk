@@ -13,14 +13,16 @@ TIMEOUT					?= 1_000_000
 MAX_ERROR_COUNT	?= 1
 SIMULATOR				?= vcs
 
-TNOC_HOME			?= $(shell git rev-parse --show-toplevel)
-TBCM_HOME			?= $(TNOC_HOME)/rtl/bcm
-TUE_HOME			?= $(TNOC_HOME)/env/tue
-TVIP_AXI_HOME	?= $(TNOC_HOME)/env/axi_vip
+TNOC_HOME					?= $(shell git rev-parse --show-toplevel)
+TBCM_HOME					?= $(TNOC_HOME)/rtl/bcm
+TUE_HOME					?= $(TNOC_HOME)/env/tue
+TVIP_COMMON_HOME	?= $(TNOC_HOME)/env/vip_common
+TVIP_AXI_HOME			?= $(TNOC_HOME)/env/axi_vip
 
 export TNOC_HOME
 export TBCM_HOME
 export TUE_HOME
+export TVIP_COMMON_HOME
 export TVIP_AXI_HOME
 
 -include local.mk
