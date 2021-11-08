@@ -61,11 +61,11 @@ module top();
       .PORT_TYPE      (TNOC_LOCAL_PORT  ),
       .MONITOR_MODE   (0                )
     ) u_connector_bfm_to_dut (
-      .types    (types                                       ),
-      .i_clk    (clk                                         ),
-      .i_rst_n  (rst_n                                       ),
-      .dut_if   (flit_if_b2d[i]                              ),
-      .bfm_if   (bfm_flit_if_b2d[CHANNELS*i:CHANNELS*(i+1)-1])
+      .types    (types                                        ),
+      .i_clk    (clk                                          ),
+      .i_rst_n  (rst_n                                        ),
+      .dut_if   (flit_if_b2d[i]                               ),
+      .bfm_if   (bfm_flit_if_b2d[CHANNELS*i:CHANNELS*(i+1)-1] )
     );
 
     tnoc_bfm_flit_if_connector #(
@@ -73,11 +73,11 @@ module top();
       .PORT_TYPE      (TNOC_LOCAL_PORT  ),
       .MONITOR_MODE   (1                )
     ) u_connector_dut_to_bfm (
-      .types    (types                                       ),
-      .i_clk    (clk                                         ),
-      .i_rst_n  (rst_n                                       ),
-      .dut_if   (flit_if_d2b[i]                              ),
-      .bfm_if   (bfm_flit_if_d2b[CHANNELS*i:CHANNELS*(i+1)-1])
+      .types    (types                                        ),
+      .i_clk    (clk                                          ),
+      .i_rst_n  (rst_n                                        ),
+      .dut_if   (flit_if_d2b[i]                               ),
+      .bfm_if   (bfm_flit_if_d2b[CHANNELS*i:CHANNELS*(i+1)-1] )
     );
   end
 
