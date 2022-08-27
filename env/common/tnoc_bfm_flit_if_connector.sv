@@ -42,7 +42,7 @@ module tnoc_bfm_flit_if_connector
   if (is_local_port(PORT_TYPE)) begin : g_local_port
     if (MONITOR_MODE) begin : g_monitor
       for (genvar i = 0;i < CHANNELS;++i) begin : g
-        always_comb begin
+        always @* begin
           bfm_if[i].valid     = dut_if.valid[i];
           bfm_if[i].ready     = dut_if.ready[i];
           bfm_if[i].flit      = convert_to_bfm_flit(dut_if.flit[i]);
@@ -52,7 +52,7 @@ module tnoc_bfm_flit_if_connector
     end
     else begin : g_driver
       for (genvar i = 0;i < CHANNELS;++i) begin : g
-        always_comb begin
+        always @* begin
           dut_if.valid[i]     = bfm_if[i].valid;
           bfm_if[i].ready     = dut_if.ready[i];
           dut_if.flit[i]      = convert_to_dut_flit(bfm_if[i].flit);
@@ -64,7 +64,7 @@ module tnoc_bfm_flit_if_connector
   else begin : g_internal_port
     if (MONITOR_MODE) begin : g_monitor
       for (genvar i = 0;i < CHANNELS;++i) begin : g
-        always_comb begin
+        always @* begin
           bfm_if[i].valid     = dut_if.valid[i];
           bfm_if[i].ready     = dut_if.ready[i];
           bfm_if[i].flit      = convert_to_bfm_flit(dut_if.flit[0]);
@@ -87,17 +87,17 @@ module tnoc_bfm_flit_if_connector
       );
 
       for (genvar i = 0;i < CHANNELS;++i) begin : g
-        always_comb begin
+        always @* begin
           request[i]  = bfm_if[i].valid & bfm_if[i].vc_ready;
           free[i]     = bfm_if[i].ready;
           bfm_flit[i] = bfm_if[i].flit;
         end
 
-        always_comb begin
+        always @* begin
           dut_if.valid[i] = bfm_if[i].valid & grant[i];
         end
 
-        always_comb begin
+        always @* begin
           bfm_if[i].ready     = dut_if.ready[i] & grant[i];
           bfm_if[i].vc_ready  = dut_if.vc_ready[i];
         end
@@ -109,7 +109,7 @@ module tnoc_bfm_flit_if_connector
         .ONE_HOT      (1              )
       ) u_selector();
 
-      always_comb begin
+      always @* begin
         dut_if.flit[0]  = convert_to_dut_flit(
           u_selector.mux(grant, bfm_flit)
         );

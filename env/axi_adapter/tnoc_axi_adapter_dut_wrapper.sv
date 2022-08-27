@@ -114,21 +114,21 @@ module tnoc_axi_adapter_dut_wrapper
     tnoc_address_decoder_if #(PACKET_CONFIG)  decoder_if[2](packet_types);
     tnoc_decode_result  [1:0]                 decode_result;
 
-    always_comb begin
+    always @* begin
       decode_result[0]            = decode_address(decoder_if[0].address);
       decoder_if[0].id_x          = decode_result[0].id.x;
       decoder_if[0].id_y          = decode_result[0].id.y;
       decoder_if[0].decode_error  = decode_result[0].decode_error;
     end
 
-    always_comb begin
+    always @* begin
       decode_result[1]            = decode_address(decoder_if[1].address);
       decoder_if[1].id_x          = decode_result[1].id.x;
       decoder_if[1].id_y          = decode_result[1].id.y;
       decoder_if[1].decode_error  = decode_result[1].decode_error;
     end
 
-    always_comb begin
+    always @* begin
       axi_if.awvalid      = slave_if[i].awvalid;
       slave_if[i].awready = axi_if.awready;
       axi_if.awid         = slave_if[i].awid;
@@ -139,7 +139,7 @@ module tnoc_axi_adapter_dut_wrapper
       axi_if.awqos        = slave_if[i].awqos;
     end
 
-    always_comb begin
+    always @* begin
       axi_if.wvalid       = slave_if[i].wvalid;
       slave_if[i].wready  = axi_if.wready;
       axi_if.wdata        = slave_if[i].wdata;
@@ -147,14 +147,14 @@ module tnoc_axi_adapter_dut_wrapper
       axi_if.wlast        = slave_if[i].wlast;
     end
 
-    always_comb begin
+    always @* begin
       slave_if[i].bvalid  = axi_if.bvalid;
       axi_if.bready       = slave_if[i].bready;
       slave_if[i].bid     = axi_if.bid;
       slave_if[i].bresp   = tvip_axi_response'(axi_if.bresp);
     end
 
-    always_comb begin
+    always @* begin
       axi_if.arvalid      = slave_if[i].arvalid;
       slave_if[i].arready = axi_if.arready;
       axi_if.arid         = slave_if[i].arid;
@@ -165,7 +165,7 @@ module tnoc_axi_adapter_dut_wrapper
       axi_if.arqos        = slave_if[i].arqos;
     end
 
-    always_comb begin
+    always @* begin
       slave_if[i].rvalid  = axi_if.rvalid;
       axi_if.rready       = slave_if[i].rready;
       slave_if[i].rid     = axi_if.rid;
@@ -202,7 +202,7 @@ module tnoc_axi_adapter_dut_wrapper
 
     tnoc_axi_if #(AXI_CONFIG) axi_if(axi_types);
 
-    always_comb begin
+    always @* begin
       master_if[i].awvalid  = axi_if.awvalid;
       axi_if.awready        = master_if[i].awready;
       master_if[i].awid     = axi_if.awid;
@@ -213,7 +213,7 @@ module tnoc_axi_adapter_dut_wrapper
       master_if[i].awqos    = axi_if.awqos;
     end
 
-    always_comb begin
+    always @* begin
       master_if[i].wvalid = axi_if.wvalid;
       axi_if.wready       = master_if[i].wready;
       master_if[i].wdata  = axi_if.wdata;
@@ -221,14 +221,14 @@ module tnoc_axi_adapter_dut_wrapper
       master_if[i].wlast  = axi_if.wlast;
     end
 
-    always_comb begin
+    always @* begin
       axi_if.bvalid       = master_if[i].bvalid;
       master_if[i].bready = axi_if.bready;
       axi_if.bid          = master_if[i].bid;
       axi_if.bresp        = tnoc_axi_response'(master_if[i].bresp);
     end
 
-    always_comb begin
+    always @* begin
       master_if[i].arvalid  = axi_if.arvalid;
       axi_if.arready        = master_if[i].arready;
       master_if[i].arid     = axi_if.arid;
@@ -239,7 +239,7 @@ module tnoc_axi_adapter_dut_wrapper
       master_if[i].arqos    = axi_if.arqos;
     end
 
-    always_comb begin
+    always @* begin
       axi_if.rvalid       = master_if[i].rvalid;
       master_if[i].rready = axi_if.rready;
       axi_if.rid          = master_if[i].rid;
